@@ -1022,6 +1022,7 @@ select.form-input option { background: var(--card2); color: var(--text); }
     <div class="mode-row">
       <div class="mode-btn active" id="modeAlone" onclick="setMode('alone')"><span class="icon">🏋️</span><div class="label">Solo</div><div class="sub">Individual</div></div>
       <div class="mode-btn" id="modePartner" onclick="setMode('partner')"><span class="icon">🤝</span><div class="label">Dupla</div><div class="sub">2 atletas</div></div>
+      <div class="mode-btn" id="modeGroup" onclick="setMode('group')"><span class="icon">👥</span><div class="label">Grupo</div><div class="sub">3+ atletas</div></div>
       <div class="mode-btn" id="modeFree" onclick="setMode('free')"><span class="icon">⚡</span><div class="label">Livre</div><div class="sub">Custom</div></div>
     </div>
     <div id="soloUserSel" class="user-selector">
@@ -1030,12 +1031,19 @@ select.form-input option { background: var(--card2); color: var(--text); }
     </div>
     <div id="partnerUserSel" style="display:none;">
       <div class="user-selector">
-        <div class="user-selector-label" style="color:var(--primary);">Atleta 1 (P1)</div>
+        <div class="user-selector-label" style="color:var(--primary);">Atleta 1 — P1</div>
         <div class="user-pills" id="p1UserPills"></div>
       </div>
       <div class="user-selector" style="margin-top:8px;">
-        <div class="user-selector-label" style="color:var(--blue);">Atleta 2 (P2)</div>
+        <div class="user-selector-label" style="color:var(--blue);">Atleta 2 — P2</div>
         <div class="user-pills" id="p2UserPills"></div>
+      </div>
+    </div>
+    <div id="groupUserSel" style="display:none;">
+      <div class="user-selector">
+        <div class="user-selector-label">Selecionar atletas do grupo</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Atleta 1 é sempre P1. Toque para selecionar/desmarcar.</div>
+        <div class="user-pills" id="groupUserPills"></div>
       </div>
     </div>
   </div>
@@ -1153,6 +1161,10 @@ select.form-input option { background: var(--card2); color: var(--text); }
           <div class="form-group"><label class="form-label">Desc.</label><select class="form-input" id="p2rest"><option value="30">30s</option><option value="60" selected>1min</option><option value="90">90s</option><option value="120">2min</option></select></div>
         </div>
       </div>
+      <!-- GROUP FORM — dynamically rendered -->
+      <div id="groupForm" style="display:none;">
+        <div id="groupMembersForm"></div>
+      </div>
       <div class="btn-row"><button class="btn btn-primary" onclick="logSerie()">+ Registrar Série</button></div>
     </div>
     <div class="timer-box" id="timerBox">
@@ -1259,8 +1271,9 @@ select.form-input option { background: var(--card2); color: var(--text); }
   </div>
 
   <div class="settings-section">
-    <div class="settings-section-title">Atletas (máx. 4)</div>
+    <div class="settings-section-title">Atletas cadastrados</div>
     <div class="athlete-slots" id="athleteSlots"></div>
+    <button class="btn btn-primary" onclick="openAddAthletePanel()" style="margin-top:8px;">+ Adicionar Atleta</button>
   </div>
 
   <div class="settings-section">
@@ -1321,7 +1334,7 @@ select.form-input option { background: var(--card2); color: var(--text); }
 
   <div class="version-info">
     <div class="v-logo"><span>W</span> GYM PRO</div>
-    <div class="v-ver">Versão 5.0 · Grupos Customizados · Painel de Exercícios · 2025</div>
+    <div class="v-ver">Versão 10.0 · Atletas Ilimitados · Treino em Grupo · P1/P2 Fixos · 2025</div>
   </div>
 </div>
 
@@ -1534,6 +1547,7 @@ let state = {
   mode: 'alone', group: null, selectedEx: null, currentSeries: [],
   completedEx: {}, activeTraining: false, trainStart: null,
   activeUserId: null, activeP1Id: null, activeP2Id: null, dashUserId: null,
+  groupUserIds: [], // ordered list of user IDs for group mode
   sheetSelected: [],
   freeSelected: [], freeCustomExercises: [], customExByGroup: {},
   editingUserId: null, selectedAvatar: '🏋️',
@@ -1567,120 +1581,138 @@ function applyTheme(t) {
 function toggleTheme() { const n = settings.theme === 'dark' ? 'light' : 'dark'; applyTheme(n); showToast(n === 'dark' ? '🌙 Tema Dark' : '☀️ Tema Light'); }
 
 // ═══════════════════════════════════════════════════════
-// USER MANAGEMENT — Fixed slots (Atleta 1–4)
+// USER MANAGEMENT — Unlimited athletes, fixed order (P1=slot0, P2=slot1...)
 // ═══════════════════════════════════════════════════════
-const MAX_ATHLETES = 4;
-
 function saveUsers() { localStorage.setItem('wgym_users', JSON.stringify(users)); }
 
-function normalizeSlots() {
-  if (!Array.isArray(users)) users = [];
-  while (users.length < MAX_ATHLETES) users.push(null);
-  users = users.slice(0, MAX_ATHLETES);
-}
-
 function getActiveUsers() {
-  normalizeSlots();
-  return users.filter(u => u !== null);
+  if (!Array.isArray(users)) users = [];
+  return users.filter(u => u !== null && u !== undefined);
 }
 
-// ── Render the 4 fixed slots ──
+// Migrate old slot-based array (nulls) to clean array
+function migrateUsers() {
+  if (!Array.isArray(users)) { users = []; return; }
+  users = users.filter(u => u !== null && u !== undefined);
+}
+
+// ── Render athlete list (unlimited) ──
 function renderAthleteSlots() {
   const container = document.getElementById('athleteSlots');
   if (!container) return;
-  normalizeSlots();
+  migrateUsers();
+  const active = getActiveUsers();
 
-  container.innerHTML = users.map((u, i) => {
-    const filled = !!u;
-    const tc = u ? history.filter(h => h.userId === u.id || h.userId2 === u.id).length : 0;
-    const isActive = u && (state.activeUserId === u.id || state.activeP1Id === u.id || state.activeP2Id === u.id);
+  if (!active.length) {
+    container.innerHTML = `<div class="empty" style="padding:20px 0;"><div class="empty-icon" style="font-size:32px;">👤</div><div class="empty-text" style="font-size:13px;">Nenhum atleta cadastrado.<br>Adicione atletas para rastrear treinos.</div></div>`;
+    return;
+  }
 
-    if (filled) {
-      return `
-      <div class="athlete-slot filled ${isActive ? 'active-slot' : ''}" id="slot_${i}">
-        <div class="athlete-slot-main">
-          <div class="slot-number">${i + 1}</div>
-          <div class="slot-avatar" onclick="openSlotEdit(${i})">${u.avatar}</div>
-          <div class="slot-info">
-            <div class="slot-name">${u.name}${isActive ? '<span class="slot-active-badge">ativo</span>' : ''}</div>
-            <div class="slot-stats">${tc} treino${tc !== 1 ? 's' : ''} registrado${tc !== 1 ? 's' : ''}</div>
-          </div>
-          <div class="slot-actions">
-            <button class="slot-btn edit" onclick="openSlotEdit(${i})" title="Editar">✏️</button>
-            <button class="slot-btn del" onclick="clearSlot(${i})" title="Remover">🗑</button>
-          </div>
+  const SLOT_COLORS = ['var(--primary)','var(--blue)','var(--success)','var(--warning)','#AA44FF','#FF6B9D','#00CED1','#FF8C00'];
+
+  container.innerHTML = active.map((u, i) => {
+    const color = SLOT_COLORS[i % SLOT_COLORS.length];
+    const tc = history.filter(h => h.userId === u.id || h.groupUserIds?.includes(u.id)).length;
+    return `<div class="athlete-slot" id="slot_${i}">
+      <div class="athlete-slot-main">
+        <div class="slot-number" style="background:${color}20;color:${color};border:1.5px solid ${color}40;">${i+1}</div>
+        <div class="slot-avatar" onclick="openSlotEdit(${i})" style="cursor:pointer;">${u.avatar}</div>
+        <div class="slot-info">
+          <div class="slot-name">${u.name} <span style="font-size:10px;font-weight:600;color:${color};background:${color}18;padding:1px 7px;border-radius:10px;">P${i+1}</span></div>
+          <div class="slot-stats">${tc} treino${tc!==1?'s':''} registrado${tc!==1?'s':''}</div>
         </div>
-        <div class="slot-edit-panel" id="slotEdit_${i}">
-          <div class="form-group">
-            <label class="form-label">Nome do atleta ${i + 1}</label>
-            <input class="form-input form-input-left" type="text" id="slotNameIn_${i}"
-              value="${u.name}" maxlength="20" placeholder="Nome do atleta">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Avatar</label>
-            <div class="slot-emoji-row" id="slotEmoji_${i}"></div>
-          </div>
-          <div class="slot-edit-actions">
-            <button class="slot-cancel-btn" onclick="closeSlotEdit(${i})">Cancelar</button>
-            <button class="slot-save-confirm" onclick="saveSlot(${i})">✓ Salvar</button>
-          </div>
+        <div class="slot-actions">
+          <button class="slot-btn edit" onclick="openSlotEdit(${i})" title="Editar">✏️</button>
+          <button class="slot-btn del" onclick="clearSlot(${i})" title="Remover">🗑</button>
         </div>
-      </div>`;
-    } else {
-      return `
-      <div class="athlete-slot" id="slot_${i}">
-        <div class="athlete-slot-main">
-          <div class="slot-number">${i + 1}</div>
-          <div class="slot-avatar">➕</div>
-          <div class="slot-info">
-            <div class="slot-empty-label">Atleta ${i + 1} — vazio</div>
-            <div class="slot-stats">Toque em "+ Adicionar" para cadastrar</div>
-          </div>
-          <div class="slot-actions">
-            <button class="slot-btn add" onclick="openSlotEdit(${i})">+ Adicionar</button>
-          </div>
+      </div>
+      <div class="slot-edit-panel" id="slotEdit_${i}">
+        <div class="form-group">
+          <label class="form-label">Nome — P${i+1}</label>
+          <input class="form-input form-input-left" type="text" id="slotNameIn_${i}" value="${u.name}" maxlength="20" placeholder="Nome do atleta">
         </div>
-        <div class="slot-edit-panel" id="slotEdit_${i}">
-          <div class="form-group">
-            <label class="form-label">Nome do atleta ${i + 1}</label>
-            <input class="form-input form-input-left" type="text" id="slotNameIn_${i}"
-              value="" maxlength="20" placeholder="Ex: João, Maria...">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Avatar</label>
-            <div class="slot-emoji-row" id="slotEmoji_${i}"></div>
-          </div>
-          <div class="slot-edit-actions">
-            <button class="slot-cancel-btn" onclick="closeSlotEdit(${i})">Cancelar</button>
-            <button class="slot-save-confirm" onclick="saveSlot(${i})">✓ Cadastrar</button>
-          </div>
+        <div class="form-group">
+          <label class="form-label">Avatar</label>
+          <div class="slot-emoji-row" id="slotEmoji_${i}"></div>
         </div>
-      </div>`;
-    }
+        <div class="slot-edit-actions">
+          <button class="slot-cancel-btn" onclick="closeSlotEdit(${i})">Cancelar</button>
+          <button class="slot-save-confirm" onclick="saveSlot(${i})">✓ Salvar</button>
+        </div>
+      </div>
+    </div>`;
   }).join('');
 }
 
+// New athlete panel (add mode)
+let _addAthleteOpen = false;
+function openAddAthletePanel() {
+  // inject a temporary form below the list
+  const container = document.getElementById('athleteSlots');
+  const newIdx = getActiveUsers().length;
+  const SLOT_COLORS = ['var(--primary)','var(--blue)','var(--success)','var(--warning)','#AA44FF','#FF6B9D','#00CED1','#FF8C00'];
+  const color = SLOT_COLORS[newIdx % SLOT_COLORS.length];
+
+  // Create a temporary slot div for the new athlete
+  const tmp = document.createElement('div');
+  tmp.className = 'athlete-slot';
+  tmp.id = 'slot_new';
+  tmp.innerHTML = `
+    <div class="slot-edit-panel open" id="slotEdit_new">
+      <div class="form-group">
+        <label class="form-label" style="color:${color};">Novo Atleta — P${newIdx+1}</label>
+        <input class="form-input form-input-left" type="text" id="slotNameIn_new" maxlength="20" placeholder="Nome do atleta">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Avatar</label>
+        <div class="slot-emoji-row" id="slotEmoji_new">${AVATARS.map(em=>`<div class="slot-emoji-opt ${em==='🏋️'?'selected':''}" onclick="pickSlotEmoji('new','${em}')">${em}</div>`).join('')}</div>
+      </div>
+      <div class="slot-edit-actions">
+        <button class="slot-cancel-btn" onclick="cancelAddAthlete()">Cancelar</button>
+        <button class="slot-save-confirm" onclick="saveNewAthlete()">✓ Cadastrar</button>
+      </div>
+    </div>`;
+  container.appendChild(tmp);
+  setTimeout(() => { const inp = document.getElementById('slotNameIn_new'); if(inp) inp.focus(); }, 150);
+}
+
+function cancelAddAthlete() {
+  const el = document.getElementById('slot_new'); if(el) el.remove();
+}
+
+function saveNewAthlete() {
+  const nameEl = document.getElementById('slotNameIn_new');
+  const name = nameEl ? nameEl.value.trim() : '';
+  if (!name) { showToast('⚠️ Digite o nome do atleta'); return; }
+  const dup = getActiveUsers().some(u => u.name.toLowerCase() === name.toLowerCase());
+  if (dup) { showToast('⚠️ "'+name+'" já está cadastrado!'); return; }
+  const avatar = getSlotEmoji('new');
+  const newIdx = getActiveUsers().length;
+  users.push({ id: 'athlete_'+ Date.now(), slotIndex: newIdx, name, avatar, createdAt: new Date().toISOString() });
+  saveUsers();
+  cancelAddAthlete();
+  renderAthleteSlots();
+  renderUserSelectors();
+  showToast('✅ ' + name + ' cadastrado como P' + (newIdx+1));
+}
+
 function openSlotEdit(i) {
-  // Close any other open panels
-  for (let j = 0; j < MAX_ATHLETES; j++) {
-    if (j !== i) closeSlotEdit(j);
-  }
+  const active = getActiveUsers();
+  // close others
+  active.forEach((_, j) => { if(j!==i) closeSlotEdit(j); });
+  cancelAddAthlete();
   const panel = document.getElementById('slotEdit_' + i);
   if (!panel) return;
   panel.classList.add('open');
-  // Populate emoji grid
-  const current = users[i] ? users[i].avatar : '🏋️';
+  const u = active[i];
+  const current = u ? u.avatar : '🏋️';
   const emojiRow = document.getElementById('slotEmoji_' + i);
   if (emojiRow) {
     emojiRow.innerHTML = AVATARS.map(em =>
       `<div class="slot-emoji-opt ${em === current ? 'selected' : ''}" onclick="pickSlotEmoji(${i},'${em}')">${em}</div>`
     ).join('');
   }
-  // Focus name input
-  setTimeout(() => {
-    const inp = document.getElementById('slotNameIn_' + i);
-    if (inp) inp.focus();
-  }, 150);
+  setTimeout(() => { const inp = document.getElementById('slotNameIn_' + i); if (inp) inp.focus(); }, 150);
 }
 
 function closeSlotEdit(i) {
@@ -1691,10 +1723,7 @@ function closeSlotEdit(i) {
 function pickSlotEmoji(i, em) {
   const row = document.getElementById('slotEmoji_' + i);
   if (row) {
-    row.querySelectorAll('.slot-emoji-opt').forEach(el => el.classList.remove('selected'));
-    row.querySelectorAll('.slot-emoji-opt').forEach(el => {
-      if (el.textContent.trim() === em) el.classList.add('selected');
-    });
+    row.querySelectorAll('.slot-emoji-opt').forEach(el => el.classList.toggle('selected', el.textContent.trim() === em));
   }
 }
 
@@ -1706,65 +1735,46 @@ function getSlotEmoji(i) {
 }
 
 function saveSlot(i) {
-  normalizeSlots();
+  const active = getActiveUsers();
   const nameEl = document.getElementById('slotNameIn_' + i);
   const name = nameEl ? nameEl.value.trim() : '';
   if (!name) { showToast('⚠️ Digite o nome do atleta'); return; }
-
-  // Check uniqueness across other filled slots
-  const duplicate = users.some((u, idx) => idx !== i && u && u.name.toLowerCase() === name.toLowerCase());
-  if (duplicate) {
-    showToast('⚠️ "' + name + '" já está cadastrado!');
-    return;
-  }
-
+  const dup = active.some((u, idx) => idx !== i && u.name.toLowerCase() === name.toLowerCase());
+  if (dup) { showToast('⚠️ "'+name+'" já está cadastrado!'); return; }
   const avatar = getSlotEmoji(i);
-  const existing = users[i];
-  if (existing) {
-    const oldName = existing.name;
-    existing.name = name;
-    existing.avatar = avatar;
-    // Update active state names
-    if (state.activeUserId === existing.id) state.p1name = name;
-    if (state.activeP1Id === existing.id) state.p1name = name;
-    if (state.activeP2Id === existing.id) state.p2name = name;
-    // Update history entries
-    history.forEach(h => {
-      if (h.p1name === oldName) h.p1name = name;
-      if (h.p2name === oldName) h.p2name = name;
-    });
+  const u = active[i];
+  if (u) {
+    const oldName = u.name;
+    u.name = name; u.avatar = avatar;
+    history.forEach(h => { if(h.p1name===oldName)h.p1name=name; if(h.p2name===oldName)h.p2name=name; });
     saveHistory();
-  } else {
-    users[i] = {
-      id: 'athlete_' + (i + 1),
-      slotIndex: i,
-      name,
-      avatar,
-      createdAt: new Date().toISOString()
-    };
   }
   saveUsers();
   closeSlotEdit(i);
   renderAthleteSlots();
   renderUserSelectors();
-  showToast('✅ Atleta ' + (i + 1) + ': ' + name);
+  showToast('✅ P'+(i+1)+': ' + name + ' atualizado');
 }
 
 function clearSlot(i) {
-  normalizeSlots();
-  const u = users[i];
+  const active = getActiveUsers();
+  const u = active[i];
   if (!u) return;
-  if (!confirm(`Remover "${u.name}" do Atleta ${i + 1}?\nOs treinos registrados serão mantidos.`)) return;
+  if (!confirm(`Remover "${u.name}" (P${i+1})?\nTreinos registrados serão mantidos.`)) return;
+  // Remove from users array (find actual index in users)
+  const idx = users.findIndex(x => x && x.id === u.id);
+  if (idx >= 0) users.splice(idx, 1);
+  // Clean state
   if (state.activeUserId === u.id) state.activeUserId = null;
   if (state.activeP1Id === u.id) state.activeP1Id = null;
   if (state.activeP2Id === u.id) state.activeP2Id = null;
   if (state.dashUserId === u.id) state.dashUserId = null;
-  users[i] = null;
+  state.groupUserIds = (state.groupUserIds || []).filter(id => id !== u.id);
   saveUsers();
   renderAthleteSlots();
   renderUserSelectors();
   renderDashboard();
-  showToast('🗑 Atleta ' + (i + 1) + ' removido');
+  showToast('🗑 ' + u.name + ' removido');
 }
 
 // Legacy shims
@@ -1779,10 +1789,12 @@ function renderEmojiGrid() {
 function selectAvatar(em) { state.selectedAvatar = em; renderEmojiGrid(); }
 function saveUser() { showToast('Use os slots de Atleta nas Configurações'); }
 function deleteUser(userId) {
-  const idx = users.findIndex(u => u && u.id === userId);
+  const idx = getActiveUsers().findIndex(u => u && u.id === userId);
   if (idx >= 0) clearSlot(idx);
 }
 function renderUserList() { renderAthleteSlots(); }
+function normalizeSlots() { migrateUsers(); }
+
 
 // ═══════════════════════════════════════════════════════
 // PROFILE EDIT (account) — view/edit mode
@@ -1878,13 +1890,13 @@ function saveProfileEdits() {
 }
 
 // ═══════════════════════════════════════════════════════
-// USER SELECTORS
+// USER SELECTORS — P1 is always slot-0, P2 always slot-1, etc.
 // ═══════════════════════════════════════════════════════
-function renderUserSelectors() { renderSoloUserPills(); renderPartnerUserPills(); renderDashUserPills(); }
+function renderUserSelectors() { renderSoloUserPills(); renderPartnerUserPills(); renderGroupUserPills(); renderDashUserPills(); }
 
 function getActiveUsers() {
-  normalizeSlots();
-  return users.filter(u => u !== null);
+  if (!Array.isArray(users)) users = [];
+  return users.filter(u => u !== null && u !== undefined);
 }
 
 function renderSoloUserPills() {
@@ -1894,11 +1906,7 @@ function renderSoloUserPills() {
     el.innerHTML = `<span style="font-size:12px;color:var(--muted);">Nenhum atleta. <button onclick="goPage('config')" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:12px;font-weight:700;">Adicionar →</button></span>`;
     return;
   }
-  // Auto-select if only 1 user and none selected
-  if (active.length === 1 && !state.activeUserId) {
-    state.activeUserId = active[0].id;
-    state.p1name = active[0].name;
-  }
+  if (active.length === 1 && !state.activeUserId) { state.activeUserId = active[0].id; state.p1name = active[0].name; }
   el.innerHTML = active.map(u => `<div class="user-pill ${state.activeUserId===u.id?'selected':''}" onclick="selectSoloUser('${u.id}')"><span class="up-avatar">${u.avatar}</span>${u.name}</div>`).join('');
 }
 
@@ -1910,8 +1918,36 @@ function renderPartnerUserPills() {
     const msg = `<span style="font-size:12px;color:var(--muted);">Cadastre atletas em <button onclick="goPage('config')" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:12px;font-weight:700;">Config.</button></span>`;
     p1El.innerHTML = msg; p2El.innerHTML = msg; return;
   }
-  p1El.innerHTML = active.map(u => `<div class="user-pill ${state.activeP1Id===u.id?'selected':''}" onclick="selectP1User('${u.id}')"><span class="up-avatar">${u.avatar}</span>${u.name}</div>`).join('');
-  p2El.innerHTML = active.map(u => `<div class="user-pill ${state.activeP2Id===u.id?'p2-selected':''}" onclick="selectP2User('${u.id}')"><span class="up-avatar">${u.avatar}</span>${u.name}</div>`).join('');
+  // P1 is always the first athlete (index 0) — shown as fixed, not clickable
+  const p1 = active[0];
+  p1El.innerHTML = `<div class="user-pill selected" style="cursor:default;opacity:0.85;"><span class="up-avatar">${p1.avatar}</span>${p1.name} <span style="font-size:10px;color:var(--primary);font-weight:700;margin-left:2px;">P1 fixo</span></div>`;
+  if (!state.activeP1Id) { state.activeP1Id = p1.id; state.p1name = p1.name; }
+  // P2 is always second athlete (index 1) — also fixed for Dupla
+  if (active.length >= 2) {
+    const p2 = active[1];
+    p2El.innerHTML = `<div class="user-pill p2-selected" style="cursor:default;opacity:0.85;"><span class="up-avatar">${p2.avatar}</span>${p2.name} <span style="font-size:10px;color:var(--blue);font-weight:700;margin-left:2px;">P2 fixo</span></div>`;
+    if (!state.activeP2Id) { state.activeP2Id = p2.id; state.p2name = p2.name; }
+  } else {
+    p2El.innerHTML = `<span style="font-size:12px;color:var(--muted);">Cadastre o 2º atleta em <button onclick="goPage('config')" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:12px;font-weight:700;">Config.</button></span>`;
+  }
+}
+
+function renderGroupUserPills() {
+  const el = document.getElementById('groupUserPills'); if (!el) return;
+  const active = getActiveUsers();
+  if (!active.length) {
+    el.innerHTML = `<span style="font-size:12px;color:var(--muted);">Cadastre atletas em <button onclick="goPage('config')" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:12px;font-weight:700;">Config.</button></span>`;
+    return;
+  }
+  const COLORS = ['var(--primary)','var(--blue)','var(--success)','var(--warning)','#AA44FF','#FF6B9D','#00CED1','#FF8C00'];
+  el.innerHTML = active.map((u, i) => {
+    const isIn = state.groupUserIds.includes(u.id);
+    const color = COLORS[i % COLORS.length];
+    return `<div class="user-pill ${isIn?'selected':''}" style="${isIn?`border-color:${color};background:${color}20;`:''};cursor:pointer;" onclick="toggleGroupUser('${u.id}')">
+      <span class="up-avatar">${u.avatar}</span>${u.name}
+      ${isIn ? `<span style="font-size:10px;font-weight:700;color:${color};">P${state.groupUserIds.indexOf(u.id)+1}</span>` : ''}
+    </div>`;
+  }).join('');
 }
 
 function renderDashUserPills() {
@@ -1928,19 +1964,17 @@ function selectSoloUser(id) {
   const u = getActiveUsers().find(u=>u.id===id);
   if (u) { state.p1name = u.name; showToast('🏋️ ' + u.name + ' selecionado'); }
 }
-function selectP1User(id) {
-  if (id===state.activeP2Id) { showToast('P1 e P2 devem ser diferentes'); return; }
-  state.activeP1Id = state.activeP1Id===id ? null : id;
-  renderPartnerUserPills();
-  const u = getActiveUsers().find(u=>u.id===id);
-  if (u) { state.p1name=u.name; const l=document.getElementById('p1label'); if(l)l.textContent=u.name; showToast('P1: '+u.name); }
-}
-function selectP2User(id) {
-  if (id===state.activeP1Id) { showToast('P1 e P2 devem ser diferentes'); return; }
-  state.activeP2Id = state.activeP2Id===id ? null : id;
-  renderPartnerUserPills();
-  const u = getActiveUsers().find(u=>u.id===id);
-  if (u) { state.p2name=u.name; const l=document.getElementById('p2label'); if(l)l.textContent=u.name; showToast('P2: '+u.name); }
+// P1/P2 are now fixed by order — no manual selectP1User/selectP2User needed
+function selectP1User(id) { showToast('P1 é sempre o Atleta 1 (fixo por ordem)'); }
+function selectP2User(id) { showToast('P2 é sempre o Atleta 2 (fixo por ordem)'); }
+
+function toggleGroupUser(id) {
+  const idx = state.groupUserIds.indexOf(id);
+  if (idx >= 0) state.groupUserIds.splice(idx, 1);
+  else state.groupUserIds.push(id);
+  renderGroupUserPills();
+  const count = state.groupUserIds.length;
+  showToast(count > 0 ? `👥 ${count} atleta${count>1?'s':''} no grupo` : 'Grupo vazio');
 }
 function selectDashUser(id) { state.dashUserId=id; renderDashUserPills(); renderDashboard(); }
 
@@ -1967,13 +2001,31 @@ function goPage(p, tabEl) {
 // ═══════════════════════════════════════════════════════
 function setMode(m) {
   state.mode = m;
-  ['alone','partner','free'].forEach(id => document.getElementById('mode'+id.charAt(0).toUpperCase()+id.slice(1))?.classList.toggle('active', m===id));
-  document.getElementById('soloUserSel').style.display = m!=='partner' ? 'block' : 'none';
+  ['alone','partner','group','free'].forEach(id => {
+    const el = document.getElementById('mode'+id.charAt(0).toUpperCase()+id.slice(1));
+    if(el) el.classList.toggle('active', m===id);
+  });
+  document.getElementById('soloUserSel').style.display    = m==='alone' ? 'block' : 'none';
   document.getElementById('partnerUserSel').style.display = m==='partner' ? 'block' : 'none';
+  document.getElementById('groupUserSel').style.display   = m==='group' ? 'block' : 'none';
   document.getElementById('freeWorkoutCard').style.display = m==='free' ? 'block' : 'none';
   document.getElementById('groupCard').style.display = m==='free' ? 'none' : 'block';
   document.getElementById('exerciseCard').style.display = 'none';
+
+  // Auto-assign P1/P2 from ordered users
+  const active = getActiveUsers();
+  if (m==='partner' && active.length >= 1) {
+    state.activeP1Id = active[0].id; state.p1name = active[0].name;
+    if (active.length >= 2) { state.activeP2Id = active[1].id; state.p2name = active[1].name; }
+  }
+  if (m==='group' && !state.groupUserIds.length) {
+    // pre-select all athletes by default for group mode
+    state.groupUserIds = active.map(u => u.id);
+  }
+
   if (m==='free') renderFreeExList();
+  if (m==='group') renderGroupUserPills();
+  renderPartnerUserPills();
   updateModeChip();
 }
 
@@ -2318,22 +2370,25 @@ function updateExForm() {
 
 function updateModeChip() {
   const chip=document.getElementById('modeChip'); if(!chip)return;
-  if(state.mode==='partner'){chip.textContent='Dupla';chip.style.background='var(--blue-bg)';chip.style.color='var(--blue)';chip.style.border='1px solid rgba(74,159,255,0.3)';}
-  else{chip.textContent='Solo';chip.style.background='var(--primary-light)';chip.style.color='var(--primary)';chip.style.border='1px solid rgba(255,61,37,0.3)';}
-  document.getElementById('soloForm').style.display=state.mode!=='partner'?'block':'none';
-  document.getElementById('partnerForm').style.display=state.mode==='partner'?'block':'none';
-  // Always resolve names from user objects when available
   const allU = getActiveUsers();
-  const p1u = allU.find(u=>u.id===state.activeP1Id) || allU.find(u=>u.id===state.activeUserId);
-  const p2u = allU.find(u=>u.id===state.activeP2Id);
-  if (state.mode==='partner') {
-    state.p1name = p1u ? p1u.name : (state.p1name||'Atleta 1');
-    state.p2name = p2u ? p2u.name : (state.p2name||'Atleta 2');
+  if(state.mode==='partner'){
+    chip.textContent='Dupla';chip.style.background='var(--blue-bg)';chip.style.color='var(--blue)';chip.style.border='1px solid rgba(74,159,255,0.3)';
+    // Lock P1 to slot-0, P2 to slot-1
+    if(allU[0]){state.activeP1Id=allU[0].id;state.p1name=allU[0].name;}
+    if(allU[1]){state.activeP2Id=allU[1].id;state.p2name=allU[1].name;}
+  } else if(state.mode==='group'){
+    const cnt=state.groupUserIds.length;
+    chip.textContent='Grupo '+cnt;chip.style.background='rgba(170,68,255,0.12)';chip.style.color='#AA44FF';chip.style.border='1px solid rgba(170,68,255,0.3)';
+    if(allU[0]){state.activeP1Id=allU[0].id;state.p1name=allU[0].name;}
   } else {
-    state.p1name = p1u ? p1u.name : (state.p1name||'Atleta');
+    chip.textContent='Solo';chip.style.background='var(--primary-light)';chip.style.color='var(--primary)';chip.style.border='1px solid rgba(255,61,37,0.3)';
   }
-  const l1=document.getElementById('p1label'); if(l1)l1.textContent=state.p1name;
-  const l2=document.getElementById('p2label'); if(l2)l2.textContent=state.p2name;
+  document.getElementById('soloForm').style.display=state.mode==='alone'||state.mode==='free'?'block':'none';
+  document.getElementById('partnerForm').style.display=state.mode==='partner'?'block':'none';
+  document.getElementById('groupForm').style.display=state.mode==='group'?'block':'none';
+  const l1=document.getElementById('p1label'); if(l1)l1.textContent=state.p1name||'Atleta 1';
+  const l2=document.getElementById('p2label'); if(l2)l2.textContent=state.p2name||'Atleta 2';
+  if(state.mode==='group') renderGroupMembersForm();
 }
 
 function showSuggestion(ex) {
@@ -2351,21 +2406,70 @@ function showSuggestion(ex) {
 }
 
 // ═══════════════════════════════════════════════════════
+// GROUP MEMBERS FORM — dynamic inputs for each member
+// ═══════════════════════════════════════════════════════
+function renderGroupMembersForm() {
+  const container = document.getElementById('groupMembersForm'); if(!container) return;
+  const allU = getActiveUsers();
+  const members = state.groupUserIds.length
+    ? state.groupUserIds.map(id => allU.find(u=>u.id===id)).filter(Boolean)
+    : allU;
+  const COLORS = ['var(--primary)','var(--blue)','var(--success)','var(--warning)','#AA44FF','#FF6B9D','#00CED1','#FF8C00'];
+  if(!members.length){container.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0;">Selecione atletas na aba Treino → Grupo</div>';return;}
+  container.innerHTML = members.map((u,i)=>{
+    const color=COLORS[i%COLORS.length];
+    return `<div style="margin-bottom:12px;">
+      <div class="partner-header" style="margin-bottom:8px;">
+        <span style="background:${color};width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;">P${i+1}</span>
+        <span style="font-weight:700;color:${color};">${u.avatar} ${u.name}</span>
+      </div>
+      <div class="form-row four">
+        <div class="form-group"><label class="form-label">Séries</label><input class="form-input" type="number" id="gs${i}_series" value="3" min="1" max="20"></div>
+        <div class="form-group"><label class="form-label">Reps</label><input class="form-input" type="number" id="gs${i}_reps" value="12" min="1" max="200"></div>
+        <div class="form-group"><label class="form-label">Kg</label><input class="form-input" type="number" id="gs${i}_load" value="0" step="0.5" min="0"></div>
+        <div class="form-group"><label class="form-label">Desc.</label>
+          <select class="form-input" id="gs${i}_rest">
+            <option value="30">30s</option><option value="60" selected>1min</option><option value="90">90s</option><option value="120">2min</option>
+          </select>
+        </div>
+      </div>
+    </div>`;
+  }).join('<div style="height:1px;background:var(--border);margin:8px 0;"></div>');
+}
+
+// ═══════════════════════════════════════════════════════
 // LOG SERIE
 // ═══════════════════════════════════════════════════════
 function logSerie() {
-  if (state.mode!=='partner'){
-    const s=parseInt(document.getElementById('series').value)||1, r=parseInt(document.getElementById('reps').value)||0, l=parseFloat(document.getElementById('load').value)||0, rest=parseInt(document.getElementById('rest').value)||60;
-    const num=state.currentSeries.filter(x=>!x.player).length+1;
-    for(let i=0;i<s;i++) state.currentSeries.push({serie:num+i,reps:r,load:l,rest,player:null,ts:Date.now()});
-    startTimer(rest);
-  } else {
+  if (state.mode==='group') {
+    const allU = getActiveUsers();
+    const members = state.groupUserIds.length
+      ? state.groupUserIds.map(id=>allU.find(u=>u.id===id)).filter(Boolean)
+      : allU;
+    if(!members.length){showToast('Selecione atletas para o grupo');return;}
+    let maxRest=60;
+    members.forEach((u,i)=>{
+      const s=parseInt(document.getElementById('gs'+i+'_series')?.value)||1;
+      const r=parseInt(document.getElementById('gs'+i+'_reps')?.value)||0;
+      const l=parseFloat(document.getElementById('gs'+i+'_load')?.value)||0;
+      const rest=parseInt(document.getElementById('gs'+i+'_rest')?.value)||60;
+      const num=state.currentSeries.filter(x=>x.player===u.name).length+1;
+      for(let j=0;j<s;j++) state.currentSeries.push({serie:num+j,reps:r,load:l,rest,player:u.name,userId:u.id,ts:Date.now()});
+      if(rest>maxRest) maxRest=rest;
+    });
+    startTimer(maxRest);
+  } else if (state.mode==='partner'){
     const p1s=parseInt(document.getElementById('p1series').value)||1, p1r=parseInt(document.getElementById('p1reps').value)||0, p1l=parseFloat(document.getElementById('p1load').value)||0, p1rest=parseInt(document.getElementById('p1rest').value)||60;
     const p2s=parseInt(document.getElementById('p2series').value)||1, p2r=parseInt(document.getElementById('p2reps').value)||0, p2l=parseFloat(document.getElementById('p2load').value)||0, p2rest=parseInt(document.getElementById('p2rest').value)||60;
     const numP1=state.currentSeries.filter(x=>x.player===state.p1name).length+1, numP2=state.currentSeries.filter(x=>x.player===state.p2name).length+1;
     for(let i=0;i<p1s;i++) state.currentSeries.push({serie:numP1+i,reps:p1r,load:p1l,rest:p1rest,player:state.p1name,ts:Date.now()});
     for(let i=0;i<p2s;i++) state.currentSeries.push({serie:numP2+i,reps:p2r,load:p2l,rest:p2rest,player:state.p2name,ts:Date.now()});
     startTimer(Math.max(p1rest,p2rest));
+  } else {
+    const s=parseInt(document.getElementById('series').value)||1, r=parseInt(document.getElementById('reps').value)||0, l=parseFloat(document.getElementById('load').value)||0, rest=parseInt(document.getElementById('rest').value)||60;
+    const num=state.currentSeries.filter(x=>!x.player).length+1;
+    for(let i=0;i<s;i++) state.currentSeries.push({serie:num+i,reps:r,load:l,rest,player:null,ts:Date.now()});
+    startTimer(rest);
   }
   renderSeriesLog();
   if(settings.vibration&&navigator.vibrate) navigator.vibrate([50,30,50]);
@@ -2388,13 +2492,25 @@ function renderSeriesLog() {
   document.getElementById('vmVol').textContent=totalVol>0?totalVol.toLocaleString('pt-BR'):'0';
   document.getElementById('vmRm').textContent=rm>0?rm+'kg':'—';
   const vmc=document.getElementById('vmComp'); vmc.textContent=cHtml; vmc.className='vm-value '+cCls;
+
+  const PLAYER_COLORS=['var(--primary)','var(--blue)','var(--success)','var(--warning)','#AA44FF','#FF6B9D','#00CED1','#FF8C00'];
+  const allU=getActiveUsers();
+  const playerList=[...new Set(state.currentSeries.map(s=>s.player||'solo'))];
+
   const grouped={};
   state.currentSeries.forEach((s,i)=>{const k=s.player||'solo'; if(!grouped[k])grouped[k]=[]; grouped[k].push({...s,idx:i});});
   let html='';
   Object.entries(grouped).forEach(([player,series])=>{
-    if(player!=='solo'&&state.mode==='partner'){const isP2=player===state.p2name; html+=`<div style="font-size:10px;font-weight:700;color:${isP2?'var(--blue)':'var(--primary)'};margin:6px 0 3px;text-transform:uppercase;">${player}</div>`;}
-    series.forEach((s,i)=>{const rm=calc1RM(s.load,s.reps); const isP2=player===state.p2name;
-      html+=`<div class="serie-row"><div class="serie-badge" style="${isP2?'background:var(--blue);':''}">${i+1}</div><div class="serie-info"><strong>${s.reps} reps</strong> · ${s.load>0?s.load+'kg':'Sem carga'}<span style="font-size:11px;color:var(--muted);"> · ${s.rest}s</span></div>${rm>0?`<span class="serie-rm">~${rm}kg</span>`:''}<button class="serie-del" onclick="deleteSerie(${s.idx})">✕</button></div>`;
+    const pIdx=playerList.indexOf(player);
+    const color=PLAYER_COLORS[pIdx%PLAYER_COLORS.length];
+    const isMultiPlayer=state.mode==='partner'||state.mode==='group';
+    if(isMultiPlayer&&player!=='solo'){
+      const u=allU.find(u=>u.name===player)||null;
+      html+=`<div style="font-size:11px;font-weight:700;color:${color};margin:8px 0 4px;text-transform:uppercase;display:flex;align-items:center;gap:6px;">${u?u.avatar:''} ${player}</div>`;
+    }
+    series.forEach((s,i)=>{
+      const srm=calc1RM(s.load,s.reps);
+      html+=`<div class="serie-row"><div class="serie-badge" style="background:${color};">${i+1}</div><div class="serie-info"><strong>${s.reps} reps</strong> · ${s.load>0?s.load+'kg':'Sem carga'}<span style="font-size:11px;color:var(--muted);"> · ${s.rest}s</span></div>${srm>0?`<span class="serie-rm">~${srm}kg</span>`:''}<button class="serie-del" onclick="deleteSerie(${s.idx})">✕</button></div>`;
     });
   });
   log.innerHTML=html;
@@ -2409,28 +2525,20 @@ function concludeExercise() {
   if(!state.selectedEx||!state.currentSeries.length){showToast('Registre pelo menos uma série');return;}
   const notes=document.getElementById('exNotes').value;
   if(notes) localStorage.setItem('wgym_notes_'+state.selectedEx,notes);
-  const uid=state.mode==='partner'?state.activeP1Id:state.activeUserId;
-  const uid2=state.mode==='partner'?state.activeP2Id:null;
-
-  // Calculate stats for congrats
+  const uid = state.mode==='partner'?state.activeP1Id:(state.mode==='group'?state.activeP1Id:state.activeUserId);
+  const uid2 = state.mode==='partner'?state.activeP2Id:null;
+  const groupUserIds = state.mode==='group' ? [...state.groupUserIds] : [];
   const soloS=state.currentSeries.filter(s=>!s.player||s.player===state.p1name);
   const totalVol=soloS.reduce((a,s)=>a+s.reps*(s.load||0),0);
   const bestS=soloS.reduce((b,s)=>(!b||(s.load||0)>(b.load||0))?s:b,null);
   const rm=bestS?calc1RM(bestS.load,bestS.reps):0;
   const seriesCount=soloS.length;
-
-  // Check for new PR
   const prevEntry=getLastEntry(state.selectedEx);
   let isNewPR=false;
-  if(prevEntry&&bestS){
-    const prevBest=prevEntry.series.filter(s=>!s.player||s.player===prevEntry.p1name);
-    const prevRM=prevBest.reduce((mx,s)=>Math.max(mx,calc1RM(s.load||0,s.reps||0)),0);
-    if(rm>prevRM) isNewPR=true;
-  } else if(!prevEntry&&rm>0) {
-    isNewPR=true; // First time doing this exercise
-  }
+  if(prevEntry&&bestS){const prevBest=prevEntry.series.filter(s=>!s.player||s.player===prevEntry.p1name);const prevRM=prevBest.reduce((mx,s)=>Math.max(mx,calc1RM(s.load||0,s.reps||0)),0);if(rm>prevRM)isNewPR=true;}
+  else if(!prevEntry&&rm>0){isNewPR=true;}
 
-  history.unshift({id:Date.now(),date:new Date().toISOString(),exercise:state.selectedEx,group:state.group,mode:state.mode,p1name:state.p1name,p2name:state.p2name,userId:uid||null,userId2:uid2||null,series:[...state.currentSeries],notes,trainStart:state.trainStart});
+  history.unshift({id:Date.now(),date:new Date().toISOString(),exercise:state.selectedEx,group:state.group,mode:state.mode,p1name:state.p1name,p2name:state.p2name,userId:uid||null,userId2:uid2||null,groupUserIds,series:[...state.currentSeries],notes,trainStart:state.trainStart});
   saveHistory();
   if(!state.completedEx[state.group])state.completedEx[state.group]=[];
   if(!state.completedEx[state.group].includes(state.selectedEx))state.completedEx[state.group].push(state.selectedEx);
