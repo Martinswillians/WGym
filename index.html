@@ -668,6 +668,33 @@ select.form-input option { background: var(--card2); color: var(--text); }
 .version-info .v-logo { font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: 3px; color: var(--text); margin-bottom: 4px; }
 .version-info .v-logo span { color: var(--primary); }
 .version-info .v-ver { font-size: 11px; font-weight: 600; }
+/* ══ AEROBIC FORM ══ */
+.aerobic-form { display: none; }
+.aerobic-form.show { display: block; }
+.aerobic-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, rgba(46,204,113,0.15), rgba(74,159,255,0.1));
+  border: 1px solid rgba(46,204,113,0.35);
+  border-radius: 20px; padding: 4px 12px;
+  font-size: 11px; font-weight: 700; color: var(--success);
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-bottom: 10px; display: inline-flex;
+}
+.aerobic-last-banner {
+  background: var(--warning-bg);
+  border: 1px solid rgba(245,166,35,0.3);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px; margin-bottom: 10px;
+  font-size: 12px; color: var(--warning); font-weight: 600;
+  line-height: 1.6; display: none;
+}
+.aerobic-last-banner.show { display: block; }
+.aerobic-last-banner .alb-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; opacity: 0.8; }
+.aerobic-last-banner .alb-vals { display: flex; gap: 12px; flex-wrap: wrap; }
+.aerobic-last-banner .alb-val { display: flex; flex-direction: column; gap: 1px; }
+.aerobic-last-banner .alb-val span:first-child { font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--warning); }
+.aerobic-last-banner .alb-val span:last-child { font-size: 9px; text-transform: uppercase; opacity: 0.7; }
+
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(10px); background: #141414; color: white; padding: 11px 22px; border-radius: 28px; font-size: 13px; font-weight: 600; z-index: 9999; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 [data-theme="light"] .toast { background: #1a1a1a; }
@@ -1145,6 +1172,65 @@ select.form-input option { background: var(--card2); color: var(--text); }
           </div>
         </div>
       </div>
+
+      <!-- AEROBIC FORM — shown when group is Aeróbico or aerobic exercise -->
+      <div class="aerobic-form" id="aerobicForm">
+        <div class="aerobic-badge">🏃 Exercício Aeróbico</div>
+        <!-- Last session banner -->
+        <div class="aerobic-last-banner" id="aerobicLastBanner">
+          <div class="alb-title">⏱ Última sessão</div>
+          <div class="alb-vals">
+            <div class="alb-val"><span id="lastAerobTempo">—</span><span>Tempo</span></div>
+            <div class="alb-val"><span id="lastAerobVel">—</span><span>Velocidade</span></div>
+            <div class="alb-val"><span id="lastAerobIncl">—</span><span>Incl./Carga</span></div>
+          </div>
+        </div>
+        <div class="card-title">Configuração</div>
+        <!-- Row 1: Séries + Tempo -->
+        <div class="form-row" style="margin-bottom:8px;">
+          <div class="form-group">
+            <label class="form-label">Séries</label>
+            <input class="form-input" type="number" id="aerobSeries" value="1" min="1" max="10">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tempo (min)</label>
+            <input class="form-input" type="number" id="aerobTempo" value="30" min="1" max="300" step="1" placeholder="30">
+          </div>
+        </div>
+        <!-- Row 2: Velocidade + Inclinação/Carga -->
+        <div class="form-row" style="margin-bottom:8px;">
+          <div class="form-group">
+            <label class="form-label">Velocidade (km/h)</label>
+            <input class="form-input" type="number" id="aerobVelocidade" value="0" min="0" max="30" step="0.1" placeholder="8.5">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Incl./Carga (%)</label>
+            <input class="form-input" type="number" id="aerobInclinacao" value="0" min="0" max="30" step="0.5" placeholder="1.0">
+          </div>
+        </div>
+        <!-- Row 3: Descanso -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Descanso</label>
+            <select class="form-input" id="aerobRest">
+              <option value="0">Sem desc.</option>
+              <option value="60">1 min</option>
+              <option value="120">2 min</option>
+              <option value="180">3 min</option>
+              <option value="300">5 min</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Intensidade</label>
+            <select class="form-input" id="aerobIntensidade">
+              <option value="leve">🟢 Leve</option>
+              <option value="moderado" selected>🟡 Moderado</option>
+              <option value="intenso">🔴 Intenso</option>
+              <option value="hiit">⚡ HIIT</option>
+            </select>
+          </div>
+        </div>
+      </div>
       <div id="partnerForm" style="display:none;">
         <div class="partner-header"><span class="p1-dot">P1</span> <span id="p1label">Atleta 1</span></div>
         <div class="form-row four" style="margin-bottom:10px;">
@@ -1385,6 +1471,17 @@ const EXERCISES = {
   'Ombro': ['Desenvolvimento','Elevação Lateral','Elevação Frontal','Crucifixo Invertido','Arnold Press','Remada Alta'],
   'Aeróbico': ['Esteira','Bicicleta','Elíptico','Corda','Remo Ergométrico','Escada','Jumping Jack']
 };
+
+// Aerobic group names (includes custom groups that contain aerobic exercises)
+const AEROBIC_GROUP_NAMES = ['Aeróbico','Aerobico','Cardio','Aerobic'];
+
+function isAerobicExercise(ex, group) {
+  // Check if current group is aerobic
+  if (group && AEROBIC_GROUP_NAMES.some(n => n.toLowerCase() === group.toLowerCase())) return true;
+  // Check if exercise belongs to the Aeróbico group
+  if (EXERCISES['Aeróbico'] && EXERCISES['Aeróbico'].includes(ex)) return true;
+  return false;
+}
 
 const EX_SVG = {
   'Supino Reto': { svg: `<svg viewBox="0 0 120 90" width="120" height="90"><rect x="10" y="60" width="100" height="8" rx="4" fill="#2A2A35"/><circle cx="60" cy="40" r="14" fill="#FF3D25" opacity="0.1" stroke="#FF3D25" stroke-width="1.5"/><line x1="30" y1="42" x2="90" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="42" r="8" fill="#FF3D25" opacity="0.8"/><circle cx="100" cy="42" r="8" fill="#FF3D25" opacity="0.8"/><text x="60" y="82" text-anchor="middle" fill="#6B6B80" font-size="9" font-family="Barlow,sans-serif">Supino Reto</text></svg>`, instruction: 'Deite no banco, pés no chão. Pegada mais larga que os ombros. Desça a barra até o peito e empurre de volta.' },
@@ -2345,12 +2442,90 @@ function selectEx(ex) {
 }
 
 function prefillLastLoad(ex) {
-  const last=getLastEntry(ex); if(!last)return;
-  const s=last.series.filter(x=>!x.player||x.player===last.p1name);
-  if (s.length) {
-    const ml=Math.max(...s.map(x=>x.load||0));
-    if (ml>0) { const le=document.getElementById('load'); if(le)le.value=ml; const p1e=document.getElementById('p1load'); if(p1e)p1e.value=ml; }
-    const re=document.getElementById('reps'); if(re)re.value=s[0].reps;
+  const isAerobic = isAerobicExercise(ex, state.group);
+
+  if (isAerobic) {
+    // Reset aerobic fields to defaults first
+    const tempo = document.getElementById('aerobTempo');
+    const vel = document.getElementById('aerobVelocidade');
+    const incl = document.getElementById('aerobInclinacao');
+    const intens = document.getElementById('aerobIntensidade');
+    if (tempo) tempo.value = 30;
+    if (vel) vel.value = 0;
+    if (incl) incl.value = 0;
+    if (intens) intens.value = 'moderado';
+
+    // Load last aerobic session
+    const last = getLastEntry(ex);
+    const lastBanner = document.getElementById('aerobicLastBanner');
+    if (last && last.series && last.series.length) {
+      const lastS = last.series[0];
+      const lastTempo = lastS.aerobTempo || lastS.reps || 0;
+      const lastVel = lastS.aerobVelocidade || lastS.velocidade || 0;
+      const lastIncl = lastS.aerobInclinacao || lastS.inclinacao || 0;
+      // Prefill with last values
+      if (tempo && lastTempo > 0) tempo.value = lastTempo;
+      if (vel && lastVel > 0) vel.value = lastVel;
+      if (incl && lastIncl > 0) incl.value = lastIncl;
+      if (intens && lastS.aerobIntensidade) intens.value = lastS.aerobIntensidade;
+      // Show banner with last session data
+      if (lastBanner) {
+        lastBanner.classList.add('show');
+        const t = document.getElementById('lastAerobTempo');
+        const v = document.getElementById('lastAerobVel');
+        const i = document.getElementById('lastAerobIncl');
+        if (t) t.textContent = lastTempo > 0 ? lastTempo + 'min' : '—';
+        if (v) v.textContent = lastVel > 0 ? lastVel + 'km/h' : '—';
+        if (i) i.textContent = lastIncl > 0 ? lastIncl + '%' : '—';
+      }
+    } else {
+      if (lastBanner) lastBanner.classList.remove('show');
+    }
+    return;
+  }
+
+  // ── Musculação: ALWAYS reset inputs first ──
+  const loadEl = document.getElementById('load');
+  const repsEl = document.getElementById('reps');
+  const p1loadEl = document.getElementById('p1load');
+  const p1repsEl = document.getElementById('p1reps');
+  const p2loadEl = document.getElementById('p2load');
+  const p2repsEl = document.getElementById('p2reps');
+
+  // Reset to defaults
+  if (loadEl) loadEl.value = 0;
+  if (repsEl) repsEl.value = 12;
+  if (p1loadEl) p1loadEl.value = 0;
+  if (p1repsEl) p1repsEl.value = 12;
+  if (p2loadEl) p2loadEl.value = 0;
+  if (p2repsEl) p2repsEl.value = 10;
+
+  // Now fill from history for THIS specific exercise
+  const last = getLastEntry(ex);
+  if (!last) return;
+
+  // Solo/P1 data
+  const soloS = last.series.filter(x => !x.player || x.player === last.p1name);
+  if (soloS.length) {
+    const maxLoad = Math.max(...soloS.map(x => x.load || 0));
+    const lastReps = soloS[0].reps || 12;
+    if (maxLoad > 0) {
+      if (loadEl) loadEl.value = maxLoad;
+      if (p1loadEl) p1loadEl.value = maxLoad;
+    }
+    if (repsEl) repsEl.value = lastReps;
+    if (p1repsEl) p1repsEl.value = lastReps;
+  }
+
+  // P2 data (partner mode)
+  if (state.mode === 'partner' && last.p2name) {
+    const p2S = last.series.filter(x => x.player === last.p2name);
+    if (p2S.length) {
+      const p2MaxLoad = Math.max(...p2S.map(x => x.load || 0));
+      const p2LastReps = p2S[0].reps || 10;
+      if (p2MaxLoad > 0 && p2loadEl) p2loadEl.value = p2MaxLoad;
+      if (p2repsEl) p2repsEl.value = p2LastReps;
+    }
   }
 }
 
@@ -2364,7 +2539,31 @@ function updateExForm() {
   const data=EX_SVG[state.selectedEx];
   document.getElementById('exSvgWrap').innerHTML=data?data.svg:DEFAULT_SVG(state.selectedEx);
   document.getElementById('exInstruction').textContent=data?data.instruction:'Execute com controle e postura correta.';
-  showSuggestion(state.selectedEx);
+
+  // ── Aerobic vs Regular form toggle ──
+  const aerobic = isAerobicExercise(state.selectedEx, state.group);
+  const soloForm = document.getElementById('soloForm');
+  const aerobicForm = document.getElementById('aerobicForm');
+  const partnerForm = document.getElementById('partnerForm');
+  const groupForm = document.getElementById('groupForm');
+
+  if (aerobic) {
+    // Show aerobic form, hide strength forms
+    if (soloForm) soloForm.style.display = 'none';
+    if (aerobicForm) aerobicForm.classList.add('show');
+    if (partnerForm) partnerForm.style.display = 'none';
+    if (groupForm) groupForm.style.display = 'none';
+    // Update suggestion/stagnation for aerobic (hide weight-based boxes)
+    document.getElementById('suggestionBox').style.display = 'none';
+    document.getElementById('stagnationBox').style.display = 'none';
+  } else {
+    // Show regular forms
+    if (aerobicForm) aerobicForm.classList.remove('show');
+    if (aerobicForm) document.getElementById('aerobicLastBanner').classList.remove('show');
+    // soloForm/partnerForm/groupForm handled by updateModeChip
+    showSuggestion(state.selectedEx);
+  }
+
   document.getElementById('exNotes').value=localStorage.getItem('wgym_notes_'+state.selectedEx)||'';
 }
 
@@ -2373,7 +2572,6 @@ function updateModeChip() {
   const allU = getActiveUsers();
   if(state.mode==='partner'){
     chip.textContent='Dupla';chip.style.background='var(--blue-bg)';chip.style.color='var(--blue)';chip.style.border='1px solid rgba(74,159,255,0.3)';
-    // Lock P1 to slot-0, P2 to slot-1
     if(allU[0]){state.activeP1Id=allU[0].id;state.p1name=allU[0].name;}
     if(allU[1]){state.activeP2Id=allU[1].id;state.p2name=allU[1].name;}
   } else if(state.mode==='group'){
@@ -2383,12 +2581,17 @@ function updateModeChip() {
   } else {
     chip.textContent='Solo';chip.style.background='var(--primary-light)';chip.style.color='var(--primary)';chip.style.border='1px solid rgba(255,61,37,0.3)';
   }
-  document.getElementById('soloForm').style.display=state.mode==='alone'||state.mode==='free'?'block':'none';
-  document.getElementById('partnerForm').style.display=state.mode==='partner'?'block':'none';
-  document.getElementById('groupForm').style.display=state.mode==='group'?'block':'none';
+
+  // Only show strength forms if NOT aerobic
+  const aerobic = isAerobicExercise(state.selectedEx, state.group);
+  if (!aerobic) {
+    document.getElementById('soloForm').style.display=state.mode==='alone'||state.mode==='free'?'block':'none';
+    document.getElementById('partnerForm').style.display=state.mode==='partner'?'block':'none';
+    document.getElementById('groupForm').style.display=state.mode==='group'?'block':'none';
+  }
   const l1=document.getElementById('p1label'); if(l1)l1.textContent=state.p1name||'Atleta 1';
   const l2=document.getElementById('p2label'); if(l2)l2.textContent=state.p2name||'Atleta 2';
-  if(state.mode==='group') renderGroupMembersForm();
+  if(state.mode==='group'&&!aerobic) renderGroupMembersForm();
 }
 
 function showSuggestion(ex) {
@@ -2441,6 +2644,37 @@ function renderGroupMembersForm() {
 // LOG SERIE
 // ═══════════════════════════════════════════════════════
 function logSerie() {
+  // ── Aerobic mode ──
+  if (isAerobicExercise(state.selectedEx, state.group)) {
+    const s = parseInt(document.getElementById('aerobSeries')?.value) || 1;
+    const tempo = parseFloat(document.getElementById('aerobTempo')?.value) || 0;
+    const vel = parseFloat(document.getElementById('aerobVelocidade')?.value) || 0;
+    const incl = parseFloat(document.getElementById('aerobInclinacao')?.value) || 0;
+    const intens = document.getElementById('aerobIntensidade')?.value || 'moderado';
+    const restV = parseInt(document.getElementById('aerobRest')?.value) || 0;
+    const num = state.currentSeries.length + 1;
+    for (let i = 0; i < s; i++) {
+      state.currentSeries.push({
+        serie: num + i,
+        reps: tempo,          // store tempo as reps for compatibility
+        load: vel,            // store velocity as load for compatibility
+        rest: restV,
+        player: null,
+        aerobTempo: tempo,
+        aerobVelocidade: vel,
+        aerobInclinacao: incl,
+        aerobIntensidade: intens,
+        isAerobic: true,
+        ts: Date.now()
+      });
+    }
+    if (restV > 0) startTimer(restV);
+    renderSeriesLog();
+    if (settings.vibration && navigator.vibrate) navigator.vibrate([50, 30, 50]);
+    showToast('✓ ' + (tempo > 0 ? tempo + 'min' : '') + (vel > 0 ? ' · ' + vel + 'km/h' : '') + ' registrado!');
+    return;
+  }
+
   if (state.mode==='group') {
     const allU = getActiveUsers();
     const members = state.groupUserIds.length
@@ -2482,6 +2716,46 @@ function renderSeriesLog() {
   const log=document.getElementById('seriesLog'), card=document.getElementById('seriesLogCard');
   if(!state.currentSeries.length){card.style.display='none';return;}
   card.style.display='block';
+
+  const isAerobic = state.currentSeries.some(s => s.isAerobic);
+
+  if (isAerobic) {
+    // Aerobic metrics: total time, avg velocity, avg incl
+    const totalTempo = state.currentSeries.reduce((a,s)=>a+(s.aerobTempo||0),0);
+    const avgVel = state.currentSeries.reduce((a,s)=>a+(s.aerobVelocidade||0),0) / state.currentSeries.length;
+    const avgIncl = state.currentSeries.reduce((a,s)=>a+(s.aerobInclinacao||0),0) / state.currentSeries.length;
+    // Show aerobic metrics in vol-metrics area
+    document.getElementById('vmVol').textContent = totalTempo > 0 ? totalTempo+'min' : '0';
+    document.getElementById('vmRm').textContent = avgVel > 0 ? avgVel.toFixed(1)+'km/h' : '—';
+    const vmc = document.getElementById('vmComp');
+    vmc.textContent = avgIncl > 0 ? avgIncl.toFixed(1)+'%' : '—';
+    vmc.className = 'vm-value';
+    // Update metric labels
+    const labels = document.querySelectorAll('.vm-label');
+    if (labels[0]) labels[0].textContent = 'Tempo Total';
+    if (labels[1]) labels[1].textContent = 'Vel. Média';
+    if (labels[2]) labels[2].textContent = 'Incl. Média';
+
+    // Render aerobic series rows
+    let html = '';
+    state.currentSeries.forEach((s, i) => {
+      const intensIcon = {leve:'🟢',moderado:'🟡',intenso:'🔴',hiit:'⚡'}[s.aerobIntensidade||'moderado'] || '🟡';
+      html += `<div class="serie-row">
+        <div class="serie-badge" style="background:var(--success);">${i+1}</div>
+        <div class="serie-info">
+          <strong>${s.aerobTempo||0}min</strong>
+          ${s.aerobVelocidade>0?` · <span style="color:var(--blue);font-weight:700;">${s.aerobVelocidade}km/h</span>`:''}
+          ${s.aerobInclinacao>0?` · <span style="color:var(--warning);">${s.aerobInclinacao}%</span>`:''}
+          <span style="font-size:11px;color:var(--muted);"> ${intensIcon} ${s.aerobIntensidade||'moderado'}</span>
+        </div>
+        <button class="serie-del" onclick="deleteSerie(${i})">✕</button>
+      </div>`;
+    });
+    log.innerHTML = html;
+    return;
+  }
+
+  // ── Regular strength log ──
   const soloS=state.currentSeries.filter(s=>!s.player||s.player===state.p1name);
   const totalVol=soloS.reduce((a,s)=>a+s.reps*(s.load||0),0);
   const bestS=soloS.reduce((b,s)=>(!b||(s.load||0)>(b.load||0))?s:b,null);
@@ -2492,6 +2766,11 @@ function renderSeriesLog() {
   document.getElementById('vmVol').textContent=totalVol>0?totalVol.toLocaleString('pt-BR'):'0';
   document.getElementById('vmRm').textContent=rm>0?rm+'kg':'—';
   const vmc=document.getElementById('vmComp'); vmc.textContent=cHtml; vmc.className='vm-value '+cCls;
+  // Restore default metric labels
+  const labels = document.querySelectorAll('.vm-label');
+  if (labels[0]) labels[0].textContent = 'Volume';
+  if (labels[1]) labels[1].textContent = '1RM Est.';
+  if (labels[2]) labels[2].textContent = 'vs Anterior';
 
   const PLAYER_COLORS=['var(--primary)','var(--blue)','var(--success)','var(--warning)','#AA44FF','#FF6B9D','#00CED1','#FF8C00'];
   const allU=getActiveUsers();
@@ -2528,17 +2807,31 @@ function concludeExercise() {
   const uid = state.mode==='partner'?state.activeP1Id:(state.mode==='group'?state.activeP1Id:state.activeUserId);
   const uid2 = state.mode==='partner'?state.activeP2Id:null;
   const groupUserIds = state.mode==='group' ? [...state.groupUserIds] : [];
-  const soloS=state.currentSeries.filter(s=>!s.player||s.player===state.p1name);
-  const totalVol=soloS.reduce((a,s)=>a+s.reps*(s.load||0),0);
-  const bestS=soloS.reduce((b,s)=>(!b||(s.load||0)>(b.load||0))?s:b,null);
-  const rm=bestS?calc1RM(bestS.load,bestS.reps):0;
-  const seriesCount=soloS.length;
-  const prevEntry=getLastEntry(state.selectedEx);
-  let isNewPR=false;
-  if(prevEntry&&bestS){const prevBest=prevEntry.series.filter(s=>!s.player||s.player===prevEntry.p1name);const prevRM=prevBest.reduce((mx,s)=>Math.max(mx,calc1RM(s.load||0,s.reps||0)),0);if(rm>prevRM)isNewPR=true;}
-  else if(!prevEntry&&rm>0){isNewPR=true;}
 
-  history.unshift({id:Date.now(),date:new Date().toISOString(),exercise:state.selectedEx,group:state.group,mode:state.mode,p1name:state.p1name,p2name:state.p2name,userId:uid||null,userId2:uid2||null,groupUserIds,series:[...state.currentSeries],notes,trainStart:state.trainStart});
+  const isAerobic = state.currentSeries.some(s => s.isAerobic);
+  let seriesCount, totalVol, rm, isNewPR=false;
+
+  if (isAerobic) {
+    seriesCount = state.currentSeries.length;
+    totalVol = state.currentSeries.reduce((a,s)=>a+(s.aerobTempo||0),0); // total minutes
+    rm = 0;
+    const prevEntry = getLastEntry(state.selectedEx);
+    const prevTempo = prevEntry ? prevEntry.series.reduce((a,s)=>a+(s.aerobTempo||s.reps||0),0) : 0;
+    const avgVel = state.currentSeries.reduce((a,s)=>a+(s.aerobVelocidade||0),0) / state.currentSeries.length;
+    const prevAvgVel = prevEntry ? prevEntry.series.reduce((a,s)=>a+(s.aerobVelocidade||0),0)/prevEntry.series.length : 0;
+    isNewPR = (avgVel > prevAvgVel && avgVel > 0) || (!prevEntry && totalVol > 0);
+  } else {
+    const soloS=state.currentSeries.filter(s=>!s.player||s.player===state.p1name);
+    totalVol=soloS.reduce((a,s)=>a+s.reps*(s.load||0),0);
+    const bestS=soloS.reduce((b,s)=>(!b||(s.load||0)>(b.load||0))?s:b,null);
+    rm=bestS?calc1RM(bestS.load,bestS.reps):0;
+    seriesCount=soloS.length;
+    const prevEntry=getLastEntry(state.selectedEx);
+    if(prevEntry&&bestS){const prevBest=prevEntry.series.filter(s=>!s.player||s.player===prevEntry.p1name);const prevRM=prevBest.reduce((mx,s)=>Math.max(mx,calc1RM(s.load||0,s.reps||0)),0);if(rm>prevRM)isNewPR=true;}
+    else if(!prevEntry&&rm>0){isNewPR=true;}
+  }
+
+  history.unshift({id:Date.now(),date:new Date().toISOString(),exercise:state.selectedEx,group:state.group,mode:state.mode,p1name:state.p1name,p2name:state.p2name,userId:uid||null,userId2:uid2||null,groupUserIds,series:[...state.currentSeries],notes,trainStart:state.trainStart,isAerobic});
   saveHistory();
   if(!state.completedEx[state.group])state.completedEx[state.group]=[];
   if(!state.completedEx[state.group].includes(state.selectedEx))state.completedEx[state.group].push(state.selectedEx);
@@ -2547,9 +2840,7 @@ function concludeExercise() {
   document.getElementById('seriesLogCard').style.display='none';
   renderGroupGrid(); updateActiveBar();
   if(settings.vibration&&navigator.vibrate)navigator.vibrate([100,50,100,50,200]);
-
-  // Show congrats modal
-  showCongratsModal(state.selectedEx, seriesCount, totalVol, rm, isNewPR);
+  showCongratsModal(state.selectedEx, seriesCount, totalVol, rm, isNewPR, isAerobic);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2557,34 +2848,48 @@ function concludeExercise() {
 // ═══════════════════════════════════════════════════════
 let _congratsData = {};
 
-function showCongratsModal(exName, seriesCount, vol, rm, isNewPR) {
-  _congratsData = { exName, seriesCount, vol, rm, isNewPR };
+function showCongratsModal(exName, seriesCount, vol, rm, isNewPR, isAerobic) {
+  _congratsData = { exName, seriesCount, vol, rm, isNewPR, isAerobic };
 
-  // Pick emoji based on context
   const emojis = isNewPR
     ? ['🥇','🏆','🎯','🔥']
-    : ['💪','🙌','⚡','🏋️','✅'];
+    : (isAerobic ? ['🏃','🚴','💨','⚡','🫀'] : ['💪','🙌','⚡','🏋️','✅']);
   const emoji = emojis[Math.floor(Math.random() * emojis.length)];
 
-  // Motivational messages
   const prMsgs = ['Novo recorde pessoal! Você está evoluindo!','Superou seu próprio limite! 🚀','Recorde batido! Continua assim! 🔥'];
-  const normalMsgs = ['Ótimo trabalho! Continue firme!','Excelente série! Seu corpo agradece.','Cada treino conta. Você arrasouu! 💥','Consistência é a chave. Parabéns!'];
-  const msgs = isNewPR ? prMsgs : normalMsgs;
+  const aerobMsgs = ['Cardio concluído! Coração em dia! 🫀','Ótimo pace! Continue assim! 🏃','Cada minuto conta. Parabéns! ⚡'];
+  const normalMsgs = ['Ótimo trabalho! Continue firme!','Excelente série! Seu corpo agradece.','Consistência é a chave. Parabéns!'];
+  const msgs = isNewPR ? prMsgs : (isAerobic ? aerobMsgs : normalMsgs);
   const subtitle = msgs[Math.floor(Math.random() * msgs.length)];
 
   document.getElementById('congratsEmoji').textContent = emoji;
   document.getElementById('congratsTitle').textContent = exName;
   document.getElementById('congratsSubtitle').textContent = subtitle;
   document.getElementById('csSeries').textContent = seriesCount;
-  document.getElementById('csVol').textContent = vol > 0 ? vol.toLocaleString('pt-BR') : '0';
-  document.getElementById('csRm').textContent = rm > 0 ? rm + 'kg' : '—';
+
+  // Aerobic: show total time instead of volume kg
+  const csVolEl = document.getElementById('csVol');
+  const csVolLabel = csVolEl?.previousElementSibling || csVolEl?.parentElement?.querySelector('.cs-label');
+  if (isAerobic) {
+    csVolEl.textContent = vol > 0 ? vol + 'min' : '0';
+    const lbl = document.querySelector('#congratsStats .congrats-stat:nth-child(2) .cs-label');
+    if (lbl) lbl.textContent = 'Tempo';
+    document.getElementById('csRm').textContent = '—';
+    const rmLbl = document.querySelector('#congratsStats .congrats-stat:nth-child(3) .cs-label');
+    if (rmLbl) rmLbl.textContent = '1RM Est.';
+  } else {
+    csVolEl.textContent = vol > 0 ? vol.toLocaleString('pt-BR') : '0';
+    const lbl = document.querySelector('#congratsStats .congrats-stat:nth-child(2) .cs-label');
+    if (lbl) lbl.textContent = 'Volume kg';
+    document.getElementById('csRm').textContent = rm > 0 ? rm + 'kg' : '—';
+  }
 
   const prBadge = document.getElementById('congratsPrBadge');
   if (isNewPR) {
     prBadge.classList.add('show');
-    document.getElementById('congratsPrText').textContent = rm > 0
-      ? `Novo recorde! 1RM estimado: ~${rm}kg`
-      : 'Primeiro registro deste exercício!';
+    document.getElementById('congratsPrText').textContent = isAerobic
+      ? 'Nova velocidade máxima! Você correu mais rápido!'
+      : (rm > 0 ? `Novo recorde! 1RM estimado: ~${rm}kg` : 'Primeiro registro deste exercício!');
   } else {
     prBadge.classList.remove('show');
   }
@@ -2618,18 +2923,23 @@ function closeCongratsModal() {
 function buildShareText() {
   const d = _congratsData;
   const name = currentAccount ? currentAccount.name : 'Atleta';
+  const icon = d.isAerobic ? '🏃' : '🏋️';
   const lines = [
-    '🏋️ *W GYM PRO* — Resultado do Exercício',
+    `${icon} *W GYM PRO* — Resultado do Exercício`,
     '',
     `*${name}* concluiu: *${d.exName}*`,
     `📅 ${new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long'})}`,
     '',
     `📊 *Resumo:*`,
     `• Séries: ${d.seriesCount}`,
-    `• Volume: ${d.vol > 0 ? d.vol.toLocaleString('pt-BR') + 'kg' : '—'}`,
-    `• 1RM Est.: ${d.rm > 0 ? '~' + d.rm + 'kg' : '—'}`,
   ];
-  if (d.isNewPR) lines.push('', '🥇 *Novo Recorde Pessoal!*');
+  if (d.isAerobic) {
+    lines.push(`• Tempo total: ${d.vol > 0 ? d.vol + 'min' : '—'}`);
+  } else {
+    lines.push(`• Volume: ${d.vol > 0 ? d.vol.toLocaleString('pt-BR') + 'kg' : '—'}`);
+    lines.push(`• 1RM Est.: ${d.rm > 0 ? '~' + d.rm + 'kg' : '—'}`);
+  }
+  if (d.isNewPR) lines.push('', d.isAerobic ? '⚡ *Novo Recorde de Velocidade!*' : '🥇 *Novo Recorde Pessoal!*');
   lines.push('', '📱 Acompanhe sua evolução no W GYM PRO');
   return lines.join('\n');
 }
@@ -2738,20 +3048,45 @@ function renderHistory() {
   filtered.forEach(h=>{
     const d=new Date(h.date);
     const dateStr=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const isHistAerobic = h.isAerobic || (h.series && h.series.some(s => s.isAerobic));
     const soloS=h.series.filter(s=>!s.player||s.player===h.p1name);
     const p2S=h.series.filter(s=>s.player&&s.player===h.p2name);
-    const vol=soloS.reduce((a,s)=>a+s.reps*(s.load||0),0);
-    const bestS=soloS.reduce((b,s)=>(!b||(s.load||0)>(b.load||0))?s:b,null);
-    const rm=bestS?calc1RM(bestS.load,bestS.reps):0;
-    const allE=exMap[h.exercise]||[], idx=allE.indexOf(h), prev=allE[idx+1];
-    let evoBadge='';
-    if(prev){const ps=prev.series.filter(s=>!s.player||s.player===prev.p1name); const cl=soloS.length?Math.max(...soloS.map(s=>s.load||0)):0, pl=ps.length?Math.max(...ps.map(s=>s.load||0)):0; if(cl>pl)evoBadge=`<span class="evo-badge evo-up">🔥 Aumentou carga</span>`; else if(cl<pl)evoBadge=`<span class="evo-badge evo-down">📉 Caiu performance</span>`; else evoBadge=`<span class="evo-badge evo-same">⚖️ Manteve</span>`;}
-    const u1=users.find(u=>u.id===h.userId), u2=users.find(u=>u.id===h.userId2);
+
+    let volDisplay='', evoBadge='', pills='', pills2='';
+
+    if (isHistAerobic) {
+      // Aerobic history display
+      const totalTempo = h.series.reduce((a,s)=>a+(s.aerobTempo||s.reps||0),0);
+      const avgVel = h.series.reduce((a,s)=>a+(s.aerobVelocidade||s.load||0),0)/h.series.length;
+      const avgIncl = h.series.reduce((a,s)=>a+(s.aerobInclinacao||0),0)/h.series.length;
+      volDisplay = `<div class="hist-vol" style="color:var(--success);">🏃 ${totalTempo}min${avgVel>0?' · '+avgVel.toFixed(1)+'km/h':''}${avgIncl>0?' · '+avgIncl.toFixed(1)+'%':''}</div>`;
+      pills = h.series.slice(0,6).map((s,i)=>{
+        const intensIcon={leve:'🟢',moderado:'🟡',intenso:'🔴',hiit:'⚡'}[s.aerobIntensidade||'moderado']||'🟡';
+        return `<span class="hist-pill" style="border-color:rgba(46,204,113,0.3);color:var(--success);">${intensIcon} S${i+1}: ${s.aerobTempo||s.reps||0}min${s.aerobVelocidade>0?' '+s.aerobVelocidade+'km/h':''}</span>`;
+      }).join('');
+      // Aerobic evolution: compare velocity
+      const allE=exMap[h.exercise]||[], idx=allE.indexOf(h), prev=allE[idx+1];
+      if (prev) {
+        const prevVel = prev.series.reduce((a,s)=>a+(s.aerobVelocidade||s.load||0),0)/(prev.series.length||1);
+        if (avgVel > prevVel && avgVel > 0) evoBadge=`<span class="evo-badge evo-up">🔥 Velocidade aumentou</span>`;
+        else if (avgVel < prevVel && prevVel > 0) evoBadge=`<span class="evo-badge evo-down">📉 Velocidade caiu</span>`;
+        else evoBadge=`<span class="evo-badge evo-same">⚖️ Manteve</span>`;
+      }
+    } else {
+      // Regular strength history
+      const vol=soloS.reduce((a,s)=>a+s.reps*(s.load||0),0);
+      const bestS=soloS.reduce((b,s)=>(!b||(s.load||0)>(b.load||0))?s:b,null);
+      const rm=bestS?calc1RM(bestS.load,bestS.reps):0;
+      volDisplay = vol>0?`<div class="hist-vol">Vol: ${vol.toLocaleString('pt-BR')}kg${rm>0?' · 1RM ~'+rm+'kg':''}</div>`:'';
+      const allE=exMap[h.exercise]||[], idx=allE.indexOf(h), prev=allE[idx+1];
+      if(prev){const ps=prev.series.filter(s=>!s.player||s.player===prev.p1name); const cl=soloS.length?Math.max(...soloS.map(s=>s.load||0)):0, pl=ps.length?Math.max(...ps.map(s=>s.load||0)):0; if(cl>pl)evoBadge=`<span class="evo-badge evo-up">🔥 Aumentou carga</span>`; else if(cl<pl)evoBadge=`<span class="evo-badge evo-down">📉 Caiu performance</span>`; else evoBadge=`<span class="evo-badge evo-same">⚖️ Manteve</span>`;}
+      pills=soloS.slice(0,6).map((s,i)=>`<span class="hist-pill">S${i+1}: ${s.reps}r${s.load>0?' · '+s.load+'kg':''}</span>`).join('');
+      pills2=p2S.slice(0,6).map((s,i)=>`<span class="hist-pill p2c">S${i+1}: ${s.reps}r${s.load>0?' · '+s.load+'kg':''}</span>`).join('');
+    }
+
+    const u1=users.find(u=>u&&u.id===h.userId), u2=users.find(u=>u&&u.id===h.userId2);
     const userTag=u1?`<span class="hist-user-tag p1-tag">${u1.avatar} ${u1.name}</span>`:'';
     const userTag2=u2?` <span class="hist-user-tag p2-tag">${u2.avatar} ${u2.name}</span>`:'';
-    const pills=soloS.slice(0,6).map((s,i)=>`<span class="hist-pill">S${i+1}: ${s.reps}r${s.load>0?' · '+s.load+'kg':''}</span>`).join('');
-    const pills2=p2S.slice(0,6).map((s,i)=>`<span class="hist-pill p2c">S${i+1}: ${s.reps}r${s.load>0?' · '+s.load+'kg':''}</span>`).join('');
-    // ISO date string for input[type=datetime-local]
     const localDT = new Date(h.date.slice(0,16)).toISOString ? toLocalDateTimeInput(h.date) : '';
     html+=`<div class="hist-item" id="histItem_${h.id}">
       <div class="hist-date-row">
@@ -2766,11 +3101,11 @@ function renderHistory() {
         </div>
       </div>
       <div>${userTag}${userTag2}</div>
-      <div class="hist-name">${h.exercise}</div>
-      ${vol>0?`<div class="hist-vol">Vol: ${vol.toLocaleString('pt-BR')}kg${rm>0?' · 1RM ~'+rm+'kg':''}</div>`:''}
-      ${h.mode==='partner'?`<div style="font-size:10px;color:var(--primary);margin-bottom:2px;font-weight:700;">${h.p1name}</div>`:''}
+      <div class="hist-name">${isHistAerobic?'🏃 ':''}${h.exercise}</div>
+      ${volDisplay}
+      ${h.mode==='partner'&&!isHistAerobic?`<div style="font-size:10px;color:var(--primary);margin-bottom:2px;font-weight:700;">${h.p1name}</div>`:''}
       <div class="hist-series">${pills}</div>
-      ${p2S.length?`<div style="font-size:10px;color:var(--blue);margin:4px 0 2px;font-weight:700;">${h.p2name}</div><div class="hist-series">${pills2}</div>`:''}
+      ${pills2?`<div style="font-size:10px;color:var(--blue);margin:4px 0 2px;font-weight:700;">${h.p2name}</div><div class="hist-series">${pills2}</div>`:''}
       ${evoBadge?`<div class="evo-row">${evoBadge}</div>`:''}
       ${h.notes?`<div style="font-size:11px;color:var(--muted);margin-top:6px;font-style:italic;">📝 ${h.notes}</div>`:''}
     </div>`;
