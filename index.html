@@ -160,6 +160,19 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
 .train-timer-header.show { display: block; }
 .hdr-btn { background: var(--card2); border: 1px solid var(--border); color: var(--muted); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: all 0.2s; }
 .hdr-btn:active { transform: scale(0.9); }
+/* Stop-training button in header */
+.hdr-stop-btn {
+  background: var(--primary); color: white;
+  border: none; border-radius: 8px;
+  width: 28px; height: 28px;
+  cursor: pointer; font-size: 11px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(255,61,37,0.4);
+  animation: pulseStop 2s infinite;
+}
+.hdr-stop-btn:active { transform: scale(0.88); background: var(--primary-dark); }
+@keyframes pulseStop { 0%,100%{box-shadow:0 2px 8px rgba(255,61,37,0.4)} 50%{box-shadow:0 2px 16px rgba(255,61,37,0.7)} }
 /* logged-in user avatar in header */
 .hdr-user { width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); border: 1.5px solid var(--primary); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
 
@@ -424,7 +437,84 @@ select.form-input option { background: var(--card2); color: var(--text); }
 .notes-area:focus { outline: none; border-color: var(--primary); }
 .notes-area::placeholder { color: var(--muted); }
 
-/* ══ PROFILE VIEW CARD ══ */
+/* ══ PROFILE PHOTO ══ */
+.profile-photo-wrap {
+  position: relative; width: 62px; height: 62px; flex-shrink: 0; cursor: pointer;
+}
+.profile-photo-img {
+  width: 62px; height: 62px; border-radius: 50%;
+  object-fit: cover;
+  border: 2.5px solid var(--primary);
+  display: block;
+}
+.profile-photo-emoji {
+  width: 62px; height: 62px; border-radius: 50%;
+  background: var(--primary-light); border: 2.5px solid var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px;
+}
+.profile-photo-badge {
+  position: absolute; bottom: -1px; right: -1px;
+  background: var(--primary); color: white;
+  width: 22px; height: 22px; border-radius: 50%;
+  font-size: 11px; display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--card); cursor: pointer;
+  transition: transform 0.2s;
+}
+.profile-photo-badge:active { transform: scale(0.9); }
+/* Photo action sheet */
+.photo-sheet-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 800; display: none; align-items: flex-end; justify-content: center;
+}
+.photo-sheet-overlay.show { display: flex; }
+.photo-sheet {
+  background: var(--card); border-radius: 20px 20px 0 0;
+  padding: 20px 16px 36px; width: 100%; max-width: 480px;
+  border-top: 1px solid var(--border);
+  animation: slideUp 0.25s ease;
+}
+.photo-sheet-title {
+  font-family: var(--font-display); font-size: 18px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 1px;
+  text-align: center; margin-bottom: 16px; color: var(--text);
+}
+.photo-preview-row {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
+  padding: 12px; background: var(--bg2); border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.photo-preview-img {
+  width: 54px; height: 54px; border-radius: 50%;
+  object-fit: cover; border: 2px solid var(--primary);
+  display: none;
+}
+.photo-preview-emoji {
+  width: 54px; height: 54px; border-radius: 50%;
+  background: var(--primary-light); border: 2px solid var(--primary);
+  display: flex; align-items: center; justify-content: center; font-size: 26px;
+}
+.photo-preview-info { flex: 1; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.photo-actions { display: flex; flex-direction: column; gap: 8px; }
+.photo-action-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; background: var(--bg2);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  cursor: pointer; font-family: var(--font-body); transition: all 0.18s;
+  font-size: 14px; font-weight: 600; color: var(--text);
+}
+.photo-action-btn:active { background: var(--primary-light); border-color: var(--primary); }
+.photo-action-btn .pa-icon { font-size: 22px; width: 36px; text-align: center; }
+.photo-action-btn.danger { color: var(--primary); }
+.photo-action-btn.cancel { background: transparent; border-color: transparent; color: var(--muted); justify-content: center; }
+/* Profile VIEW card photo */
+.profile-view-photo {
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 2px solid var(--primary); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; background: var(--primary-light); overflow: hidden;
+}
+.profile-view-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .profile-view-card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -994,6 +1084,7 @@ select.form-input option { background: var(--card2); color: var(--text); }
     <div class="logo" onclick="goPage('dashboard')"><span class="w-letter">W</span> GYM <span>Seu treino, sua evolução</span></div>
     <div class="header-right">
       <div id="trainStatus" class="status-chip chip-red">Sem treino</div>
+      <button id="stopTrainBtn" class="hdr-stop-btn" onclick="confirmStopTraining()" title="Encerrar treino" style="display:none;">■</button>
       <div class="train-timer-header" id="headerTimer">00:00</div>
       <button class="hdr-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
       <div class="hdr-user" id="hdrUser" onclick="goPage('config')" title="Perfil">🏋️</div>
@@ -1237,14 +1328,14 @@ select.form-input option { background: var(--card2); color: var(--text); }
           <div class="form-group"><label class="form-label">Séries</label><input class="form-input" type="number" id="p1series" value="3" min="1" max="20"></div>
           <div class="form-group"><label class="form-label">Reps</label><input class="form-input" type="number" id="p1reps" value="12" min="1" max="200"></div>
           <div class="form-group"><label class="form-label">Kg</label><input class="form-input" type="number" id="p1load" value="0" step="0.5" min="0"></div>
-          <div class="form-group"><label class="form-label">Desc.</label><select class="form-input" id="p1rest"><option value="30">30s</option><option value="60" selected>1min</option><option value="90">90s</option><option value="120">2min</option></select></div>
+          <div class="form-group"><label class="form-label">Desc.</label><select class="form-input" id="p1rest"><option value="30">30s</option><option value="45">45s</option><option value="60" selected>1min</option><option value="90">90s</option><option value="120">2min</option><option value="180">3min</option></select></div>
         </div>
         <div class="partner-header"><span class="p2-dot">P2</span> <span id="p2label">Atleta 2</span></div>
         <div class="form-row four">
           <div class="form-group"><label class="form-label">Séries</label><input class="form-input" type="number" id="p2series" value="3" min="1" max="20"></div>
           <div class="form-group"><label class="form-label">Reps</label><input class="form-input" type="number" id="p2reps" value="10" min="1" max="200"></div>
           <div class="form-group"><label class="form-label">Kg</label><input class="form-input" type="number" id="p2load" value="0" step="0.5" min="0"></div>
-          <div class="form-group"><label class="form-label">Desc.</label><select class="form-input" id="p2rest"><option value="30">30s</option><option value="60" selected>1min</option><option value="90">90s</option><option value="120">2min</option></select></div>
+          <div class="form-group"><label class="form-label">Desc.</label><select class="form-input" id="p2rest"><option value="30">30s</option><option value="45">45s</option><option value="60" selected>1min</option><option value="90">90s</option><option value="120">2min</option><option value="180">3min</option></select></div>
         </div>
       </div>
       <!-- GROUP FORM — dynamically rendered -->
@@ -1301,7 +1392,7 @@ select.form-input option { background: var(--card2); color: var(--text); }
   <!-- Logged-in user profile — VIEW mode by default -->
   <div class="profile-view-card" id="profileViewCard">
     <div class="profile-view-left">
-      <div class="profile-view-avatar" id="myProfileAvatar">🏋️</div>
+      <div class="profile-view-photo" id="profileViewPhoto">🏋️</div>
       <div>
         <div class="profile-view-name" id="myProfileName">—</div>
         <div class="profile-view-email" id="myProfileEmail">—</div>
@@ -1320,12 +1411,17 @@ select.form-input option { background: var(--card2); color: var(--text); }
       <span class="profile-edit-title">Editar Perfil</span>
     </div>
     <div class="profile-edit-header">
-      <div class="profile-edit-avatar-wrap" onclick="toggleProfileAvatarPicker()">
-        <div class="profile-edit-avatar" id="editAvatar">🏋️</div>
-        <div class="profile-edit-avatar-badge">📷</div>
+      <!-- Photo wrap with camera badge -->
+      <div class="profile-photo-wrap" onclick="openPhotoSheet()">
+        <div class="profile-photo-emoji" id="editAvatarEmoji">🏋️</div>
+        <img class="profile-photo-img" id="editAvatarImg" src="" alt="foto" style="display:none;">
+        <div class="profile-photo-badge">📷</div>
       </div>
+      <!-- Hidden legacy element for compat -->
+      <div id="editAvatar" style="display:none;">🏋️</div>
       <div class="profile-edit-info">
-        <div style="font-size:12px;color:var(--muted);">Toque no avatar para trocar</div>
+        <div style="font-size:12px;color:var(--muted);">Toque na foto para alterar</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Câmera, galeria ou emoji</div>
       </div>
     </div>
     <div class="profile-avatar-picker" id="profileAvatarPicker"></div>
@@ -1349,6 +1445,44 @@ select.form-input option { background: var(--card2); color: var(--text); }
       <button class="profile-save-btn" style="width:100%;margin-top:6px;" onclick="saveProfileEdits()">💾 Salvar Alterações</button>
     </div>
   </div>
+
+  <!-- Photo action sheet -->
+  <div class="photo-sheet-overlay" id="photoSheetOverlay">
+    <div class="photo-sheet">
+      <div class="photo-sheet-title">Foto do Perfil</div>
+      <div class="photo-preview-row">
+        <div class="photo-preview-emoji" id="photoPreviewEmoji">🏋️</div>
+        <img class="photo-preview-img" id="photoPreviewImg" src="" alt="">
+        <div class="photo-preview-info">Escolha como deseja<br>identificar seu perfil</div>
+      </div>
+      <div class="photo-actions">
+        <button class="photo-action-btn" onclick="triggerPhotoInput('camera')">
+          <span class="pa-icon">📷</span>
+          <div><div style="font-weight:700;">Tirar foto</div><div style="font-size:11px;color:var(--muted);">Usar câmera do celular</div></div>
+        </button>
+        <button class="photo-action-btn" onclick="triggerPhotoInput('gallery')">
+          <span class="pa-icon">🖼️</span>
+          <div><div style="font-weight:700;">Escolher da galeria</div><div style="font-size:11px;color:var(--muted);">Selecionar foto existente</div></div>
+        </button>
+        <button class="photo-action-btn" onclick="showEmojiPicker()">
+          <span class="pa-icon">😊</span>
+          <div><div style="font-weight:700;">Usar avatar emoji</div><div style="font-size:11px;color:var(--muted);">Escolher um ícone</div></div>
+        </button>
+        <button class="photo-action-btn danger" id="photoRemoveBtn" onclick="removeProfilePhoto()" style="display:none;">
+          <span class="pa-icon">🗑️</span>
+          <div><div style="font-weight:700;">Remover foto</div><div style="font-size:11px;color:var(--muted);">Voltar ao avatar emoji</div></div>
+        </button>
+        <button class="photo-action-btn cancel" onclick="closePhotoSheet()">Cancelar</button>
+      </div>
+      <!-- Emoji picker inside sheet -->
+      <div id="photoEmojiPicker" style="display:none;margin-top:12px;">
+        <div class="profile-avatar-picker show" id="photoEmojiGrid" style="margin:0;"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Hidden file inputs -->
+  <input type="file" id="profilePhotoCamera" accept="image/*" capture="user" style="display:none;" onchange="handleProfilePhoto(event)">
+  <input type="file" id="profilePhotoGallery" accept="image/*" style="display:none;" onchange="handleProfilePhoto(event)">
 
   <div class="settings-section">
     <div class="settings-section-title">Grupos Musculares</div>
@@ -1595,8 +1729,9 @@ function loginAccount(account) {
   currentAccount = account;
   if (!account.guest) localStorage.setItem('wgym_session', account.id);
   document.getElementById('authScreen').classList.add('hidden');
+  linkAccountToAthlete();
   updateGreeting();
-  updateHeaderUser();
+  renderProfileDisplay();
   renderSettings();
   renderDashboard();
   renderUserSelectors();
@@ -1894,62 +2029,180 @@ function normalizeSlots() { migrateUsers(); }
 
 
 // ═══════════════════════════════════════════════════════
-// PROFILE EDIT (account) — view/edit mode
+// PROFILE PHOTO — camera / gallery / emoji / remove
 // ═══════════════════════════════════════════════════════
 let profilePickerOpen = false;
+let _pendingPhotoDataUrl = null; // temp storage before save
+
+function renderProfileDisplay() {
+  // Updates both VIEW card and EDIT header with current account photo/emoji
+  if (!currentAccount) return;
+  const hasPhoto = currentAccount.photoDataUrl;
+
+  // View card
+  const viewPhoto = document.getElementById('profileViewPhoto');
+  if (viewPhoto) {
+    if (hasPhoto) {
+      viewPhoto.innerHTML = `<img src="${currentAccount.photoDataUrl}" alt="foto" style="width:52px;height:52px;border-radius:50%;object-fit:cover;">`;
+    } else {
+      viewPhoto.textContent = currentAccount.avatar || '🏋️';
+    }
+  }
+
+  // Legacy compat
+  const legacyAvatar = document.getElementById('myProfileAvatar');
+  if (legacyAvatar) legacyAvatar.textContent = currentAccount.avatar || '🏋️';
+
+  // Header user button
+  updateHeaderUser();
+}
+
+function updateHeaderUser() {
+  const el = document.getElementById('hdrUser');
+  if (!el || !currentAccount) return;
+  if (currentAccount.photoDataUrl) {
+    el.innerHTML = `<img src="${currentAccount.photoDataUrl}" alt="foto" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`;
+    el.style.padding = '0';
+    el.style.overflow = 'hidden';
+  } else {
+    el.textContent = currentAccount.avatar || '🏋️';
+    el.style.padding = '';
+    el.style.overflow = '';
+  }
+}
+
+function openPhotoSheet() {
+  const overlay = document.getElementById('photoSheetOverlay');
+  if (!overlay) return;
+  // Sync preview with current account
+  const hasPhoto = currentAccount && currentAccount.photoDataUrl;
+  const previewEmoji = document.getElementById('photoPreviewEmoji');
+  const previewImg = document.getElementById('photoPreviewImg');
+  const removeBtn = document.getElementById('photoRemoveBtn');
+  if (previewEmoji) previewEmoji.textContent = currentAccount ? currentAccount.avatar || '🏋️' : '🏋️';
+  if (previewImg) {
+    previewImg.src = hasPhoto ? currentAccount.photoDataUrl : '';
+    previewImg.style.display = hasPhoto ? 'block' : 'none';
+    if (previewEmoji) previewEmoji.style.display = hasPhoto ? 'none' : 'flex';
+  }
+  if (removeBtn) removeBtn.style.display = hasPhoto ? 'flex' : 'none';
+  // Hide emoji grid
+  const emojiPicker = document.getElementById('photoEmojiPicker');
+  if (emojiPicker) emojiPicker.style.display = 'none';
+  overlay.classList.add('show');
+}
+
+function closePhotoSheet() {
+  const overlay = document.getElementById('photoSheetOverlay');
+  if (overlay) overlay.classList.remove('show');
+  _pendingPhotoDataUrl = null;
+}
+
+function triggerPhotoInput(source) {
+  if (source === 'camera') {
+    document.getElementById('profilePhotoCamera').click();
+  } else {
+    document.getElementById('profilePhotoGallery').click();
+  }
+}
+
+function handleProfilePhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    // Resize to max 300px for storage efficiency
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 300;
+      const ratio = Math.min(MAX / img.width, MAX / img.height);
+      canvas.width = img.width * ratio;
+      canvas.height = img.height * ratio;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const resized = canvas.toDataURL('image/jpeg', 0.8);
+      _pendingPhotoDataUrl = resized;
+      // Apply immediately to account
+      applyProfilePhoto(resized);
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function applyProfilePhoto(dataUrl) {
+  if (!currentAccount) return;
+  const acc = accounts.find(a => a.id === currentAccount.id);
+  if (acc) { acc.photoDataUrl = dataUrl; saveAccounts(); currentAccount = acc; }
+  renderProfileDisplay();
+  updateEditPhotoUI();
+  closePhotoSheet();
+  showToast('📷 Foto atualizada!');
+}
+
+function removeProfilePhoto() {
+  if (!currentAccount) return;
+  const acc = accounts.find(a => a.id === currentAccount.id);
+  if (acc) { delete acc.photoDataUrl; saveAccounts(); currentAccount = acc; }
+  renderProfileDisplay();
+  updateEditPhotoUI();
+  closePhotoSheet();
+  showToast('🗑️ Foto removida');
+}
+
+function showEmojiPicker() {
+  const picker = document.getElementById('photoEmojiPicker');
+  const grid = document.getElementById('photoEmojiGrid');
+  if (!picker || !grid) return;
+  const cur = currentAccount ? currentAccount.avatar || '🏋️' : '🏋️';
+  grid.innerHTML = AVATARS.map(em =>
+    `<div class="emoji-opt ${em === cur ? 'selected' : ''}" onclick="selectPhotoEmoji('${em}')">${em}</div>`
+  ).join('');
+  picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+}
+
+function selectPhotoEmoji(em) {
+  if (!currentAccount) return;
+  const acc = accounts.find(a => a.id === currentAccount.id);
+  if (acc) { acc.avatar = em; delete acc.photoDataUrl; saveAccounts(); currentAccount = acc; }
+  renderProfileDisplay();
+  updateEditPhotoUI();
+  closePhotoSheet();
+  showToast('✅ Avatar atualizado!');
+}
+
+function updateEditPhotoUI() {
+  // Sync the edit card header
+  const hasPhoto = currentAccount && currentAccount.photoDataUrl;
+  const emojiEl = document.getElementById('editAvatarEmoji');
+  const imgEl = document.getElementById('editAvatarImg');
+  const legacyEl = document.getElementById('editAvatar');
+  if (emojiEl) { emojiEl.textContent = currentAccount ? currentAccount.avatar || '🏋️' : '🏋️'; emojiEl.style.display = hasPhoto ? 'none' : 'flex'; }
+  if (imgEl) { imgEl.src = hasPhoto ? currentAccount.photoDataUrl : ''; imgEl.style.display = hasPhoto ? 'block' : 'none'; }
+  if (legacyEl) legacyEl.textContent = currentAccount ? currentAccount.avatar || '🏋️' : '🏋️';
+}
+
+// Legacy — keep compat
+function toggleProfileAvatarPicker() { openPhotoSheet(); }
+function selectProfileAvatar(em) { selectPhotoEmoji(em); }
 
 function openProfileEdit() {
   if (!currentAccount) return;
-  // Pre-fill fields with current account data
   const nameEl = document.getElementById('editProfileName');
-  const avatarEl = document.getElementById('editAvatar');
   if (nameEl) nameEl.value = currentAccount.name || '';
-  if (avatarEl) avatarEl.textContent = currentAccount.avatar || '🏋️';
-  // Clear password fields
-  const passEl = document.getElementById('editProfilePass');
-  const confEl = document.getElementById('editProfileConfirm');
-  if (passEl) passEl.value = '';
-  if (confEl) confEl.value = '';
-  // Close avatar picker
-  profilePickerOpen = false;
-  const picker = document.getElementById('profileAvatarPicker');
-  if (picker) picker.classList.remove('show');
-  // Switch cards
+  ['editProfilePass','editProfileConfirm'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   document.getElementById('profileViewCard').style.display = 'none';
   document.getElementById('profileEditCard').style.display = 'block';
-  // Focus name
+  updateEditPhotoUI();
   setTimeout(() => { if (nameEl) nameEl.focus(); }, 150);
 }
 
 function closeProfileEdit() {
   document.getElementById('profileEditCard').style.display = 'none';
   document.getElementById('profileViewCard').style.display = 'flex';
-  profilePickerOpen = false;
-  const picker = document.getElementById('profileAvatarPicker');
-  if (picker) picker.classList.remove('show');
-}
-
-function toggleProfileAvatarPicker() {
-  profilePickerOpen = !profilePickerOpen;
-  const picker = document.getElementById('profileAvatarPicker');
-  if (!picker) return;
-  if (profilePickerOpen) {
-    const cur = document.getElementById('editAvatar')?.textContent.trim() || '🏋️';
-    picker.innerHTML = AVATARS.map(em =>
-      `<div class="emoji-opt ${em === cur ? 'selected' : ''}" onclick="selectProfileAvatar('${em}')">${em}</div>`
-    ).join('');
-    picker.classList.add('show');
-  } else {
-    picker.classList.remove('show');
-  }
-}
-
-function selectProfileAvatar(em) {
-  const el = document.getElementById('editAvatar');
-  if (el) el.textContent = em;
-  document.querySelectorAll('#profileAvatarPicker .emoji-opt').forEach(x => {
-    x.classList.toggle('selected', x.textContent.trim() === em);
-  });
 }
 
 function togglePassVis(inputId) {
@@ -1963,27 +2216,136 @@ function saveProfileEdits() {
   const name = (document.getElementById('editProfileName')?.value || '').trim();
   const pass = document.getElementById('editProfilePass')?.value || '';
   const confirm = document.getElementById('editProfileConfirm')?.value || '';
-  const avatar = document.getElementById('editAvatar')?.textContent.trim() || currentAccount.avatar;
 
   if (!name) { showToast('⚠️ Digite seu nome'); return; }
-  if (pass && pass.length < 6) { showToast('⚠️ Senha deve ter mínimo 6 caracteres'); return; }
+  if (pass && pass.length < 6) { showToast('⚠️ Senha mínimo 6 caracteres'); return; }
   if (pass && pass !== confirm) { showToast('⚠️ Senhas não coincidem'); return; }
 
   const acc = accounts.find(a => a.id === currentAccount.id);
   if (acc) {
     acc.name = name;
-    acc.avatar = avatar;
     if (pass) acc.passwordHash = simpleHash(pass);
     saveAccounts();
     currentAccount = acc;
     localStorage.setItem('wgym_session', acc.id);
   }
-
-  updateHeaderUser();
+  renderProfileDisplay();
   updateGreeting();
   closeProfileEdit();
   renderSettings();
   showToast('✅ Perfil atualizado!');
+}
+
+// ═══════════════════════════════════════════════════════
+// ATHLETE SELECTION RULES
+// ═══════════════════════════════════════════════════════
+// Keys for last-selected athlete per mode
+const LAST_ATHLETE_KEY = {
+  alone: 'wgym_last_solo',
+  partner: 'wgym_last_partner',
+  group: 'wgym_last_group',
+  free: 'wgym_last_free'
+};
+
+function saveLastAthletes() {
+  // Persist current selection for each mode
+  try {
+    localStorage.setItem(LAST_ATHLETE_KEY.alone, state.activeUserId || '');
+    localStorage.setItem(LAST_ATHLETE_KEY.partner, JSON.stringify({ p1: state.activeP1Id, p2: state.activeP2Id }));
+    localStorage.setItem(LAST_ATHLETE_KEY.group, JSON.stringify(state.groupUserIds));
+  } catch(e) {}
+}
+
+function getAccountAsAthlete() {
+  // Returns the user-athlete that matches currentAccount, or null
+  if (!currentAccount) return null;
+  return getActiveUsers().find(u =>
+    u.accountId === currentAccount.id ||
+    u.name.toLowerCase() === currentAccount.name.toLowerCase()
+  ) || null;
+}
+
+function ensureAthleteSelected() {
+  // Called before starting any training — ensures at least 1 athlete is selected
+  const active = getActiveUsers();
+  if (!active.length) return true; // no athletes registered, allow anyway
+
+  const mode = state.mode;
+
+  if (mode === 'alone' || mode === 'free') {
+    if (!state.activeUserId) {
+      // Try to restore last selection
+      const lastId = localStorage.getItem(LAST_ATHLETE_KEY.alone);
+      const found = lastId && active.find(u => u.id === lastId);
+      if (found) {
+        state.activeUserId = found.id;
+        state.p1name = found.name;
+      } else {
+        // Fallback: current account's matching athlete, else first athlete
+        const accAthlete = getAccountAsAthlete();
+        const fallback = accAthlete || active[0];
+        state.activeUserId = fallback.id;
+        state.p1name = fallback.name;
+        showToast('🏋️ ' + fallback.name + ' selecionado automaticamente');
+      }
+      renderSoloUserPills();
+    }
+    return true;
+  }
+
+  if (mode === 'partner') {
+    let changed = false;
+    if (!state.activeP1Id && active.length >= 1) {
+      const lastData = JSON.parse(localStorage.getItem(LAST_ATHLETE_KEY.partner) || '{}');
+      const p1 = (lastData.p1 && active.find(u => u.id === lastData.p1)) || active[0];
+      state.activeP1Id = p1.id; state.p1name = p1.name; changed = true;
+    }
+    if (!state.activeP2Id && active.length >= 2) {
+      const lastData = JSON.parse(localStorage.getItem(LAST_ATHLETE_KEY.partner) || '{}');
+      const candidates = active.filter(u => u.id !== state.activeP1Id);
+      const p2 = (lastData.p2 && candidates.find(u => u.id === lastData.p2)) || candidates[0];
+      if (p2) { state.activeP2Id = p2.id; state.p2name = p2.name; changed = true; }
+    }
+    if (!state.activeP1Id) {
+      showToast('⚠️ Selecione ao menos um atleta para Dupla');
+      return false;
+    }
+    if (changed) renderPartnerUserPills();
+    return true;
+  }
+
+  if (mode === 'group') {
+    if (!state.groupUserIds.length) {
+      const lastIds = JSON.parse(localStorage.getItem(LAST_ATHLETE_KEY.group) || '[]');
+      const restored = lastIds.filter(id => active.find(u => u.id === id));
+      if (restored.length) {
+        state.groupUserIds = restored;
+      } else {
+        // Pre-select all athletes by default
+        state.groupUserIds = active.map(u => u.id);
+        showToast('👥 ' + active.length + ' atletas selecionados');
+      }
+      renderGroupUserPills();
+    }
+    return true;
+  }
+
+  return true;
+}
+
+function linkAccountToAthlete() {
+  // When logging in, link account to first matching athlete (or create one)
+  if (!currentAccount || currentAccount.guest) return;
+  const active = getActiveUsers();
+  // Find exact match by accountId or name
+  let match = active.find(u => u.accountId === currentAccount.id);
+  if (!match) match = active.find(u => u.name.toLowerCase() === currentAccount.name.toLowerCase());
+  if (match) {
+    match.accountId = currentAccount.id;
+    saveUsers();
+    // Auto-select this athlete for solo mode
+    if (!state.activeUserId) { state.activeUserId = match.id; state.p1name = match.name; }
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2302,6 +2664,9 @@ function updateSheetStartBar() {
 
 function startSelectedExercises() {
   if (!state.sheetSelected || !state.sheetSelected.length) { showToast('Selecione ao menos 1 exercício'); return; }
+  // RULE: must have at least 1 athlete selected
+  if (!ensureAthleteSelected()) return;
+  saveLastAthletes();
   // Start the training session now
   if (!state.activeTraining) {
     state.activeTraining = true;
@@ -2413,6 +2778,8 @@ function toggleFreeEx(ex) { const i=state.freeSelected.indexOf(ex); i>=0?state.f
 function addCustomExToFree() { const input=document.getElementById('freeCustomInput'), name=input.value.trim(); if(!name)return; if(!state.freeCustomExercises.includes(name)){state.freeCustomExercises.push(name);state.freeSelected.push(name);} input.value=''; renderFreeExList(); }
 function startFreeWorkout() {
   if (!state.freeSelected.length){showToast('Selecione exercícios');return;}
+  if (!ensureAthleteSelected()) return;
+  saveLastAthletes();
   state.group='Livre';
   if(!state.activeTraining){state.activeTraining=true;state.trainStart=new Date().toISOString();startTrainTimer();}
   EXERCISES['Livre']=[...state.freeSelected];
@@ -2632,7 +2999,7 @@ function renderGroupMembersForm() {
         <div class="form-group"><label class="form-label">Kg</label><input class="form-input" type="number" id="gs${i}_load" value="0" step="0.5" min="0"></div>
         <div class="form-group"><label class="form-label">Desc.</label>
           <select class="form-input" id="gs${i}_rest">
-            <option value="30">30s</option><option value="60" selected>1min</option><option value="90">90s</option><option value="120">2min</option>
+            <option value="30">30s</option><option value="45">45s</option><option value="60" selected>1min</option><option value="90">90s</option><option value="120">2min</option><option value="180">3min</option>
           </select>
         </div>
       </div>
@@ -2979,6 +3346,15 @@ function shareWorkout(method) {
   }
 }
 
+function confirmStopTraining() {
+  if (!state.activeTraining) return;
+  const done = (state.completedEx[state.group] || []).length;
+  const msg = done > 0
+    ? `Deseja encerrar esse treino?\n\n✅ ${done} exercício${done!==1?'s':''} concluído${done!==1?'s':''} até agora.`
+    : 'Deseja encerrar esse treino?';
+  if (confirm(msg)) concludeTraining();
+}
+
 function concludeTraining() {
   if(!state.activeTraining){showToast('Nenhum treino em andamento');return;}
   const done=(state.completedEx[state.group]||[]).length;
@@ -2990,6 +3366,8 @@ function concludeTraining() {
   document.getElementById('trainStatus').className='status-chip chip-red';
   document.getElementById('headerTimer').classList.remove('show');
   document.getElementById('activeTrainBar').classList.remove('show');
+  // Hide stop button
+  const sb = document.getElementById('stopTrainBtn'); if(sb) sb.style.display='none';
   stopTimer(); closeExSheet();
   showToast('🎉 Treino encerrado! '+done+' exercícios.');
   goPage('dashboard'); renderDashboard();
@@ -3011,6 +3389,7 @@ function startTrainTimer(){
   stopTrainTimer();
   document.getElementById('headerTimer').classList.add('show');
   document.getElementById('activeTrainBar').classList.add('show');
+  const sb = document.getElementById('stopTrainBtn'); if(sb) sb.style.display='flex';
   trainTimerInterval=setInterval(()=>{
     if(!state.trainStart)return;
     const e=Math.floor((Date.now()-new Date(state.trainStart).getTime())/1000);
@@ -3037,20 +3416,30 @@ function updateActiveBar(){
 // ═══════════════════════════════════════════════════════
 function renderHistory() {
   const content=document.getElementById('historyContent');
+  if (!content) return;
   const query=(document.getElementById('histSearch')?.value||'').toLowerCase().trim();
-  let filtered=history;
-  if(query) filtered=history.filter(h=>h.exercise.toLowerCase().includes(query)||(h.group||'').toLowerCase().includes(query)||(h.p1name||'').toLowerCase().includes(query)||(h.p2name||'').toLowerCase().includes(query));
+  // Defensive: ensure history entries have valid series array
+  const validHistory = history.filter(h => h && h.exercise && Array.isArray(h.series));
+  let filtered = validHistory;
+  if(query) filtered=validHistory.filter(h=>
+    (h.exercise||'').toLowerCase().includes(query)||
+    (h.group||'').toLowerCase().includes(query)||
+    (h.p1name||'').toLowerCase().includes(query)||
+    (h.p2name||'').toLowerCase().includes(query)||
+    (users.find(u=>u&&u.id===h.userId)?.name||'').toLowerCase().includes(query)
+  );
   const countEl=document.getElementById('histCount'); if(countEl)countEl.textContent=filtered.length+' registros';
   if(!filtered.length){content.innerHTML=`<div class="empty"><div class="empty-icon">${query?'🔍':'📋'}</div><div class="empty-text">${query?'Nenhum resultado.':'Nenhum treino registrado ainda.'}</div></div>`;return;}
   const exMap={};
-  history.forEach(h=>{if(!exMap[h.exercise])exMap[h.exercise]=[];exMap[h.exercise].push(h);});
+  validHistory.forEach(h=>{if(!exMap[h.exercise])exMap[h.exercise]=[];exMap[h.exercise].push(h);});
   let html='';
   filtered.forEach(h=>{
+    try {
     const d=new Date(h.date);
     const dateStr=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
     const isHistAerobic = h.isAerobic || (h.series && h.series.some(s => s.isAerobic));
-    const soloS=h.series.filter(s=>!s.player||s.player===h.p1name);
-    const p2S=h.series.filter(s=>s.player&&s.player===h.p2name);
+    const soloS=(h.series||[]).filter(s=>!s.player||s.player===h.p1name);
+    const p2S=(h.series||[]).filter(s=>s.player&&s.player===h.p2name);
 
     let volDisplay='', evoBadge='', pills='', pills2='';
 
@@ -3109,8 +3498,9 @@ function renderHistory() {
       ${evoBadge?`<div class="evo-row">${evoBadge}</div>`:''}
       ${h.notes?`<div style="font-size:11px;color:var(--muted);margin-top:6px;font-style:italic;">📝 ${h.notes}</div>`:''}
     </div>`;
+    } catch(err) { console.warn('renderHistory entry error', err, h); }
   });
-  content.innerHTML=html;
+  content.innerHTML = html || `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Nenhum treino registrado ainda.</div></div>`;
 }
 
 function toLocalDateTimeInput(isoStr) {
@@ -3189,12 +3579,11 @@ function renderSettings() {
   const editCard = document.getElementById('profileEditCard');
   if (viewCard) viewCard.style.display = 'flex';
   if (editCard) editCard.style.display = 'none';
-  profilePickerOpen = false;
-  // Populate view card with current account data
+  // Populate view card (name, email, photo)
   if (currentAccount) {
     const nav=document.getElementById('myProfileName'); if(nav)nav.textContent=currentAccount.name||'—';
     const eav=document.getElementById('myProfileEmail'); if(eav)eav.textContent=currentAccount.email||'Conta Visitante';
-    const avat=document.getElementById('myProfileAvatar'); if(avat)avat.textContent=currentAccount.avatar||'🏋️';
+    renderProfileDisplay();
   }
 }
 
@@ -3267,8 +3656,9 @@ renderGroupGrid();
 // If already logged in, skip auth screen
 if (currentAccount) {
   document.getElementById('authScreen').classList.add('hidden');
+  linkAccountToAthlete();
   updateGreeting();
-  updateHeaderUser();
+  renderProfileDisplay();
   renderUserSelectors();
   renderDashboard();
 } else {
