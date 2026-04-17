@@ -1171,6 +1171,11 @@ select.form-input option { background: var(--card2); color: var(--text); }
       <div class="section-title" style="margin-bottom:0;">Treino Livre</div>
       <span class="free-workout-count" id="freeSelCount">0 selecionados</span>
     </div>
+    <!-- FREE MODE: athlete selector -->
+    <div class="user-selector" id="freeUserSel" style="margin-bottom:12px;">
+      <div class="user-selector-label">Atleta treinando</div>
+      <div class="user-pills" id="freeUserPills"></div>
+    </div>
     <div id="freeExList" class="ex-list" style="max-height:300px; overflow-y:auto;"></div>
     <div class="add-ex-row">
       <input class="add-ex-input" id="freeCustomInput" type="text" placeholder="Adicionar exercício...">
@@ -2138,19 +2143,34 @@ function applyProfilePhoto(dataUrl) {
   const acc = accounts.find(a => a.id === currentAccount.id);
   if (acc) { acc.photoDataUrl = dataUrl; saveAccounts(); currentAccount = acc; }
   renderProfileDisplay();
+  updateHeaderUser();
   updateEditPhotoUI();
   closePhotoSheet();
-  showToast('📷 Foto atualizada!');
+  showToast('📷 Foto atualizada com sucesso!');
+  // Auto-return to profile view after a short delay so user sees the result
+  setTimeout(() => {
+    closeProfileEdit();
+    updateGreeting();
+    renderSettings();
+  }, 900);
 }
 
 function removeProfilePhoto() {
   if (!currentAccount) return;
+  if (!confirm('Remover foto do perfil?')) return;
   const acc = accounts.find(a => a.id === currentAccount.id);
   if (acc) { delete acc.photoDataUrl; saveAccounts(); currentAccount = acc; }
   renderProfileDisplay();
+  updateHeaderUser();
   updateEditPhotoUI();
   closePhotoSheet();
   showToast('🗑️ Foto removida');
+  // Return to profile view
+  setTimeout(() => {
+    closeProfileEdit();
+    updateGreeting();
+    renderSettings();
+  }, 700);
 }
 
 function showEmojiPicker() {
@@ -2169,9 +2189,16 @@ function selectPhotoEmoji(em) {
   const acc = accounts.find(a => a.id === currentAccount.id);
   if (acc) { acc.avatar = em; delete acc.photoDataUrl; saveAccounts(); currentAccount = acc; }
   renderProfileDisplay();
+  updateHeaderUser();
   updateEditPhotoUI();
   closePhotoSheet();
   showToast('✅ Avatar atualizado!');
+  // Return to profile view
+  setTimeout(() => {
+    closeProfileEdit();
+    updateGreeting();
+    renderSettings();
+  }, 700);
 }
 
 function updateEditPhotoUI() {
@@ -2229,11 +2256,17 @@ function saveProfileEdits() {
     currentAccount = acc;
     localStorage.setItem('wgym_session', acc.id);
   }
+
   renderProfileDisplay();
+  updateHeaderUser();
   updateGreeting();
-  closeProfileEdit();
-  renderSettings();
-  showToast('✅ Perfil atualizado!');
+
+  // Visual feedback: show success banner then return
+  showToast(pass ? '✅ Perfil e senha atualizados!' : '✅ Perfil atualizado com sucesso!');
+  setTimeout(() => {
+    closeProfileEdit();
+    renderSettings();
+  }, 800);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2251,6 +2284,7 @@ function saveLastAthletes() {
   // Persist current selection for each mode
   try {
     localStorage.setItem(LAST_ATHLETE_KEY.alone, state.activeUserId || '');
+    localStorage.setItem(LAST_ATHLETE_KEY.free, state.activeUserId || '');
     localStorage.setItem(LAST_ATHLETE_KEY.partner, JSON.stringify({ p1: state.activeP1Id, p2: state.activeP2Id }));
     localStorage.setItem(LAST_ATHLETE_KEY.group, JSON.stringify(state.groupUserIds));
   } catch(e) {}
@@ -2274,8 +2308,9 @@ function ensureAthleteSelected() {
 
   if (mode === 'alone' || mode === 'free') {
     if (!state.activeUserId) {
-      // Try to restore last selection
-      const lastId = localStorage.getItem(LAST_ATHLETE_KEY.alone);
+      // For free mode prefer the free-specific key, fallback to solo key
+      const keyToUse = mode === 'free' ? LAST_ATHLETE_KEY.free : LAST_ATHLETE_KEY.alone;
+      const lastId = localStorage.getItem(keyToUse) || localStorage.getItem(LAST_ATHLETE_KEY.alone);
       const found = lastId && active.find(u => u.id === lastId);
       if (found) {
         state.activeUserId = found.id;
@@ -2288,7 +2323,7 @@ function ensureAthleteSelected() {
         state.p1name = fallback.name;
         showToast('🏋️ ' + fallback.name + ' selecionado automaticamente');
       }
-      renderSoloUserPills();
+      if (mode === 'free') renderFreeUserPills(); else renderSoloUserPills();
     }
     return true;
   }
@@ -2351,7 +2386,7 @@ function linkAccountToAthlete() {
 // ═══════════════════════════════════════════════════════
 // USER SELECTORS — P1 is always slot-0, P2 always slot-1, etc.
 // ═══════════════════════════════════════════════════════
-function renderUserSelectors() { renderSoloUserPills(); renderPartnerUserPills(); renderGroupUserPills(); renderDashUserPills(); }
+function renderUserSelectors() { renderSoloUserPills(); renderPartnerUserPills(); renderGroupUserPills(); renderFreeUserPills(); renderDashUserPills(); }
 
 function getActiveUsers() {
   if (!Array.isArray(users)) users = [];
@@ -2482,7 +2517,7 @@ function setMode(m) {
     state.groupUserIds = active.map(u => u.id);
   }
 
-  if (m==='free') renderFreeExList();
+  if (m==='free') { renderFreeExList(); renderFreeUserPills(); }
   if (m==='group') renderGroupUserPills();
   renderPartnerUserPills();
   updateModeChip();
@@ -2773,12 +2808,62 @@ function renderFreeExList() {
     </div>`;
   }).join('');
   document.getElementById('freeSelCount').textContent = state.freeSelected.length+' selecionados';
+  renderFreeUserPills();
+}
+
+// ── FREE MODE: Athlete selector ──────────────────────
+function renderFreeUserPills() {
+  const el = document.getElementById('freeUserPills');
+  if (!el) return;
+  const active = getActiveUsers();
+
+  // Auto-select: last used → account-linked athlete → first in list
+  if (!state.activeUserId) {
+    const lastId = localStorage.getItem(LAST_ATHLETE_KEY.free) || localStorage.getItem(LAST_ATHLETE_KEY.alone);
+    const found = lastId && active.find(u => u.id === lastId);
+    if (found) {
+      state.activeUserId = found.id;
+      state.p1name = found.name;
+    } else {
+      const accAthlete = getAccountAsAthlete();
+      const fallback = accAthlete || active[0];
+      if (fallback) { state.activeUserId = fallback.id; state.p1name = fallback.name; }
+    }
+  }
+
+  if (!active.length) {
+    el.innerHTML = `<span style="font-size:12px;color:var(--muted);">Nenhum atleta. <button onclick="goPage('config')" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:12px;font-weight:700;">Adicionar →</button></span>`;
+    return;
+  }
+
+  // Build pills: show all athletes + a special "Eu (conta)" pill if account has a linked athlete
+  const accAthlete = getAccountAsAthlete();
+  let pills = active.map(u => {
+    const isMe = accAthlete && u.id === accAthlete.id;
+    const label = isMe ? `${u.name} <span style="font-size:9px;background:var(--primary);color:white;border-radius:8px;padding:1px 5px;margin-left:3px;">Você</span>` : u.name;
+    return `<div class="user-pill ${state.activeUserId===u.id?'selected':''}" onclick="selectFreeUser('${u.id}')">
+      <span class="up-avatar">${u.avatar}</span>${label}
+    </div>`;
+  }).join('');
+
+  el.innerHTML = pills;
+}
+
+function selectFreeUser(id) {
+  state.activeUserId = id;
+  state.p1name = (getActiveUsers().find(u => u.id === id) || {}).name || '';
+  localStorage.setItem(LAST_ATHLETE_KEY.free, id);
+  renderFreeUserPills();
+  const u = getActiveUsers().find(u => u.id === id);
+  if (u) showToast('🏋️ ' + u.name + ' selecionado');
 }
 function toggleFreeEx(ex) { const i=state.freeSelected.indexOf(ex); i>=0?state.freeSelected.splice(i,1):state.freeSelected.push(ex); renderFreeExList(); }
 function addCustomExToFree() { const input=document.getElementById('freeCustomInput'), name=input.value.trim(); if(!name)return; if(!state.freeCustomExercises.includes(name)){state.freeCustomExercises.push(name);state.freeSelected.push(name);} input.value=''; renderFreeExList(); }
 function startFreeWorkout() {
   if (!state.freeSelected.length){showToast('Selecione exercícios');return;}
   if (!ensureAthleteSelected()) return;
+  // Persist free-mode athlete separately
+  if (state.activeUserId) localStorage.setItem(LAST_ATHLETE_KEY.free, state.activeUserId);
   saveLastAthletes();
   state.group='Livre';
   if(!state.activeTraining){state.activeTraining=true;state.trainStart=new Date().toISOString();startTrainTimer();}
