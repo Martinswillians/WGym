@@ -152,9 +152,9 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
 /* ══ HEADER ══ */
 .header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 12px 16px 0; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); transition: background 0.25s; }
 .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.logo { font-family: var(--font-display); font-size: 26px; font-weight: 900; letter-spacing: 4px; line-height: 1; color: var(--text); cursor: pointer; }
+.logo { font-family: var(--font-display); font-size: 24px; font-weight: 900; letter-spacing: 1px; line-height: 1.1; color: var(--text); cursor: pointer; }
 .logo .w-letter { color: var(--primary); text-shadow: var(--glow); }
-.logo span { font-size: 9px; font-weight: 500; display: block; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-top: 2px; font-family: var(--font-body); }
+.logo span { font-size: 9px; font-weight: 500; display: block; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-top: 3px; font-family: var(--font-body); }
 .header-right { display: flex; align-items: center; gap: 7px; }
 .train-timer-header { font-family: var(--font-display); font-size: 20px; font-weight: 700; letter-spacing: 2px; color: var(--primary); display: none; }
 .train-timer-header.show { display: block; }
@@ -4999,7 +4999,7 @@ function startSuggestedWorkout() {
   if (!_suggPlan) { showToast('Gerando plano...'); buildSuggestedPlan(); return; }
   if (!ensureAthleteSelected()) return;
 
-  // Flatten selected exercises → inject into free workout state
+  // Flatten selected exercises from all group cards
   const selectedByGroup = {};
   _suggPlan.groupsData.forEach(gd => {
     const sel = gd.exs.filter(e => e.selected).map(e => e.name);
@@ -5008,34 +5008,53 @@ function startSuggestedWorkout() {
 
   if (!Object.keys(selectedByGroup).length) { showToast('Selecione ao menos 1 exercício'); return; }
 
-  // Inject groups into EXERCISES so they're accessible
-  Object.entries(selectedByGroup).forEach(([g, exs]) => {
-    EXERCISES['__sugg__' + g] = exs;
-  });
+  // Merge all selected exercises into a flat list (preserving group order)
+  const allSelectedExs = Object.values(selectedByGroup).flat();
 
-  // Set as free mode with injected exercises
-  state.freeSelected = Object.values(selectedByGroup).flat();
-  state.group = Object.keys(selectedByGroup)[0]; // Primary group for display
+  // Inject combined group into EXERCISES so the exercise form works
+  EXERCISES['Sugerido'] = allSelectedExs;
+  state.group = 'Sugerido';
+  state.sheetSelected = [...allSelectedExs]; // queue for sequential navigation
+  state.freeSelected  = [...allSelectedExs];
 
+  saveLastAthletes();
+
+  // Start training session
   if (!state.activeTraining) {
     state.activeTraining = true;
     state.trainStart = new Date().toISOString();
     startTrainTimer();
   }
 
-  // Build a combined "Sugerido" group for the session
-  EXERCISES['Sugerido'] = state.freeSelected;
-  state.group = 'Sugerido';
-
-  saveLastAthletes();
-  document.getElementById('groupCard').style.display = 'block';
-  document.getElementById('exerciseCard').style.display = 'block';
   document.getElementById('trainStatus').textContent = 'Treinando';
   document.getElementById('trainStatus').className = 'status-chip chip-green';
-  const sb = document.getElementById('stopTrainBtn'); if(sb) sb.style.display='flex';
-  renderGroupGrid(); updateActiveBar();
-  showToast('🤖 Treino sugerido iniciado! ' + state.freeSelected.length + ' exercícios.');
-  goPage('treino');
+  document.getElementById('exerciseCard').style.display = 'block';
+  document.getElementById('groupCard').style.display = 'block';
+  const sb = document.getElementById('stopTrainBtn'); if(sb) sb.style.display = 'flex';
+
+  // Navigate straight to the first exercise — exactly like startSelectedExercises
+  const firstEx = allSelectedExs[0];
+  state.selectedEx = firstEx;
+  state.currentSeries = [];
+
+  renderGroupGrid();
+  updateActiveBar();
+  stopTimer();
+
+  const timerBox = document.getElementById('timerBox');
+  if (timerBox) timerBox.classList.remove('show');
+  const seriesLogCard = document.getElementById('seriesLogCard');
+  if (seriesLogCard) seriesLogCard.style.display = 'none';
+  const seriesLog = document.getElementById('seriesLog');
+  if (seriesLog) seriesLog.innerHTML = '';
+
+  // Go to exercício page and load the first exercise
+  goPage('exercicio');
+  updateExForm();
+  prefillLastLoad(firstEx);
+
+  const count = allSelectedExs.length;
+  showToast('🤖 ' + (count > 1 ? count + ' exercícios na fila! Começando por: ' + firstEx : 'Iniciando: ' + firstEx));
 }
 
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
