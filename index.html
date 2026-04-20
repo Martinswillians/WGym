@@ -475,6 +475,8 @@ select.form-input option { background: var(--card2); color: var(--text); }
 .status-chip { font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 700; }
 .chip-red { background: var(--primary-light); color: var(--primary); border: 1px solid rgba(255,61,37,0.3); }
 .chip-green { background: var(--success-bg); color: var(--success); border: 1px solid rgba(46,204,113,0.3); }
+.chip-yellow { background: var(--warning-bg); color: var(--warning); border: 1px solid rgba(245,166,35,0.3); }
+.chip-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(74,159,255,0.3); }
 .status-bar { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 
 /* ══ HIST ══ */
@@ -543,7 +545,24 @@ select.form-input option { background: var(--card2); color: var(--text); }
 .hist-add-serie { width: 100%; padding: 7px; background: transparent; border: 1.5px dashed var(--border); color: var(--muted); border-radius: var(--radius-xs); font-size: 12px; cursor: pointer; margin-top: 4px; font-family: var(--font-body); }
 .hist-add-serie:active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
 
-/* ══ NOTES ══ */
+/* ══ HIST WORKOUT TYPE SECTION ══ */
+.hist-type-section { margin-bottom: 2px; }
+.hist-type-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; background: var(--card2);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--muted);
+}
+.hist-type-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 8px;
+  border-radius: 12px; margin-left: auto;
+}
+.hist-type-badge.aerobic { background: var(--success-bg); color: var(--success); border: 1px solid rgba(46,204,113,0.25); }
+.hist-type-badge.strength { background: var(--primary-light); color: var(--primary); border: 1px solid rgba(255,61,37,0.25); }
+.hist-type-badge.free { background: rgba(170,68,255,0.12); color: #AA44FF; border: 1px solid rgba(170,68,255,0.3); }
+.hist-type-badge.suggested { background: var(--warning-bg); color: var(--warning); border: 1px solid rgba(245,166,35,0.25); }
+
 .notes-area { width: 100%; padding: 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font-body); color: var(--text); resize: none; background: var(--bg2); margin-top: 8px; }
 .notes-area:focus { outline: none; border-color: var(--primary); }
 .notes-area::placeholder { color: var(--muted); }
@@ -1194,7 +1213,7 @@ select.form-input option { background: var(--card2); color: var(--text); }
   <div class="header-top">
     <div class="logo" onclick="goPage('dashboard')"><span class="w-letter">Will</span> Gym <span>Seu treino, sua evolução</span></div>
     <div class="header-right">
-      <div id="trainStatus" class="status-chip chip-red">Sem treino</div>
+      <div id="trainStatus" class="status-chip chip-yellow">Aguardando Início</div>
       <button id="stopTrainBtn" class="hdr-stop-btn" onclick="confirmStopTraining()" title="Encerrar treino" style="display:none;">■</button>
       <div class="train-timer-header" id="headerTimer">00:00</div>
       <button class="hdr-btn" id="themeBtn" onclick="toggleTheme()" title="Tema">🌙</button>
@@ -1730,7 +1749,7 @@ select.form-input option { background: var(--card2); color: var(--text); }
 
   <div class="version-info">
     <div class="v-logo"><span>Will</span> Gym</div>
-    <div class="v-ver">Versão 18.0 · Botão Livre Dinâmico · Contador de Treinos · P1/P2 Livre · 2025</div>
+    <div class="v-ver">Versão 19.0 · Status de Treino · Histórico por Tipo · 2025</div>
   </div>
 </div>
 
@@ -1911,6 +1930,7 @@ function loginAccount(account) {
   renderSettings();
   renderDashboard();
   renderUserSelectors();
+  updateTrainStatus();
 }
 
 function doLogout() {
@@ -2987,8 +3007,7 @@ function startSelectedExercises() {
     state.trainStart = new Date().toISOString();
     startTrainTimer();
   }
-  document.getElementById('trainStatus').textContent = 'Treinando';
-  document.getElementById('trainStatus').className = 'status-chip chip-green';
+  updateTrainStatus('training');
   document.getElementById('exerciseCard').style.display = 'block';
   // If only 1 selected, go straight to exercise form
   if (state.sheetSelected.length === 1) {
@@ -3508,8 +3527,7 @@ function startFreeWorkout() {
   EXERCISES['Livre'] = [...state.freeSelected];
   document.getElementById('groupCard').style.display = 'block';
   document.getElementById('exerciseCard').style.display = 'block';
-  document.getElementById('trainStatus').textContent = 'Treinando';
-  document.getElementById('trainStatus').className = 'status-chip chip-green';
+  updateTrainStatus('training');
   renderGroupGrid(); updateActiveBar();
 
   // Navigate to exercise directly like other modes do
@@ -4100,7 +4118,7 @@ function concludeExercise() {
   state.currentSeries=[]; stopTimer();
   document.getElementById('timerBox').classList.remove('show');
   document.getElementById('seriesLogCard').style.display='none';
-  renderGroupGrid(); updateActiveBar();
+  renderGroupGrid(); updateActiveBar(); updateTrainStatus();
   if(settings.vibration&&navigator.vibrate)navigator.vibrate([100,50,100,50,200]);
   showCongratsModal(state.selectedEx, seriesCount, totalVol, rm, isNewPR, isAerobic);
 }
@@ -4257,8 +4275,7 @@ function concludeTraining() {
   stopTrainTimer();
   renderGroupGrid();
   document.getElementById('exerciseCard').style.display='none';
-  document.getElementById('trainStatus').textContent='Sem treino';
-  document.getElementById('trainStatus').className='status-chip chip-red';
+  updateTrainStatus('done');
   document.getElementById('headerTimer').classList.remove('show');
   document.getElementById('activeTrainBar').classList.remove('show');
   // Hide stop button
@@ -4378,6 +4395,44 @@ function renderHistory() {
     if (totalVol > 0) summaryBadges += `<span class="hist-day-badge hdb-vol">${totalVol > 999 ? (totalVol/1000).toFixed(1)+'t' : totalVol.toLocaleString('pt-BR')+'kg'}</span>`;
     if (totalAerobMin > 0) summaryBadges += `<span class="hist-day-badge hdb-time">${totalAerobMin}min cardio</span>`;
 
+    // Group entries by workout type (group name)
+    const typeMap = new Map();
+    entries.forEach(h => {
+      const typeKey = h.group || 'Livre';
+      if (!typeMap.has(typeKey)) typeMap.set(typeKey, []);
+      typeMap.get(typeKey).push(h);
+    });
+
+    // Build type-sectioned body
+    const TYPE_ICONS = {
+      'Sugerido': '🤖', 'Livre': '⚡', 'Aeróbico': '🏃', 'Aerobico': '🏃', 'Cardio': '🏃',
+      'Peito': '💪', 'Costas': '🔙', 'Bíceps': '🦾', 'Tríceps': '💥',
+      'Posteriores': '🦵', 'Quadríceps': '🦿', 'Ombro': '🏹',
+    };
+    const TYPE_BADGE_CLASS = {
+      'Sugerido': 'suggested', 'Livre': 'free',
+      'Aeróbico': 'aerobic', 'Aerobico': 'aerobic', 'Cardio': 'aerobic',
+    };
+
+    let bodyHtml = '';
+    typeMap.forEach((typeEntries, typeKey) => {
+      const icon = TYPE_ICONS[typeKey] || '💪';
+      const badgeCls = TYPE_BADGE_CLASS[typeKey] || 'strength';
+      const badgeLabel = typeKey === 'Sugerido' ? '🤖 Sugerido'
+        : (badgeCls === 'aerobic' ? '🏃 Cardio'
+        : (badgeCls === 'free' ? '⚡ Livre' : '💪 ' + typeKey));
+
+      // Only show section header if more than 1 type exists
+      if (typeMap.size > 1) {
+        bodyHtml += `<div class="hist-type-header">
+          <span>${icon}</span>
+          <span>${typeKey}</span>
+          <span class="hist-type-badge ${badgeCls}">${typeEntries.length} exerc.</span>
+        </div>`;
+      }
+      bodyHtml += typeEntries.map(h => buildHistItem(h, exMap)).join('');
+    });
+
     html += `<div class="hist-day-group ${openCls}" id="dayGroup_${dayKey}">
       <div class="hist-day-header" onclick="toggleDayGroup('${dayKey}')">
         <span class="hist-day-chevron">▼</span>
@@ -4385,7 +4440,7 @@ function renderHistory() {
         <div class="hist-day-summary">${summaryBadges}</div>
       </div>
       <div class="hist-day-body">
-        ${entries.map(h => buildHistItem(h, exMap)).join('')}
+        ${bodyHtml}
       </div>
     </div>`;
   });
@@ -5026,8 +5081,7 @@ function startSuggestedWorkout() {
     startTrainTimer();
   }
 
-  document.getElementById('trainStatus').textContent = 'Treinando';
-  document.getElementById('trainStatus').className = 'status-chip chip-green';
+  updateTrainStatus('training');
   document.getElementById('exerciseCard').style.display = 'block';
   document.getElementById('groupCard').style.display = 'block';
   const sb = document.getElementById('stopTrainBtn'); if(sb) sb.style.display = 'flex';
@@ -5060,6 +5114,40 @@ function startSuggestedWorkout() {
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 
 // ═══════════════════════════════════════════════════════
+// TRAIN STATUS — 3-state: Aguardando Início / Treinando / Treino Finalizado
+// ═══════════════════════════════════════════════════════
+function updateTrainStatus(forceState) {
+  const el = document.getElementById('trainStatus');
+  if (!el) return;
+  if (forceState) {
+    if (forceState === 'training') {
+      el.textContent = 'Treinando'; el.className = 'status-chip chip-green';
+    } else if (forceState === 'done') {
+      el.textContent = 'Treino Finalizado'; el.className = 'status-chip chip-blue';
+    } else {
+      el.textContent = 'Aguardando Início'; el.className = 'status-chip chip-yellow';
+    }
+    return;
+  }
+  // Auto-detect based on state and today's history
+  if (state.activeTraining) {
+    el.textContent = 'Treinando'; el.className = 'status-chip chip-green';
+    return;
+  }
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const hadWorkoutToday = history.some(h => {
+    const d = new Date(h.date);
+    const dk = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    return dk === todayKey;
+  });
+  if (hadWorkoutToday) {
+    el.textContent = 'Treino Finalizado'; el.className = 'status-chip chip-blue';
+  } else {
+    el.textContent = 'Aguardando Início'; el.className = 'status-chip chip-yellow';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
 loadCustomEx();
@@ -5076,6 +5164,7 @@ if (currentAccount) {
   renderProfileDisplay();
   renderUserSelectors();
   renderDashboard();
+  updateTrainStatus();
 } else {
   // Show auth screen
   document.getElementById('authScreen').classList.remove('hidden');
