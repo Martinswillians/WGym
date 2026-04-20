@@ -1302,7 +1302,13 @@ select.form-input option { background: var(--card2); color: var(--text); }
       </div>
       <button class="add-ex-btn" onclick="addCustomExToFree()">+</button>
     </div>
-    <button class="btn btn-primary" style="margin-top:12px;" onclick="startFreeWorkout()">Iniciar Treino Livre ▶</button>
+    <!-- Dynamic start bar — shown automatically when exercises are selected -->
+    <div class="sheet-start-bar" id="freeStartBar" style="margin-top:10px;">
+      <div class="sheet-sel-summary" id="freeSelSummary"><strong>0</strong> exercício selecionado</div>
+      <button class="btn-start-training" onclick="startFreeWorkout()">
+        <span class="start-icon">▶</span> Iniciar Treino Livre
+      </button>
+    </div>
   </div>
 
   <!-- ══ SUGGESTED WORKOUT CARD ══ -->
@@ -1724,7 +1730,7 @@ select.form-input option { background: var(--card2); color: var(--text); }
 
   <div class="version-info">
     <div class="v-logo"><span>Will</span> Gym</div>
-    <div class="v-ver">Versão 17.0 · Treino Sugerido · 2025</div>
+    <div class="v-ver">Versão 18.0 · Botão Livre Dinâmico · Contador de Treinos · P1/P2 Livre · 2025</div>
   </div>
 </div>
 
@@ -2612,18 +2618,34 @@ function renderPartnerUserPills() {
     const msg = `<span style="font-size:12px;color:var(--muted);">Cadastre atletas em <button onclick="goPage('config')" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:12px;font-weight:700;">Config.</button></span>`;
     p1El.innerHTML = msg; p2El.innerHTML = msg; return;
   }
-  // P1 is always the first athlete (index 0) — shown as fixed, not clickable
-  const p1 = active[0];
-  p1El.innerHTML = `<div class="user-pill selected" style="cursor:default;opacity:0.85;"><span class="up-avatar">${p1.avatar}</span>${p1.name} <span style="font-size:10px;color:var(--primary);font-weight:700;margin-left:2px;">P1 fixo</span></div>`;
-  if (!state.activeP1Id) { state.activeP1Id = p1.id; state.p1name = p1.name; }
-  // P2 is always second athlete (index 1) — also fixed for Dupla
-  if (active.length >= 2) {
-    const p2 = active[1];
-    p2El.innerHTML = `<div class="user-pill p2-selected" style="cursor:default;opacity:0.85;"><span class="up-avatar">${p2.avatar}</span>${p2.name} <span style="font-size:10px;color:var(--blue);font-weight:700;margin-left:2px;">P2 fixo</span></div>`;
-    if (!state.activeP2Id) { state.activeP2Id = p2.id; state.p2name = p2.name; }
-  } else {
-    p2El.innerHTML = `<span style="font-size:12px;color:var(--muted);">Cadastre o 2º atleta em <button onclick="goPage('config')" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:12px;font-weight:700;">Config.</button></span>`;
-  }
+
+  // Auto-assign defaults if not yet chosen
+  if (!state.activeP1Id && active[0]) { state.activeP1Id = active[0].id; state.p1name = active[0].name; }
+  if (!state.activeP2Id && active[1] && active[1].id !== state.activeP1Id) { state.activeP2Id = active[1].id; state.p2name = active[1].name; }
+
+  // P1 pills — all athletes clickable; selected one highlighted; P2 grayed out
+  p1El.innerHTML = active.map(u => {
+    const isP1 = state.activeP1Id === u.id;
+    const isP2 = state.activeP2Id === u.id;
+    return `<div class="user-pill ${isP1 ? 'selected' : ''}"
+      style="${isP2 ? 'opacity:0.35;cursor:not-allowed;' : 'cursor:pointer;'}"
+      onclick="${isP2 ? 'showToast(\"Este atleta já é P2\")' : `selectP1Partner('${u.id}')`}">
+      <span class="up-avatar">${u.avatar}</span>${u.name}
+      ${isP1 ? '<span style="font-size:10px;color:var(--primary);font-weight:700;margin-left:2px;">P1</span>' : ''}
+    </div>`;
+  }).join('');
+
+  // P2 pills — all athletes clickable; selected one highlighted; P1 grayed out
+  p2El.innerHTML = active.map(u => {
+    const isP2 = state.activeP2Id === u.id;
+    const isP1 = state.activeP1Id === u.id;
+    return `<div class="user-pill ${isP2 ? 'p2-selected' : ''}"
+      style="${isP1 ? 'opacity:0.35;cursor:not-allowed;' : 'cursor:pointer;'}"
+      onclick="${isP1 ? 'showToast(\"Este atleta já é P1\")' : `selectP2Partner('${u.id}')`}">
+      <span class="up-avatar">${u.avatar}</span>${u.name}
+      ${isP2 ? '<span style="font-size:10px;color:var(--blue);font-weight:700;margin-left:2px;">P2</span>' : ''}
+    </div>`;
+  }).join('');
 }
 
 function renderGroupUserPills() {
@@ -2658,9 +2680,26 @@ function selectSoloUser(id) {
   const u = getActiveUsers().find(u=>u.id===id);
   if (u) { state.p1name = u.name; showToast('🏋️ ' + u.name + ' selecionado'); }
 }
-// P1/P2 are now fixed by order — no manual selectP1User/selectP2User needed
-function selectP1User(id) { showToast('P1 é sempre o Atleta 1 (fixo por ordem)'); }
-function selectP2User(id) { showToast('P2 é sempre o Atleta 2 (fixo por ordem)'); }
+// P1/P2 partner — free choice from all athletes
+function selectP1Partner(id) {
+  if (id === state.activeP2Id) { showToast('⚠️ Este atleta já é P2'); return; }
+  state.activeP1Id = id;
+  const u = getActiveUsers().find(u => u.id === id);
+  if (u) { state.p1name = u.name; showToast('P1: ' + u.name); }
+  renderPartnerUserPills();
+  const l = document.getElementById('p1label'); if (l) l.textContent = state.p1name;
+}
+function selectP2Partner(id) {
+  if (id === state.activeP1Id) { showToast('⚠️ Este atleta já é P1'); return; }
+  state.activeP2Id = id;
+  const u = getActiveUsers().find(u => u.id === id);
+  if (u) { state.p2name = u.name; showToast('P2: ' + u.name); }
+  renderPartnerUserPills();
+  const l = document.getElementById('p2label'); if (l) l.textContent = state.p2name;
+}
+// Legacy shims
+function selectP1User(id) { selectP1Partner(id); }
+function selectP2User(id) { selectP2Partner(id); }
 
 function toggleGroupUser(id) {
   const idx = state.groupUserIds.indexOf(id);
@@ -2709,9 +2748,13 @@ function setMode(m) {
 
   const active = getActiveUsers();
 
-  if (m==='partner' && active.length >= 1) {
-    state.activeP1Id = active[0].id; state.p1name = active[0].name;
-    if (active.length >= 2) { state.activeP2Id = active[1].id; state.p2name = active[1].name; }
+  if (m==='partner') {
+    // Only set defaults if IDs are not already chosen
+    if (!state.activeP1Id && active.length >= 1) { state.activeP1Id = active[0].id; state.p1name = active[0].name; }
+    if (!state.activeP2Id && active.length >= 2) {
+      const candidate = active.find(u => u.id !== state.activeP1Id);
+      if (candidate) { state.activeP2Id = candidate.id; state.p2name = candidate.name; }
+    }
   }
   if (m==='group' && !state.groupUserIds.length) {
     state.groupUserIds = active.map(u => u.id);
@@ -2877,15 +2920,32 @@ function renderSheetExList() {
   const favs = getFavs();
   const selected = state.sheetSelected || [];
   const list = document.getElementById('sheetExList');
+
+  // Determine which user to check history for
+  const uid = state.mode === 'partner' ? state.activeP1Id : (state.activeUserId || null);
+  const allGroups = getAllGroups();
+  const currentGroup = allGroups.find(g => g.name === state.group);
+  const groupIcon = currentGroup ? currentGroup.icon : '💪';
+
   list.innerHTML = exs.map(ex => {
     const ll = getLastLoadForUser(ex);
     const exS = ex.replace(/'/g,"\\'");
     const isSel = selected.includes(ex);
     const isDone = done.includes(ex);
+
+    // Count how many times this exercise was done by this user
+    const entries = uid
+      ? history.filter(h => h.exercise === ex && (h.userId === uid || h.userId2 === uid || (h.groupUserIds||[]).includes(uid)))
+      : history.filter(h => h.exercise === ex);
+    const lastCount = entries.length;
+
     return `<div class="ex-item ${isSel?'sheet-selected':''} ${isDone?'done':''}" onclick="toggleSheetEx('${exS}')">
       <div class="ex-check">${isSel?'✓':(isDone?'✓':'')}</div>
-      <div class="ex-name">${ex}</div>
-      <span class="ex-last-load">${ll>0?ll+'kg':'—'}</span>
+      <div style="flex:1;min-width:0;">
+        <div class="ex-name" style="margin-bottom:${lastCount>0?'2px':'0'};">${ex}</div>
+        ${lastCount > 0 ? `<div style="font-size:10px;color:var(--muted);">${groupIcon} ${state.group} · <span style="color:var(--success);">${lastCount}× realizado</span></div>` : ''}
+      </div>
+      <span class="ex-last-load" style="flex-shrink:0;">${ll>0?ll+'kg':'—'}</span>
       <span class="ex-fav" onclick="toggleFav('${exS}',event)">${favs.includes(ex)?'⭐':'☆'}</span>
     </div>`;
   }).join('');
@@ -3330,6 +3390,7 @@ function renderFreeExList() {
   const countEl = document.getElementById('freeSelCount');
   if (countEl) countEl.textContent = selCount + (selCount === 1 ? ' exercício' : ' exercícios');
   renderFreeUserPills();
+  updateFreeStartBar();
 }
 
 // ── FREE MODE: Multi-athlete selector ──────────────────
@@ -3395,7 +3456,80 @@ function toggleFreeUser(id) {
 
 // Legacy single-select shim (kept for backward compat)
 function selectFreeUser(id) { toggleFreeUser(id); }
-function toggleFreeEx(ex) { const i=state.freeSelected.indexOf(ex); i>=0?state.freeSelected.splice(i,1):state.freeSelected.push(ex); renderFreeExList(); }
+function toggleFreeEx(ex) {
+  const i = state.freeSelected.indexOf(ex);
+  if (i >= 0) state.freeSelected.splice(i, 1);
+  else state.freeSelected.push(ex);
+  renderFreeExList();
+  updateFreeStartBar();
+}
+
+function updateFreeStartBar() {
+  const bar = document.getElementById('freeStartBar');
+  const summary = document.getElementById('freeSelSummary');
+  if (!bar) return;
+  const sel = state.freeSelected || [];
+  if (sel.length > 0) {
+    bar.classList.add('show');
+    summary.innerHTML = sel.length === 1
+      ? `<strong>${sel[0]}</strong> selecionado`
+      : `<strong>${sel.length}</strong> exercícios selecionados`;
+  } else {
+    bar.classList.remove('show');
+  }
+}
+
+function startFreeWorkout() {
+  if (!state.freeSelected.length) { showToast('Selecione ao menos 1 exercício'); return; }
+
+  // Ensure at least one athlete
+  if (!state.freeUserIds || !state.freeUserIds.length) {
+    const active = getActiveUsers();
+    const fallback = getAccountAsAthlete() || active[0];
+    if (fallback) { state.freeUserIds = [fallback.id]; state.activeUserId = fallback.id; state.p1name = fallback.name; }
+  }
+  if (!state.freeUserIds || !state.freeUserIds.length) { showToast('⚠️ Selecione ao menos um atleta'); return; }
+
+  // Sync state for multi-athlete
+  const active = getActiveUsers();
+  if (state.freeUserIds.length > 1) {
+    state.groupUserIds = [...state.freeUserIds];
+    const p1 = active.find(u => u.id === state.freeUserIds[0]);
+    if (p1) { state.activeP1Id = p1.id; state.p1name = p1.name; state.activeUserId = p1.id; }
+  } else {
+    state.activeUserId = state.freeUserIds[0];
+    const u = active.find(u => u.id === state.freeUserIds[0]);
+    if (u) { state.p1name = u.name; state.activeP1Id = u.id; }
+  }
+
+  saveLastAthletes();
+  state.group = 'Livre';
+  if (!state.activeTraining) { state.activeTraining = true; state.trainStart = new Date().toISOString(); startTrainTimer(); }
+  EXERCISES['Livre'] = [...state.freeSelected];
+  document.getElementById('groupCard').style.display = 'block';
+  document.getElementById('exerciseCard').style.display = 'block';
+  document.getElementById('trainStatus').textContent = 'Treinando';
+  document.getElementById('trainStatus').className = 'status-chip chip-green';
+  renderGroupGrid(); updateActiveBar();
+
+  // Navigate to exercise directly like other modes do
+  const firstEx = state.freeSelected[0];
+  state.sheetSelected = [...state.freeSelected]; // queue all selected for sequential flow
+  state.selectedEx = firstEx;
+  state.currentSeries = [];
+  stopTimer();
+  document.getElementById('timerBox').classList.remove('show');
+  document.getElementById('seriesLogCard').style.display = 'none';
+  document.getElementById('seriesLog').innerHTML = '';
+
+  const athleteNames = state.freeUserIds
+    .map(id => active.find(u => u.id === id)?.name || '').filter(Boolean).join(', ');
+  showToast(`⚡ Treino Livre — ${athleteNames}`);
+
+  goPage('exercicio');
+  updateExForm();
+  prefillLastLoad(firstEx);
+}
 // Add exercise in free workout — also uses domain, no duplicates
 function addCustomExToFree() {
   const input = document.getElementById('freeCustomInput');
@@ -3675,13 +3809,22 @@ function updateModeChip() {
 
   if(state.mode==='partner'){
     chip.textContent='Dupla';chip.style.background='var(--blue-bg)';chip.style.color='var(--blue)';chip.style.border='1px solid rgba(74,159,255,0.3)';
-    if(allU[0]){state.activeP1Id=allU[0].id;state.p1name=allU[0].name;}
-    if(allU[1]){state.activeP2Id=allU[1].id;state.p2name=allU[1].name;}
+    // Only set defaults if not yet chosen — don't override manual selection
+    if(!state.activeP1Id && allU[0]){state.activeP1Id=allU[0].id;state.p1name=allU[0].name;}
+    if(!state.activeP2Id && allU[1] && allU[1].id!==state.activeP1Id){state.activeP2Id=allU[1].id;state.p2name=allU[1].name;}
+    // Resolve names from current selection
+    const p1u = allU.find(u=>u.id===state.activeP1Id);
+    const p2u = allU.find(u=>u.id===state.activeP2Id);
+    if(p1u) state.p1name=p1u.name;
+    if(p2u) state.p2name=p2u.name;
   } else if(state.mode==='group' || freeIsMulti){
     const cnt = freeIsMulti ? state.freeUserIds.length : state.groupUserIds.length;
     chip.textContent= freeIsMulti ? `Livre ${cnt}` : `Grupo ${cnt}`;
     chip.style.background='rgba(170,68,255,0.12)';chip.style.color='#AA44FF';chip.style.border='1px solid rgba(170,68,255,0.3)';
-    if(allU[0]){state.activeP1Id=allU[0].id;state.p1name=allU[0].name;}
+    // P1 = first in group list
+    const firstId = freeIsMulti ? state.freeUserIds[0] : state.groupUserIds[0];
+    const firstU = allU.find(u=>u.id===firstId) || allU[0];
+    if(firstU){state.activeP1Id=firstU.id;state.p1name=firstU.name;}
   } else {
     chip.textContent= state.mode==='free' ? 'Livre' : 'Solo';
     chip.style.background='var(--primary-light)';chip.style.color='var(--primary)';chip.style.border='1px solid rgba(255,61,37,0.3)';
@@ -3690,7 +3833,6 @@ function updateModeChip() {
   // Only show strength forms if NOT aerobic
   const aerobic = isAerobicExercise(state.selectedEx, state.group);
   if (!aerobic) {
-    // For free mode with multiple athletes, show group form
     const showGroup = state.mode === 'group' || freeIsMulti;
     document.getElementById('soloForm').style.display = (!showGroup && state.mode!=='partner') ? 'block' : 'none';
     document.getElementById('partnerForm').style.display = state.mode==='partner' ? 'block' : 'none';
@@ -3699,7 +3841,6 @@ function updateModeChip() {
   const l1=document.getElementById('p1label'); if(l1)l1.textContent=state.p1name||'Atleta 1';
   const l2=document.getElementById('p2label'); if(l2)l2.textContent=state.p2name||'Atleta 2';
 
-  // Render group form for group mode OR free with multiple athletes
   const showGroupForm = (state.mode==='group' || freeIsMulti) && !aerobic;
   if(showGroupForm) renderGroupMembersForm();
 }
