@@ -174,7 +174,8 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
 .hdr-stop-btn:active { transform: scale(0.88); background: var(--primary-dark); }
 @keyframes pulseStop { 0%,100%{box-shadow:0 2px 8px rgba(255,61,37,0.4)} 50%{box-shadow:0 2px 16px rgba(255,61,37,0.7)} }
 /* logged-in user avatar in header */
-.hdr-user { width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); border: 1.5px solid var(--primary); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
+.hdr-user { width: 44px; height: 44px; border-radius: 50%; background: var(--primary-light); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; box-shadow: 0 0 0 3px rgba(255,61,37,0.15); transition: box-shadow 0.2s; overflow: hidden; }
+.hdr-user:active { box-shadow: 0 0 0 5px rgba(255,61,37,0.25); }
 
 .nav-tabs { display: flex; }
 .nav-tab { flex: 1; padding: 10px 4px 9px; background: transparent; border: none; color: var(--muted); font-size: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s; border-bottom: 2px solid transparent; letter-spacing: 0.8px; text-transform: uppercase; font-family: var(--font-body); }
@@ -2320,7 +2321,7 @@ function updateHeaderUser() {
   const el = document.getElementById('hdrUser');
   if (!el || !currentAccount) return;
   if (currentAccount.photoDataUrl) {
-    el.innerHTML = `<img src="${currentAccount.photoDataUrl}" alt="foto" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`;
+    el.innerHTML = `<img src="${currentAccount.photoDataUrl}" alt="foto" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">`;
     el.style.padding = '0';
     el.style.overflow = 'hidden';
   } else {
