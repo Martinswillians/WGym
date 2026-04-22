@@ -818,9 +818,9 @@ select.form-input option { background: var(--card2); color: var(--text); }
 }
 .slot-edit-panel.open { display: flex; }
 .slot-emoji-row {
-  display: flex; flex-wrap: wrap; gap: 5px;
+  display: block;
   padding: 8px; background: var(--card); border: 1px solid var(--border);
-  border-radius: 8px; max-height: 110px; overflow-y: auto;
+  border-radius: 8px; max-height: 200px; overflow-y: auto;
 }
 .slot-emoji-opt {
   font-size: 20px; padding: 5px; border-radius: 6px; cursor: pointer;
@@ -1823,8 +1823,44 @@ const EX_SVG = {
 };
 const DEFAULT_SVG = (n) => `<svg viewBox="0 0 120 90" width="120" height="90"><circle cx="60" cy="38" r="28" fill="#FF3D25" opacity="0.06" stroke="#FF3D25" stroke-width="1.5" stroke-dasharray="4 3"/><text x="60" y="34" text-anchor="middle" fill="#FF3D25" font-size="22">💪</text><text x="60" y="52" text-anchor="middle" fill="#6B6B80" font-size="8" font-family="Barlow,sans-serif">${n.substring(0,16)}</text></svg>`;
 
-const AVATARS = ['🏋️','💪','🔥','⚡','🏃','🧗','🤸','🥊','⚽','🏀','🎯','🦁','🐯','🐻','🦊','🦅','🐉','👊','🤜','🧠','🎖️','🏆','💎','🌟','🚀','🎸','🤖','👤','🧑','👨','👩','🧔','👱'];
-const GROUP_ICONS = ['💪','🔙','🦾','💥','🦵','🦿','🏹','🏃','🫀','🧘','🤸','⚽','🥊','🏋️','🔥','⚡','🎯','💡','🧠','🦴','🦶','✋','👊','🤜'];
+// ── AVATAR ICONS ──────────────────────────────────────────────────────────────
+// People — diverse skin tones (light, medium-light, medium, medium-dark, dark)
+const AVATARS_PEOPLE_LIGHT   = ['🧑🏻','👨🏻','👩🏻','🧔🏻','👱🏻','👦🏻','🏋️🏻','🤸🏻','🏃🏻','🚴🏻'];
+const AVATARS_PEOPLE_MEDLIGHT= ['🧑🏼','👨🏼','👩🏼','🧔🏼','👱🏼','🏋️🏼','🤸🏼','🏃🏼','🚴🏼'];
+const AVATARS_PEOPLE_MEDIUM  = ['🧑🏽','👨🏽','👩🏽','🧔🏽','👱🏽','🏋️🏽','🤸🏽','🏃🏽','🚴🏽'];
+const AVATARS_PEOPLE_MEDDARK = ['🧑🏾','👨🏾','👩🏾','🧔🏾','🏋️🏾','🤸🏾','🏃🏾','🚴🏾'];
+const AVATARS_PEOPLE_DARK    = ['🧑🏿','👨🏿','👩🏿','🧔🏿','🏋️🏿','🤸🏿','🏃🏿','🚴🏿'];
+const AVATARS_PEOPLE_GENERIC = ['👤','🧑','👨','👩','🧔','👱','🤰','🧕','🙋','🙋‍♂️'];
+// Sports & fitness
+const AVATARS_SPORTS = ['🏋️','🤸','🏃','🚴','🧗','🥊','🥋','⛹️','🏊','🤾','🧘','🤼','🏇','🧜','🦸','🦹'];
+// Symbols, animals, power
+const AVATARS_SYMBOLS = ['💪','🔥','⚡','🎯','🏆','💎','🌟','🚀','👊','🤜','🧠','🎖️','🦁','🐯','🦅','🐉','🤖','🎸'];
+
+const AVATARS = [
+  ...AVATARS_PEOPLE_DARK, ...AVATARS_PEOPLE_MEDDARK,
+  ...AVATARS_PEOPLE_MEDIUM, ...AVATARS_PEOPLE_MEDLIGHT,
+  ...AVATARS_PEOPLE_LIGHT, ...AVATARS_PEOPLE_GENERIC,
+  ...AVATARS_SPORTS, ...AVATARS_SYMBOLS,
+];
+
+// ── GROUP / EXERCISE ICONS ─────────────────────────────────────────────────────
+// Muscle groups & body parts
+const GI_MUSCLE   = ['💪','🦾','💥','🔙','🦵','🦿','🏹','🦴','🦶','✋','🫀','🫁','🧠','🦻','👁️','🦷'];
+// Equipment — cardio machines, weights, bars
+const GI_EQUIP    = ['🏋️','🥊','⚽','🏀','🎽','🩱','🪑','🛗','🪜','🧲','⚙️','🔩','🪝','🛞'];
+// Cardio & aerobic
+const GI_CARDIO   = ['🏃','🚴','🏊','🧗','🤸','🧘','🤾','⛹️','🏇','🛶','🛹','🛼','🤽','🏄','🚣','🪂'];
+// Activities & sports
+const GI_SPORTS   = ['⚽','🏀','🏈','⚾','🎾','🏐','🏉','🥏','🏓','🏸','🥊','🥋','🤼','🤺','🏹','🎣'];
+// Emotions & power
+const GI_POWER    = ['🔥','⚡','💫','✨','🌟','💪','👊','🤜','🎯','🏆','💎','🚀','🌊','❄️','🌪️','🫶'];
+// Nature / yoga / wellness
+const GI_WELLNESS = ['🧘','🌿','🍀','☯️','🌸','🌺','🌻','🍃','🌙','☀️','🌈','💧','🫧','🫶'];
+
+const GROUP_ICONS = [
+  ...GI_MUSCLE, ...GI_EQUIP, ...GI_CARDIO,
+  ...GI_SPORTS, ...GI_POWER, ...GI_WELLNESS,
+];
 
 const DEFAULT_GROUPS = [
   {id:'peito',   name:'Peito',      icon:'💪', builtin:true},
@@ -1872,9 +1908,22 @@ function switchAuthTab(tab) {
 function renderRegEmojiGrid() {
   const grid = document.getElementById('regEmojiGrid');
   if (!grid) return;
-  grid.innerHTML = AVATARS.slice(0, 12).map(em =>
+  // Show a compact selection on auth screen (8 popular options + expand button)
+  const quick = [...AVATARS_PEOPLE_DARK.slice(0,2), ...AVATARS_PEOPLE_MEDDARK.slice(0,2),
+                  ...AVATARS_PEOPLE_MEDIUM.slice(0,2), ...AVATARS_PEOPLE_LIGHT.slice(0,2),
+                  ...AVATARS_SPORTS.slice(0,4)];
+  grid.innerHTML = quick.map(em =>
     `<div class="emoji-opt-sm ${em === regSelectedAvatar ? 'selected' : ''}" onclick="selectRegAvatar('${em}')">${em}</div>`
-  ).join('');
+  ).join('') +
+  `<div class="emoji-opt-sm" onclick="showRegFullPicker()" title="Ver todos" style="font-size:16px;">···</div>`;
+}
+
+function showRegFullPicker() {
+  const grid = document.getElementById('regEmojiGrid');
+  if (!grid) return;
+  grid.style.maxHeight = '160px';
+  grid.style.overflowY = 'auto';
+  grid.innerHTML = buildAvatarGridHTML(regSelectedAvatar, 'selectRegAvatar');
 }
 
 function selectRegAvatar(em) {
@@ -2094,7 +2143,7 @@ function openAddAthletePanel() {
       </div>
       <div class="form-group">
         <label class="form-label">Avatar</label>
-        <div class="slot-emoji-row" id="slotEmoji_new">${AVATARS.map(em=>`<div class="slot-emoji-opt ${em==='🏋️'?'selected':''}" onclick="pickSlotEmoji('new','${em}')">${em}</div>`).join('')}</div>
+        <div class="slot-emoji-row" id="slotEmoji_new"></div>
       </div>
       <div class="slot-edit-actions">
         <button class="slot-cancel-btn" onclick="cancelAddAthlete()">Cancelar</button>
@@ -2102,6 +2151,15 @@ function openAddAthletePanel() {
       </div>
     </div>`;
   container.appendChild(tmp);
+  // Populate categorized avatar grid for new athlete
+  const newEmojiRow = document.getElementById('slotEmoji_new');
+  if (newEmojiRow) {
+    newEmojiRow.innerHTML = buildAvatarGridHTML('🏋️', '(em) => pickSlotEmoji("new", em)');
+    newEmojiRow.querySelectorAll('.emoji-opt').forEach(el => {
+      const em = el.textContent.trim();
+      el.onclick = () => pickSlotEmoji('new', em);
+    });
+  }
   setTimeout(() => { const inp = document.getElementById('slotNameIn_new'); if(inp) inp.focus(); }, 150);
 }
 
@@ -2137,9 +2195,12 @@ function openSlotEdit(i) {
   const current = u ? u.avatar : '🏋️';
   const emojiRow = document.getElementById('slotEmoji_' + i);
   if (emojiRow) {
-    emojiRow.innerHTML = AVATARS.map(em =>
-      `<div class="slot-emoji-opt ${em === current ? 'selected' : ''}" onclick="pickSlotEmoji(${i},'${em}')">${em}</div>`
-    ).join('');
+    emojiRow.innerHTML = buildAvatarGridHTML(current, `(em) => pickSlotEmoji(${i}, em)`);
+    // Re-bind onclick since buildAvatarGridHTML uses string onclick, fix for slot:
+    emojiRow.querySelectorAll('.emoji-opt').forEach(el => {
+      const em = el.textContent.trim();
+      el.onclick = () => pickSlotEmoji(i, em);
+    });
   }
   setTimeout(() => { const inp = document.getElementById('slotNameIn_' + i); if (inp) inp.focus(); }, 150);
 }
@@ -2152,14 +2213,17 @@ function closeSlotEdit(i) {
 function pickSlotEmoji(i, em) {
   const row = document.getElementById('slotEmoji_' + i);
   if (row) {
-    row.querySelectorAll('.slot-emoji-opt').forEach(el => el.classList.toggle('selected', el.textContent.trim() === em));
+    // Support both old slot-emoji-opt class and new emoji-opt class
+    row.querySelectorAll('.slot-emoji-opt, .emoji-opt').forEach(el =>
+      el.classList.toggle('selected', el.textContent.trim() === em)
+    );
   }
 }
 
 function getSlotEmoji(i) {
   const row = document.getElementById('slotEmoji_' + i);
   if (!row) return '🏋️';
-  const sel = row.querySelector('.slot-emoji-opt.selected');
+  const sel = row.querySelector('.slot-emoji-opt.selected, .emoji-opt.selected');
   return sel ? sel.textContent.trim() : '🏋️';
 }
 
@@ -2211,9 +2275,7 @@ function openUserModal(userId) { goPage('config'); }
 function closeUserModal() { document.getElementById('userModal')?.classList.remove('show'); }
 function renderEmojiGrid() {
   const el = document.getElementById('emojiGrid'); if (!el) return;
-  el.innerHTML = AVATARS.map(em =>
-    `<div class="emoji-opt ${em === state.selectedAvatar ? 'selected' : ''}" onclick="selectAvatar('${em}')">${em}</div>`
-  ).join('');
+  el.innerHTML = buildAvatarGridHTML(state.selectedAvatar, 'selectAvatar');
 }
 function selectAvatar(em) { state.selectedAvatar = em; renderEmojiGrid(); }
 function saveUser() { showToast('Use os slots de Atleta nas Configurações'); }
@@ -2365,14 +2427,36 @@ function removeProfilePhoto() {
   }, 700);
 }
 
+// ── Categorized avatar grid builder ──────────────────────────────────────────
+function buildAvatarGridHTML(cur, onclickFn) {
+  const categories = [
+    { label: '⚫ Tom escuro',       icons: AVATARS_PEOPLE_DARK     },
+    { label: '🟤 Tom médio-escuro', icons: AVATARS_PEOPLE_MEDDARK  },
+    { label: '🟡 Tom médio',        icons: AVATARS_PEOPLE_MEDIUM   },
+    { label: '🟠 Tom médio-claro',  icons: AVATARS_PEOPLE_MEDLIGHT },
+    { label: '⚪ Tom claro',         icons: AVATARS_PEOPLE_LIGHT    },
+    { label: '👤 Genérico',         icons: AVATARS_PEOPLE_GENERIC  },
+    { label: '🏋️ Esportes',         icons: AVATARS_SPORTS          },
+    { label: '🔥 Símbolos',         icons: AVATARS_SYMBOLS         },
+  ];
+  return categories.map(cat =>
+    `<div style="margin-bottom:8px;">
+      <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;padding:0 2px;">${cat.label}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        ${cat.icons.map(em =>
+          `<div class="emoji-opt ${em === cur ? 'selected' : ''}" style="font-size:20px;padding:6px;" onclick="${onclickFn}('${em.replace(/'/g,"&#39;")}')">${em}</div>`
+        ).join('')}
+      </div>
+    </div>`
+  ).join('');
+}
+
 function showEmojiPicker() {
   const picker = document.getElementById('photoEmojiPicker');
   const grid = document.getElementById('photoEmojiGrid');
   if (!picker || !grid) return;
   const cur = currentAccount ? currentAccount.avatar || '🏋️' : '🏋️';
-  grid.innerHTML = AVATARS.map(em =>
-    `<div class="emoji-opt ${em === cur ? 'selected' : ''}" onclick="selectPhotoEmoji('${em}')">${em}</div>`
-  ).join('');
+  grid.innerHTML = buildAvatarGridHTML(cur, 'selectPhotoEmoji');
   picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
 }
 
@@ -2861,8 +2945,23 @@ function openGroupModal(groupId) {
 function closeGroupModal() { document.getElementById('groupModal').classList.remove('show'); state.editingGroupId = null; }
 
 function renderGroupEmojiGrid() {
-  document.getElementById('groupEmojiGrid').innerHTML = GROUP_ICONS.map(em =>
-    `<div class="emoji-opt ${em === state.selectedGroupIcon ? 'selected' : ''}" onclick="selectGroupIcon('${em}')">${em}</div>`
+  const categories = [
+    { label: '💪 Músculos & Corpo', icons: GI_MUSCLE },
+    { label: '🏋️ Equipamentos',    icons: GI_EQUIP  },
+    { label: '🏃 Cardio & Aeróbico', icons: GI_CARDIO },
+    { label: '⚽ Esportes',         icons: GI_SPORTS },
+    { label: '🔥 Poder & Energia',  icons: GI_POWER  },
+    { label: '🧘 Bem-estar',        icons: GI_WELLNESS },
+  ];
+  document.getElementById('groupEmojiGrid').innerHTML = categories.map(cat =>
+    `<div style="margin-bottom:8px;">
+      <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${cat.label}</div>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;">
+        ${cat.icons.map(em =>
+          `<div class="emoji-opt ${em === state.selectedGroupIcon ? 'selected' : ''}" onclick="selectGroupIcon('${em.replace(/'/g,"&#39;")}')">${em}</div>`
+        ).join('')}
+      </div>
+    </div>`
   ).join('');
 }
 function selectGroupIcon(em) { state.selectedGroupIcon = em; renderGroupEmojiGrid(); }
@@ -4762,43 +4861,109 @@ function saveWeekGoal(){const v=parseInt(document.getElementById('weekGoal').val
 // EXPORT / IMPORT
 // ═══════════════════════════════════════════════════════
 function exportJSON(){
-  const data=JSON.stringify({version:'4.0',exportDate:new Date().toISOString(),history,customExercises:state.customExByGroup,settings,users},null,2);
-  const blob=new Blob([data],{type:'application/json'});
-  const url=URL.createObjectURL(blob), a=document.createElement('a');
-  a.href=url; a.download='wgym_backup_'+new Date().toISOString().slice(0,10)+'.json'; a.click();
-  URL.revokeObjectURL(url); showToast('📤 Backup exportado!');
+  const exportData = {
+    version: '5.0',
+    exportDate: new Date().toISOString(),
+    history,
+    users,
+    settings,
+    // ── Custom content (groups & exercises created by the user) ──
+    customGroups,
+    customExercises: state.customExByGroup,
+  };
+  const data = JSON.stringify(exportData, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'willgym_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  const customGroupCount = customGroups.length;
+  const customExCount = Object.values(state.customExByGroup).flat().length;
+  showToast(`📤 Backup exportado! ${history.length} treinos · ${customGroupCount} grupos · ${customExCount} exercícios customizados`);
 }
 function importJSON(e){
-  const file=e.target.files[0]; if(!file)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{try{
-    const p=JSON.parse(ev.target.result);
-    let ih=Array.isArray(p)?p:(p.history||[]);
-    // Import users only if present AND array has real objects (not null slots)
-    if(p.users&&Array.isArray(p.users)){
-      const realUsers = p.users.filter(u => u && u.id && u.name);
-      if(realUsers.length) {
-        // Merge into slots by id, don't overwrite existing filled slots
-        realUsers.forEach(imported => {
-          const existingIdx = users.findIndex(u => u && u.id === imported.id);
-          if(existingIdx >= 0) {
-            users[existingIdx] = imported;
-          } else {
-            const emptyIdx = users.findIndex(u => u === null);
-            if(emptyIdx >= 0) users[emptyIdx] = imported;
-          }
-        });
-        saveUsers();
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const p = JSON.parse(ev.target.result);
+      let importSummary = [];
+
+      // ── 1. History ──
+      let ih = Array.isArray(p) ? p : (p.history || []);
+      history = [...ih, ...history];
+      const seenH = new Set();
+      history = history.filter(h => { if(seenH.has(h.id)) return false; seenH.add(h.id); return true; });
+      saveHistory();
+      if (ih.length) importSummary.push(ih.length + ' treinos');
+
+      // ── 2. Users / athletes ──
+      if (p.users && Array.isArray(p.users)) {
+        const realUsers = p.users.filter(u => u && u.id && u.name);
+        if (realUsers.length) {
+          realUsers.forEach(imported => {
+            const existingIdx = users.findIndex(u => u && u.id === imported.id);
+            if (existingIdx >= 0) { users[existingIdx] = imported; }
+            else { const emptyIdx = users.findIndex(u => u === null); if(emptyIdx >= 0) users[emptyIdx] = imported; }
+          });
+          saveUsers();
+          importSummary.push(realUsers.length + ' atletas');
+        }
       }
+
+      // ── 3. Custom Groups ──
+      if (p.customGroups && Array.isArray(p.customGroups)) {
+        const realGroups = p.customGroups.filter(g => g && g.id && g.name);
+        let newGroupCount = 0;
+        realGroups.forEach(importedGroup => {
+          const exists = customGroups.find(g => g.id === importedGroup.id || g.name.toLowerCase() === importedGroup.name.toLowerCase());
+          if (!exists) { customGroups.push(importedGroup); newGroupCount++; }
+        });
+        if (newGroupCount) { saveCustomGroups(); importSummary.push(newGroupCount + ' grupos'); }
+      }
+
+      // ── 4. Custom Exercises ──
+      const importedEx = p.customExercises || p.customEx || {};
+      if (importedEx && typeof importedEx === 'object') {
+        let newExCount = 0;
+        Object.entries(importedEx).forEach(([group, exs]) => {
+          if (!Array.isArray(exs)) return;
+          if (!state.customExByGroup[group]) state.customExByGroup[group] = [];
+          exs.forEach(ex => {
+            if (ex && !state.customExByGroup[group].includes(ex)) {
+              state.customExByGroup[group].push(ex);
+              newExCount++;
+            }
+          });
+        });
+        if (newExCount) { saveCustomEx(); importSummary.push(newExCount + ' exercícios'); }
+      }
+
+      // ── 5. Settings (optional — merge non-destructively) ──
+      if (p.settings && typeof p.settings === 'object') {
+        settings = { ...settings, ...p.settings };
+        saveSettings();
+      }
+
+      // Refresh UI
+      renderHistory();
+      renderAthleteSlots();
+      renderUserSelectors();
+      renderGroupGrid();
+      renderSettings();
+
+      const summary = importSummary.length ? importSummary.join(' · ') : 'nenhum dado novo';
+      showToast('✅ Importado: ' + summary);
+
+    } catch(err) {
+      console.error('Import error:', err);
+      showToast('❌ Erro ao importar — verifique o arquivo');
     }
-    // Merge history — deduplicate by id
-    history=[...ih,...history];
-    const seen=new Set();
-    history=history.filter(h=>{if(seen.has(h.id))return false;seen.add(h.id);return true;});
-    saveHistory(); renderHistory(); renderAthleteSlots(); renderUserSelectors();
-    showToast('✅ Importado: '+ih.length+' registros');
-  }catch(err){showToast('❌ Erro ao importar');}};
-  reader.readAsText(file); e.target.value='';
+  };
+  reader.readAsText(file);
+  e.target.value = '';
 }
 function saveHistory(){localStorage.setItem('wgym_history',JSON.stringify(history));}
 
