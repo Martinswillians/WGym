@@ -918,6 +918,85 @@ select.form-input option { background: var(--card2); color: var(--text); }
 
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(10px); background: #141414; color: white; padding: 11px 22px; border-radius: 28px; font-size: 13px; font-weight: 600; z-index: 9999; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ══ UNDO TOAST ══ */
+.undo-toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--card2); color: var(--text);
+  border: 1px solid var(--border2);
+  padding: 10px 8px 10px 18px;
+  border-radius: 28px; font-size: 13px; font-weight: 600;
+  z-index: 9998; opacity: 0; transition: all 0.35s;
+  pointer-events: none; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  display: flex; align-items: center; gap: 10px; white-space: nowrap;
+}
+.undo-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: all; }
+.undo-toast-btn {
+  background: var(--primary); color: white; border: none;
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 12px; font-weight: 800; cursor: pointer;
+  font-family: var(--font-body); text-transform: uppercase; letter-spacing: 0.5px;
+  transition: background 0.2s;
+}
+.undo-toast-btn:active { background: var(--primary-dark); }
+.undo-progress {
+  position: absolute; bottom: 0; left: 0;
+  height: 3px; background: var(--primary); border-radius: 0 0 28px 28px;
+  transition: width linear;
+}
+
+/* ══ WEEKLY GOAL BAR ══ */
+.week-goal-card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 14px; margin-bottom: 10px;
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+}
+.week-goal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.week-goal-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.week-goal-count {
+  font-family: var(--font-display); font-size: 18px; font-weight: 800;
+}
+.week-goal-count .done { color: var(--primary); }
+.week-goal-count .total { color: var(--muted); font-size: 14px; }
+.week-goal-dots {
+  display: flex; gap: 6px; margin-bottom: 8px;
+}
+.week-goal-dot {
+  flex: 1; height: 10px; border-radius: 5px;
+  background: var(--border); transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative; overflow: hidden;
+}
+.week-goal-dot.done { background: var(--primary); box-shadow: 0 0 8px rgba(255,61,37,0.4); }
+.week-goal-dot.done::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%);
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+.week-goal-dot.today { background: var(--warning); box-shadow: 0 0 8px rgba(245,166,35,0.4); animation: pulse 2s infinite; }
+.week-goal-sub { font-size: 11px; color: var(--muted); }
+.week-goal-sub .highlight { color: var(--success); font-weight: 700; }
+.week-goal-sub .warning-text { color: var(--warning); font-weight: 700; }
+
+/* ══ REST DEFAULT INDICATOR ══ */
+.rest-default-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--blue-bg); border: 1px solid rgba(74,159,255,0.3);
+  border-radius: 12px; padding: 3px 10px;
+  font-size: 10px; font-weight: 700; color: var(--blue);
+  cursor: pointer; transition: all 0.2s; margin-bottom: 6px;
+}
+.rest-default-badge:active { background: rgba(74,159,255,0.2); }
+.rest-save-indicator {
+  font-size: 10px; color: var(--success); font-weight: 700;
+  opacity: 0; transition: opacity 0.3s;
+  display: inline-block; margin-left: 6px;
+}
+.rest-save-indicator.show { opacity: 1; }
 [data-theme="light"] .toast { background: #1a1a1a; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
 .pulsing { animation: pulse 2s infinite; }
@@ -1255,6 +1334,19 @@ select.form-input option { background: var(--card2); color: var(--text); }
     <div class="user-pills" id="dashUserPills"></div>
   </div>
 
+  <!-- WEEKLY GOAL BAR -->
+  <div class="week-goal-card" id="weekGoalCard">
+    <div class="week-goal-header">
+      <div class="week-goal-title">🎯 Meta da semana</div>
+      <div class="week-goal-count">
+        <span class="done" id="wgDone">0</span>
+        <span class="total" id="wgTotal"> / 4 treinos</span>
+      </div>
+    </div>
+    <div class="week-goal-dots" id="wgDots"></div>
+    <div class="week-goal-sub" id="wgSub">Carregando...</div>
+  </div>
+
   <div class="dash-grid">
     <div class="dash-metric"><div class="dm-label">Treinos (semana)</div><div class="dm-value red" id="dashWeekCount">0</div><div class="dm-sub">esta semana</div></div>
     <div class="dash-metric"><div class="dm-label">Volume semanal</div><div class="dm-value green" id="dashWeekVol">0</div><div class="dm-sub">kg total</div></div>
@@ -1455,8 +1547,14 @@ select.form-input option { background: var(--card2); color: var(--text); }
           <div class="form-group"><label class="form-label">Reps</label><input class="form-input" type="number" id="reps" value="12" min="1" max="200"></div>
           <div class="form-group"><label class="form-label">Kg</label><input class="form-input" type="number" id="load" value="0" step="0.5" min="0"></div>
           <div class="form-group"><label class="form-label">Desc.</label>
-            <select class="form-input" id="rest"><option value="30">30s</option><option value="45">45s</option><option value="60" selected>1min</option><option value="90">90s</option><option value="120">2min</option><option value="180">3min</option></select>
+            <select class="form-input" id="rest" onchange="onRestChange(this.value)"><option value="30">30s</option><option value="45">45s</option><option value="60" selected>1min</option><option value="90">90s</option><option value="120">2min</option><option value="180">3min</option></select>
           </div>
+        </div>
+        <div>
+          <span class="rest-default-badge" id="restDefaultBadge" onclick="saveExDefaultRest()" title="Clique para salvar este descanso como padrão">
+            ⏱ <span id="restDefaultLabel">Salvar como padrão</span>
+          </span>
+          <span class="rest-save-indicator" id="restSaveIndicator">✓ Salvo!</span>
         </div>
       </div>
 
@@ -1786,6 +1884,11 @@ select.form-input option { background: var(--card2); color: var(--text); }
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="undo-toast" id="undoToast">
+  <span id="undoToastMsg">Série removida</span>
+  <button class="undo-toast-btn" onclick="undoDeleteSerie()">↩ Desfazer</button>
+  <div class="undo-progress" id="undoProgress" style="width:100%;"></div>
+</div>
 
 <script>
 // ═══════════════════════════════════════════════════════
@@ -3913,6 +4016,8 @@ function updateExForm() {
     if (aerobicForm) document.getElementById('aerobicLastBanner').classList.remove('show');
     // soloForm/partnerForm/groupForm handled by updateModeChip
     showSuggestion(state.selectedEx);
+    // Apply saved default rest time for this exercise
+    applyExDefaultRest(state.selectedEx);
   }
 
   document.getElementById('exNotes').value=localStorage.getItem('wgym_notes_'+state.selectedEx)||'';
@@ -4170,7 +4275,55 @@ function renderSeriesLog() {
   log.innerHTML=html;
 }
 
-function deleteSerie(idx){state.currentSeries.splice(idx,1);renderSeriesLog();}
+// ── Undo delete série ──
+let _undoTimer = null;
+let _undoSerie = null;
+let _undoIdx = null;
+
+function deleteSerie(idx) {
+  // Save snapshot for undo
+  _undoSerie = { ...state.currentSeries[idx] };
+  _undoIdx = idx;
+  state.currentSeries.splice(idx, 1);
+  renderSeriesLog();
+  showUndoToast('Série removida');
+}
+
+function showUndoToast(msg) {
+  const toast = document.getElementById('undoToast');
+  const msgEl = document.getElementById('undoToastMsg');
+  const progress = document.getElementById('undoProgress');
+  if (!toast) return;
+  if (msgEl) msgEl.textContent = msg;
+  // Clear any running timer
+  if (_undoTimer) { clearTimeout(_undoTimer); _undoTimer = null; }
+  // Reset and show
+  progress.style.transition = 'none';
+  progress.style.width = '100%';
+  toast.classList.add('show');
+  // Animate progress bar shrinking over 4s
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      progress.style.transition = 'width 4s linear';
+      progress.style.width = '0%';
+    });
+  });
+  _undoTimer = setTimeout(() => {
+    toast.classList.remove('show');
+    _undoSerie = null; _undoIdx = null;
+  }, 4000);
+}
+
+function undoDeleteSerie() {
+  if (_undoSerie === null || _undoIdx === null) return;
+  // Re-insert at original position
+  state.currentSeries.splice(_undoIdx, 0, _undoSerie);
+  _undoSerie = null; _undoIdx = null;
+  if (_undoTimer) { clearTimeout(_undoTimer); _undoTimer = null; }
+  document.getElementById('undoToast').classList.remove('show');
+  renderSeriesLog();
+  showToast('↩ Série restaurada!');
+}
 
 // ═══════════════════════════════════════════════════════
 // CONCLUDE
@@ -4802,6 +4955,7 @@ function clearHistory() {
 // ═══════════════════════════════════════════════════════
 function renderDashboard() {
   renderDashUserPills();
+  renderWeekGoalBar();
   const now=new Date(), ws=new Date(now); ws.setDate(now.getDate()-now.getDay()); ws.setHours(0,0,0,0);
   const uid=state.dashUserId;
   const filt=uid?history.filter(h=>h.userId===uid||h.userId2===uid):history;
@@ -4856,7 +5010,138 @@ function syncToggle(id,val){const el=document.getElementById(id);if(el)el.classL
 function saveSettings(){localStorage.setItem('wgym_settings',JSON.stringify(settings));}
 function toggleVibration(){settings.vibration=!settings.vibration;syncToggle('toggleVib',settings.vibration);saveSettings();showToast(settings.vibration?'📳 Vibração ativada':'📳 Vibração desativada');}
 function toggleAutoProgress(){settings.autoProgress=!settings.autoProgress;syncToggle('toggleAuto',settings.autoProgress);saveSettings();showToast(settings.autoProgress?'📈 Progressão ativa':'📈 Progressão desativada');}
-function saveWeekGoal(){const v=parseInt(document.getElementById('weekGoal').value)||4;settings.weekGoal=Math.max(1,Math.min(7,v));saveSettings();showToast('🎯 Meta: '+settings.weekGoal+' treinos/semana');}
+function saveWeekGoal(){const v=parseInt(document.getElementById('weekGoal').value)||4;settings.weekGoal=Math.max(1,Math.min(7,v));saveSettings();renderWeekGoalBar();showToast('🎯 Meta: '+settings.weekGoal+' treinos/semana');}
+
+// ═══════════════════════════════════════════════════════
+// WEEKLY GOAL BAR
+// ═══════════════════════════════════════════════════════
+function renderWeekGoalBar() {
+  const card = document.getElementById('weekGoalCard');
+  const dotsEl = document.getElementById('wgDots');
+  const doneEl = document.getElementById('wgDone');
+  const totalEl = document.getElementById('wgTotal');
+  const subEl = document.getElementById('wgSub');
+  if (!card || !dotsEl) return;
+
+  const goal = settings.weekGoal || 4;
+  const uid = state.dashUserId;
+  const now = new Date();
+  // Week starts on Monday (ISO)
+  const dayOfWeek = (now.getDay() + 6) % 7; // Mon=0 … Sun=6
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - dayOfWeek);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const filt = uid
+    ? history.filter(h => h.userId === uid || h.userId2 === uid)
+    : history;
+  const thisWeek = filt.filter(h => new Date(h.date) >= weekStart);
+  const daysWithTraining = new Set(thisWeek.map(h => new Date(h.date).toDateString()));
+  const done = daysWithTraining.size;
+  const remaining = Math.max(0, goal - done);
+  const daysLeftInWeek = 6 - dayOfWeek; // remaining days after today
+
+  // Dots
+  dotsEl.innerHTML = Array.from({ length: goal }, (_, i) => {
+    let cls = 'week-goal-dot';
+    if (i < done) cls += ' done';
+    else if (i === done && dayOfWeek <= 6) cls += ' today';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+
+  if (doneEl) doneEl.textContent = done;
+  if (totalEl) totalEl.textContent = ' / ' + goal + ' treino' + (goal !== 1 ? 's' : '');
+
+  // Subtitle message
+  let sub = '';
+  if (done >= goal) {
+    sub = `<span class="highlight">🏆 Meta atingida! Você mandou bem essa semana.</span>`;
+  } else if (remaining === 1) {
+    sub = `Falta <span class="highlight">1 treino</span> para atingir a meta — você consegue!`;
+  } else if (daysLeftInWeek < remaining) {
+    sub = `<span class="warning-text">⚠️ ${remaining} treinos em ${daysLeftInWeek + 1} dia${daysLeftInWeek !== 0 ? 's' : ''} — vai precisar treinar todos os dias!</span>`;
+  } else {
+    sub = `Faltam <span class="highlight">${remaining} treinos</span> — ${daysLeftInWeek + 1} dia${daysLeftInWeek !== 0 ? 's' : ''} restantes.`;
+  }
+  if (subEl) subEl.innerHTML = sub;
+}
+
+// ═══════════════════════════════════════════════════════
+// REST DEFAULT PER EXERCISE
+// ═══════════════════════════════════════════════════════
+function getExDefaultRest(ex) {
+  try {
+    const map = JSON.parse(localStorage.getItem('wgym_rest_defaults') || '{}');
+    return map[ex] || null;
+  } catch(e) { return null; }
+}
+
+function saveExDefaultRest() {
+  const ex = state.selectedEx;
+  if (!ex) return;
+  const restVal = document.getElementById('rest')?.value;
+  if (!restVal) return;
+  try {
+    const map = JSON.parse(localStorage.getItem('wgym_rest_defaults') || '{}');
+    map[ex] = parseInt(restVal);
+    localStorage.setItem('wgym_rest_defaults', JSON.stringify(map));
+  } catch(e) {}
+  // Update badge label
+  updateRestDefaultBadge(ex, parseInt(restVal));
+  // Flash save indicator
+  const ind = document.getElementById('restSaveIndicator');
+  if (ind) {
+    ind.classList.add('show');
+    setTimeout(() => ind.classList.remove('show'), 2000);
+  }
+  showToast('⏱ Descanso padrão salvo: ' + formatRestLabel(parseInt(restVal)));
+}
+
+function onRestChange(val) {
+  // When user changes rest, offer to save as default
+  updateRestDefaultBadge(state.selectedEx, parseInt(val));
+}
+
+function updateRestDefaultBadge(ex, currentVal) {
+  const badge = document.getElementById('restDefaultBadge');
+  const label = document.getElementById('restDefaultLabel');
+  if (!badge || !label) return;
+  const saved = ex ? getExDefaultRest(ex) : null;
+  if (saved && saved === currentVal) {
+    label.textContent = '✓ Padrão: ' + formatRestLabel(saved);
+    badge.style.background = 'var(--success-bg)';
+    badge.style.borderColor = 'rgba(46,204,113,0.3)';
+    badge.style.color = 'var(--success)';
+  } else if (saved) {
+    label.textContent = 'Padrão atual: ' + formatRestLabel(saved) + ' → salvar ' + formatRestLabel(currentVal) + '?';
+    badge.style.background = 'var(--warning-bg)';
+    badge.style.borderColor = 'rgba(245,166,35,0.3)';
+    badge.style.color = 'var(--warning)';
+  } else {
+    label.textContent = 'Salvar ' + formatRestLabel(currentVal) + ' como padrão';
+    badge.style.background = 'var(--blue-bg)';
+    badge.style.borderColor = 'rgba(74,159,255,0.3)';
+    badge.style.color = 'var(--blue)';
+  }
+}
+
+function formatRestLabel(sec) {
+  if (!sec) return '—';
+  if (sec < 60) return sec + 's';
+  return (sec / 60) + 'min';
+}
+
+function applyExDefaultRest(ex) {
+  const saved = getExDefaultRest(ex);
+  const restEl = document.getElementById('rest');
+  if (!restEl) return;
+  if (saved) {
+    restEl.value = saved;
+    updateRestDefaultBadge(ex, saved);
+  } else {
+    updateRestDefaultBadge(ex, parseInt(restEl.value));
+  }
+}
 
 // ═══════════════════════════════════════════════════════
 // EXPORT / IMPORT
