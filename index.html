@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Will Gym">
+<meta name="theme-color" content="#FF3D25">
+<meta name="description" content="Will Gym — Seu treino, sua evolução">
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Will Gym&quot;,&quot;short_name&quot;:&quot;WillGym&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%230D0D0F&quot;,&quot;theme_color&quot;:&quot;%23FF3D25&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23FF3D25'/%3E%3Ctext y='.9em' font-size='80' x='10'%3E🏋️%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
 <title>Will Gym</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -889,6 +894,47 @@ select.form-input option { background: var(--card2); color: var(--text); }
 .version-info .v-logo { font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: 3px; color: var(--text); margin-bottom: 4px; }
 .version-info .v-logo span { color: var(--primary); }
 .version-info .v-ver { font-size: 11px; font-weight: 600; }
+
+/* ── CHARTS ── */
+.chart-wrap { position: relative; width: 100%; overflow-x: auto; }
+.chart-svg { display: block; }
+.chart-empty { text-align: center; padding: 24px; color: var(--muted); font-size: 13px; }
+
+/* ── SPLIT PLAN CARDS ── */
+.plan-card { background: var(--bg2); border: 1.5px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; overflow: hidden; }
+.plan-card-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; }
+.plan-card-header:active { background: var(--primary-light); }
+.plan-card-name { font-family: var(--font-display); font-size: 16px; font-weight: 800; flex: 1; text-transform: uppercase; letter-spacing: 0.5px; }
+.plan-card-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: var(--primary-light); color: var(--primary); border: 1px solid rgba(255,61,37,0.3); }
+.plan-card-badge.today { background: var(--success-bg); color: var(--success); border-color: rgba(46,204,113,0.3); animation: pulse 2s infinite; }
+.plan-card-actions { display: flex; gap: 4px; }
+.plan-act-btn { background: var(--card); border: 1px solid var(--border); color: var(--muted); width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.plan-day-row { padding: 8px 14px; border-top: 1px solid var(--border); display: flex; align-items: flex-start; gap: 10px; }
+.plan-day-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; width: 30px; flex-shrink: 0; padding-top: 2px; }
+.plan-day-groups { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+.plan-day-chip { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); color: var(--text); }
+.plan-day-chip.active-today { background: var(--primary); border-color: var(--primary); color: white; font-weight: 700; }
+
+/* Plan suggestion banner */
+.plan-sugg-banner { background: linear-gradient(135deg,var(--warning-bg),rgba(245,166,35,0.05)); border: 1px solid rgba(245,166,35,0.3); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+.plan-sugg-icon { font-size: 24px; }
+.plan-sugg-text { flex: 1; }
+.plan-sugg-title { font-size: 13px; font-weight: 700; color: var(--warning); margin-bottom: 2px; }
+.plan-sugg-sub { font-size: 11px; color: var(--muted); }
+.plan-sugg-btn { background: var(--warning); color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+
+/* Plan modal days builder */
+.plan-day-builder { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 8px; position: relative; }
+.plan-day-builder-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+.plan-day-rm { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; }
+.plan-day-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.plan-day-chip-sel { font-size: 11px; padding: 4px 10px; border-radius: 10px; background: var(--card); border: 1.5px solid var(--border); color: var(--text); cursor: pointer; transition: all 0.15s; }
+.plan-day-chip-sel.sel { background: var(--primary-light); border-color: var(--primary); color: var(--primary); font-weight: 700; }
+.plan-day-chip-sel:active { transform: scale(0.93); }
+
+/* Notif days picker */
+.notif-day-chip { font-size: 11px; padding: 6px 10px; border-radius: 20px; background: var(--bg2); border: 1.5px solid var(--border); color: var(--text); cursor: pointer; font-weight: 600; transition: all 0.15s; }
+.notif-day-chip.sel { background: var(--primary-light); border-color: var(--primary); color: var(--primary); font-weight: 700; }
 /* ══ AEROBIC FORM ══ */
 .aerobic-form { display: none; }
 .aerobic-form.show { display: block; }
@@ -1305,11 +1351,15 @@ select.form-input option { background: var(--card2); color: var(--text); }
     <button class="nav-tab" onclick="goPage('treino',this)">Treino</button>
     <button class="nav-tab" onclick="goPage('exercicio',this)">Exercício</button>
     <button class="nav-tab" onclick="goPage('historico',this)">Histórico</button>
+    <button class="nav-tab" onclick="goPage('planos',this)">📊 Planos</button>
   </div>
 </div>
 
 <!-- ══ DASHBOARD ══ -->
 <div id="page-dashboard" class="page active">
+  <!-- Dashboard plan suggestion from splits -->
+  <div id="dashPlanWidget" style="display:none;"></div>
+
   <!-- GREETING -->
   <div class="greeting-banner" id="greetingBanner">
     <div class="greeting-time" id="greetingTime">Bom dia</div>
@@ -1848,7 +1898,97 @@ select.form-input option { background: var(--card2); color: var(--text); }
 
   <div class="version-info">
     <div class="v-logo"><span>Will</span> Gym</div>
-    <div class="v-ver">Versão 19.0 · Status de Treino · Histórico por Tipo · 2025</div>
+    <div class="v-ver">Versão 23.0 · Splits · Gráficos · Notificações · PWA · 2025</div>
+  </div>
+</div>
+
+<!-- ══ PAGE: PLANOS & GRÁFICOS ══ -->
+<div id="page-planos" class="page">
+
+  <!-- PWA Install Banner -->
+  <div id="pwaBanner" class="card" style="display:none; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:white; margin-bottom:10px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="font-size:28px;">📲</span>
+      <div style="flex:1;">
+        <div style="font-family:var(--font-display);font-size:16px;font-weight:800;">Instalar Will Gym</div>
+        <div style="font-size:11px;opacity:0.85;margin-top:2px;">Use como app nativo no seu celular!</div>
+      </div>
+      <button id="pwaInstallBtn" onclick="installPWA()" style="background:white;color:var(--primary);border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">Instalar</button>
+      <button onclick="document.getElementById('pwaBanner').style.display='none'" style="background:rgba(255,255,255,0.2);border:none;color:white;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="card" id="notifCard">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div>
+        <div style="font-family:var(--font-display);font-size:16px;font-weight:800;">🔔 Lembretes de Treino</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="notifStatus">Toque para ativar notificações</div>
+      </div>
+      <button id="notifToggleBtn" onclick="toggleNotifications()" style="background:var(--primary-light);border:1px solid rgba(255,61,37,0.3);color:var(--primary);border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;">Ativar</button>
+    </div>
+    <div id="notifConfig" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">Horário do lembrete diário</label>
+        <input type="time" class="form-input" id="notifTime" value="07:00" style="text-align:left;padding-left:12px;">
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;" id="notifDays"></div>
+      <button class="btn btn-primary" style="margin-top:10px;" onclick="saveNotifSettings()">💾 Salvar Lembretes</button>
+    </div>
+  </div>
+
+  <!-- Gráfico de Evolução por Exercício -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-family:var(--font-display);font-size:16px;font-weight:800;">📈 Evolução de Carga</div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px;">
+      <label class="form-label">Exercício</label>
+      <select class="form-input" id="chartExSelect" onchange="renderEvolutionChart()" style="text-align:left;padding-left:10px;"></select>
+    </div>
+    <div id="evolutionChart" style="width:100%;overflow-x:auto;"></div>
+    <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center;" id="chartSubLabel"></div>
+  </div>
+
+  <!-- Gráfico Volume Mensal -->
+  <div class="card">
+    <div style="font-family:var(--font-display);font-size:16px;font-weight:800;margin-bottom:10px;">📊 Volume Mensal</div>
+    <div id="monthlyVolumeChart" style="width:100%;overflow-x:auto;"></div>
+  </div>
+
+  <!-- SPLITS / PLANOS DE TREINO -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-family:var(--font-display);font-size:16px;font-weight:800;">🗓️ Planos de Treino (Splits)</div>
+      <button onclick="openPlanModal(null)" style="background:var(--primary-light);border:1px solid rgba(255,61,37,0.3);color:var(--primary);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;">+ Novo</button>
+    </div>
+    <div id="planSuggestion" style="margin-bottom:10px;"></div>
+    <div id="planList"></div>
+    <div id="plansEmpty" class="empty" style="display:none;padding:20px 0;">
+      <div class="empty-icon" style="font-size:32px;">🗓️</div>
+      <div class="empty-text">Nenhum plano criado ainda.<br>Crie seu split de treino personalizado!</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: Plano / Split -->
+<div class="modal-overlay" id="planModal">
+  <div class="modal-sheet" style="max-height:80vh;overflow-y:auto;">
+    <div class="modal-title"><span id="modalPlanTitle">Novo Plano</span><button class="modal-close" onclick="closePlanModal()">✕</button></div>
+
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">Nome do Plano</label>
+      <input class="form-input form-input-left" type="text" id="planNameInput" placeholder="Ex: Plano A — Push Pull Legs" maxlength="30">
+    </div>
+
+    <div id="planDaysContainer"></div>
+    <button onclick="addPlanDay()" style="width:100%;padding:10px;background:var(--bg2);border:1.5px dashed var(--border);color:var(--muted);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;margin-bottom:12px;">+ Adicionar Dia</button>
+
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="closePlanModal()" style="margin-top:0;">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePlan()" style="margin-top:0;">Salvar Plano</button>
+    </div>
   </div>
 </div>
 
@@ -2922,7 +3062,7 @@ function selectDashUser(id) { state.dashUserId=id; renderDashUserPills(); render
 // ═══════════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════════
-const PAGES = ['dashboard','treino','exercicio','historico'];
+const PAGES = ['dashboard','treino','exercicio','historico','planos'];
 function goPage(p, tabEl) {
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
@@ -2935,6 +3075,7 @@ function goPage(p, tabEl) {
   if (p==='treino') { renderGroupGrid(); renderUserSelectors(); }
   if (p==='dashboard') { updateGreeting(); renderDashboard(); }
   if (p==='config') renderSettings();
+  if (p==='planos') { renderPlanos(); }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -5148,14 +5289,15 @@ function applyExDefaultRest(ex) {
 // ═══════════════════════════════════════════════════════
 function exportJSON(){
   const exportData = {
-    version: '5.0',
+    version: '5.2',
     exportDate: new Date().toISOString(),
     history,
     users,
     settings,
-    // ── Custom content (groups & exercises created by the user) ──
     customGroups,
     customExercises: state.customExByGroup,
+    trainingPlans,
+    notifSettings,
   };
   const data = JSON.stringify(exportData, null, 2);
   const blob = new Blob([data], {type:'application/json'});
@@ -5167,7 +5309,7 @@ function exportJSON(){
   URL.revokeObjectURL(url);
   const customGroupCount = customGroups.length;
   const customExCount = Object.values(state.customExByGroup).flat().length;
-  showToast(`📤 Backup exportado! ${history.length} treinos · ${customGroupCount} grupos · ${customExCount} exercícios customizados`);
+  showToast(`📤 Backup exportado! ${history.length} treinos · ${trainingPlans.length} planos · ${customGroupCount} grupos`);
 }
 function importJSON(e){
   const file = e.target.files[0]; if(!file) return;
@@ -5233,12 +5375,31 @@ function importJSON(e){
         saveSettings();
       }
 
+      // ── 6. Training Plans / Splits ──
+      const importedPlans = p.trainingPlans || p.plans || [];
+      if (Array.isArray(importedPlans) && importedPlans.length) {
+        let newPlanCount = 0;
+        importedPlans.forEach(importedPlan => {
+          if (importedPlan && importedPlan.id && !trainingPlans.find(x => x.id === importedPlan.id)) {
+            trainingPlans.push(importedPlan); newPlanCount++;
+          }
+        });
+        if (newPlanCount) { savePlans(); importSummary.push(newPlanCount + ' planos'); }
+      }
+
+      // ── 7. Notification settings ──
+      if (p.notifSettings && typeof p.notifSettings === 'object') {
+        notifSettings = { ...notifSettings, ...p.notifSettings };
+        localStorage.setItem('wgym_notif', JSON.stringify(notifSettings));
+      }
+
       // Refresh UI
       renderHistory();
       renderAthleteSlots();
       renderUserSelectors();
       renderGroupGrid();
       renderSettings();
+      if (document.getElementById('page-planos')?.classList.contains('active')) renderPlanos();
 
       const summary = importSummary.length ? importSummary.join(' · ') : 'nenhum dado novo';
       showToast('✅ Importado: ' + summary);
@@ -5562,6 +5723,556 @@ function startSuggestedWorkout() {
   showToast('🤖 ' + (count > 1 ? count + ' exercícios na fila! Começando por: ' + firstEx : 'Iniciando: ' + firstEx));
 }
 
+// ═══════════════════════════════════════════════════════
+// PLANOS & GRÁFICOS ENGINE
+// ═══════════════════════════════════════════════════════
+
+let plans = []; // [{id, name, days:[{label, groups:[groupName]}]}]
+let trainingPlans = [];
+try { trainingPlans = JSON.parse(localStorage.getItem('wgym_plans') || '[]'); } catch(e) {}
+function savePlans() { localStorage.setItem('wgym_plans', JSON.stringify(trainingPlans)); }
+
+const WEEK_DAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+let _editingPlanId = null;
+let _planDays = []; // [{day: 0-6, groups: ['Peito','Tríceps']}]
+
+function openPlanModal(planId) {
+  _editingPlanId = planId;
+  const plan = planId ? trainingPlans.find(p => p.id === planId) : null;
+  document.getElementById('modalPlanTitle').textContent = plan ? 'Editar Plano' : 'Novo Plano';
+  document.getElementById('planNameInput').value = plan ? plan.name : '';
+  _planDays = plan ? JSON.parse(JSON.stringify(plan.days)) : [
+    { day: 1, groups: [] }, { day: 3, groups: [] }, { day: 5, groups: [] }
+  ];
+  renderPlanDaysBuilder();
+  document.getElementById('planModal').classList.add('show');
+  setTimeout(() => document.getElementById('planNameInput').focus(), 300);
+}
+
+function closePlanModal() {
+  document.getElementById('planModal').classList.remove('show');
+  _editingPlanId = null; _planDays = [];
+}
+
+function renderPlanDaysBuilder() {
+  const c = document.getElementById('planDaysContainer'); if (!c) return;
+  const allGroups = getAllGroups().map(g => g.name);
+  c.innerHTML = _planDays.map((pd, di) => `
+    <div class="plan-day-builder">
+      <div class="plan-day-builder-label">
+        <select style="background:transparent;border:none;color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;cursor:pointer;font-family:var(--font-body);" onchange="setPlanDayOfWeek(${di},this.value)">
+          ${WEEK_DAYS.map((d,i) => `<option value="${i}" ${pd.day===i?'selected':''}>${d}</option>`).join('')}
+        </select>
+        <button class="plan-day-rm" onclick="removePlanDay(${di})">✕</button>
+      </div>
+      <div class="plan-day-chips">
+        ${allGroups.map(g => `<span class="plan-day-chip-sel ${pd.groups.includes(g)?'sel':''}" onclick="togglePlanDayGroup(${di},'${g.replace(/'/g,"\\'")}')">
+          ${(getAllGroups().find(gg=>gg.name===g)||{icon:'💪'}).icon} ${g}
+        </span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function setPlanDayOfWeek(di, val) { if(_planDays[di]) _planDays[di].day = parseInt(val); }
+function removePlanDay(di) { _planDays.splice(di, 1); renderPlanDaysBuilder(); }
+function addPlanDay() { _planDays.push({ day: 0, groups: [] }); renderPlanDaysBuilder(); }
+function togglePlanDayGroup(di, g) {
+  if (!_planDays[di]) return;
+  const idx = _planDays[di].groups.indexOf(g);
+  if (idx >= 0) _planDays[di].groups.splice(idx, 1); else _planDays[di].groups.push(g);
+  renderPlanDaysBuilder();
+}
+
+function savePlan() {
+  const name = document.getElementById('planNameInput').value.trim();
+  if (!name) { showToast('Digite o nome do plano'); return; }
+  if (!_planDays.some(d => d.groups.length)) { showToast('Adicione grupos musculares em pelo menos 1 dia'); return; }
+  if (_editingPlanId) {
+    const p = trainingPlans.find(p => p.id === _editingPlanId);
+    if (p) { p.name = name; p.days = _planDays; }
+  } else {
+    trainingPlans.push({ id: Date.now().toString(), name, days: _planDays, createdAt: new Date().toISOString() });
+  }
+  savePlans();
+  closePlanModal();
+  renderPlanos();
+  showToast('✅ Plano salvo!');
+}
+
+function deletePlan(id) {
+  if (!confirm('Excluir este plano?')) return;
+  trainingPlans = trainingPlans.filter(p => p.id !== id);
+  savePlans(); renderPlanos();
+  showToast('🗑️ Plano removido');
+}
+
+function renderPlanList() {
+  const el = document.getElementById('planList');
+  const empty = document.getElementById('plansEmpty');
+  if (!el) return;
+  if (!trainingPlans.length) { el.innerHTML = ''; if(empty) empty.style.display='block'; return; }
+  if (empty) empty.style.display = 'none';
+  const todayDow = new Date().getDay();
+  el.innerHTML = trainingPlans.map(plan => {
+    const todayDay = plan.days.find(d => d.day === todayDow && d.groups.length);
+    const nextDay = _getNextPlanDay(plan);
+    const badge = todayDay
+      ? `<span class="plan-card-badge today">🏋️ Hoje!</span>`
+      : nextDay ? `<span class="plan-card-badge">📅 ${WEEK_DAYS[nextDay.day]}</span>` : '';
+    const daysHtml = plan.days
+      .filter(d => d.groups.length)
+      .map(d => {
+        const isToday = d.day === todayDow;
+        const chips = d.groups.map(g =>
+          `<span class="plan-day-chip${isToday?' active-today':''}">${(getAllGroups().find(gg=>gg.name===g)||{icon:'💪'}).icon} ${g}</span>`
+        ).join('');
+        return `<div class="plan-day-row">
+          <span class="plan-day-label">${WEEK_DAYS[d.day]}</span>
+          <div class="plan-day-groups">${chips}</div>
+        </div>`;
+      }).join('');
+    return `<div class="plan-card">
+      <div class="plan-card-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <span class="plan-card-name">${plan.name}</span>
+        ${badge}
+        <div class="plan-card-actions" onclick="event.stopPropagation()">
+          <button class="plan-act-btn" onclick="openPlanModal('${plan.id}')">✏️</button>
+          <button class="plan-act-btn" onclick="deletePlan('${plan.id}')">🗑</button>
+        </div>
+      </div>
+      <div style="display:none;">${daysHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function _getNextPlanDay(plan) {
+  const today = new Date().getDay();
+  const sorted = plan.days.filter(d => d.groups.length).sort((a,b) => a.day - b.day);
+  return sorted.find(d => d.day > today) || sorted[0] || null;
+}
+
+function renderPlanSuggestion() {
+  const el = document.getElementById('planSuggestion'); if (!el) return;
+  if (!trainingPlans.length) { el.innerHTML = ''; return; }
+  const today = new Date().getDay();
+  let todayPlan = null, todayDay = null;
+  for (const plan of trainingPlans) {
+    const d = plan.days.find(dd => dd.day === today && dd.groups.length);
+    if (d) { todayPlan = plan; todayDay = d; break; }
+  }
+  if (!todayPlan) { el.innerHTML = ''; return; }
+  const groups = todayDay.groups.map(g => {
+    const gd = getAllGroups().find(gg => gg.name === g) || { icon: '💪' };
+    return `${gd.icon} ${g}`;
+  }).join(' · ');
+  el.innerHTML = `<div class="plan-sugg-banner">
+    <span class="plan-sugg-icon">🗓️</span>
+    <div class="plan-sugg-text">
+      <div class="plan-sugg-title">Hoje: ${todayPlan.name}</div>
+      <div class="plan-sugg-sub">${groups}</div>
+    </div>
+    <button class="plan-sugg-btn" onclick="startPlanDay('${todayPlan.id}',${today})">▶ Treinar</button>
+  </div>`;
+}
+
+function startPlanDay(planId, dayOfWeek) {
+  const plan = trainingPlans.find(p => p.id === planId); if (!plan) return;
+  const day = plan.days.find(d => d.day === dayOfWeek); if (!day || !day.groups.length) return;
+  // Inject suggested exercises
+  const allExs = day.groups.flatMap(g => (EXERCISES[g] || []).slice(0, 3));
+  EXERCISES['Sugerido'] = allExs;
+  state.group = 'Sugerido';
+  state.freeSelected = [...allExs];
+  state.sheetSelected = [...allExs];
+  if (!state.activeTraining) { state.activeTraining = true; state.trainStart = new Date().toISOString(); startTrainTimer(); }
+  document.getElementById('trainStatus').textContent = 'Treinando';
+  document.getElementById('trainStatus').className = 'status-chip chip-green';
+  const sb = document.getElementById('stopTrainBtn'); if(sb) sb.style.display='flex';
+  if (!state.activeUserId) ensureAthleteSelected();
+  state.selectedEx = allExs[0];
+  state.currentSeries = [];
+  renderGroupGrid(); updateActiveBar();
+  stopTimer();
+  ['timerBox','seriesLogCard'].forEach(id => {
+    const el = document.getElementById(id); if(el) { el.classList.remove('show'); el.style.display='none'; }
+  });
+  const sl = document.getElementById('seriesLog'); if(sl) sl.innerHTML = '';
+  goPage('exercicio'); updateExForm(); prefillLastLoad(allExs[0]);
+  showToast('🗓️ ' + plan.name + ' — ' + day.groups.join('+'));
+}
+
+// ═══════════════════════════════════════════════════════
+// GRÁFICOS DE EVOLUÇÃO (SVG puro — zero dependência)
+// ═══════════════════════════════════════════════════════
+function populateChartExSelect() {
+  const sel = document.getElementById('chartExSelect'); if (!sel) return;
+  const uid = state.dashUserId || state.activeUserId;
+  const exerciseNames = [...new Set(
+    history.filter(h => !uid || h.userId === uid || h.userId2 === uid)
+           .map(h => h.exercise).filter(Boolean)
+  )].sort();
+  if (!exerciseNames.length) { sel.innerHTML = '<option>Nenhum treino registrado</option>'; return; }
+  sel.innerHTML = exerciseNames.map(e => `<option value="${e}">${e}</option>`).join('');
+  renderEvolutionChart();
+}
+
+function renderEvolutionChart() {
+  const sel = document.getElementById('chartExSelect');
+  const container = document.getElementById('evolutionChart');
+  const subLabel = document.getElementById('chartSubLabel');
+  if (!sel || !container) return;
+  const exName = sel.value;
+  if (!exName) { container.innerHTML = '<div class="chart-empty">Selecione um exercício</div>'; return; }
+
+  const uid = state.dashUserId || state.activeUserId;
+  const entries = history.filter(h =>
+    h.exercise === exName && Array.isArray(h.series) &&
+    (!uid || h.userId === uid || h.userId2 === uid)
+  ).slice(0, 20).reverse(); // oldest first
+
+  if (entries.length < 2) {
+    container.innerHTML = '<div class="chart-empty">Registre mais treinos para ver a evolução 📊</div>';
+    if (subLabel) subLabel.textContent = '';
+    return;
+  }
+
+  const points = entries.map(e => {
+    const soloS = e.series.filter(s => !s.player || s.player === e.p1name);
+    const maxLoad = soloS.length ? Math.max(...soloS.map(s => s.load || 0)) : 0;
+    const totalVol = soloS.reduce((a, s) => a + (s.reps || 0) * (s.load || 0), 0);
+    const rm = maxLoad && soloS[0] ? Math.round(maxLoad * (1 + (soloS[0].reps || 0) / 30)) : 0;
+    const d = new Date(e.date);
+    return { date: `${d.getDate()}/${d.getMonth()+1}`, load: maxLoad, vol: totalVol, rm };
+  });
+
+  const W = 320, H = 140, PAD = { top: 16, right: 12, bottom: 28, left: 36 };
+  const innerW = W - PAD.left - PAD.right;
+  const innerH = H - PAD.top - PAD.bottom;
+  const loads = points.map(p => p.load);
+  const maxL = Math.max(...loads) * 1.15 || 10;
+  const minL = Math.min(...loads) * 0.85;
+  const xStep = innerW / (points.length - 1);
+
+  const scaleY = v => PAD.top + innerH - ((v - minL) / (maxL - minL)) * innerH;
+  const scaleX = i => PAD.left + i * xStep;
+
+  // Build polyline
+  const linePoints = points.map((p, i) => `${scaleX(i).toFixed(1)},${scaleY(p.load).toFixed(1)}`).join(' ');
+  const areaPoints = `${PAD.left},${PAD.top + innerH} ` + points.map((p, i) => `${scaleX(i).toFixed(1)},${scaleY(p.load).toFixed(1)}`).join(' ') + ` ${scaleX(points.length-1).toFixed(1)},${PAD.top+innerH}`;
+
+  // Y-axis ticks
+  const yTicks = [minL, (minL+maxL)/2, maxL].map(v => ({
+    y: scaleY(v), label: v.toFixed(0) + 'kg'
+  }));
+
+  // Determine theme color
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  const textClr = isDark ? '#9090A8' : '#6B6B6B';
+  const gridClr = isDark ? '#2A2A35' : '#DDDBD5';
+  const dotClr  = '#FF3D25';
+  const lineClr  = '#FF3D25';
+  const areaClr1 = isDark ? 'rgba(255,61,37,0.35)' : 'rgba(255,61,37,0.2)';
+  const areaClr2 = 'rgba(255,61,37,0)';
+
+  const svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;overflow:visible;">
+    <defs>
+      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${areaClr1}"/>
+        <stop offset="100%" stop-color="${areaClr2}"/>
+      </linearGradient>
+    </defs>
+    <!-- grid lines -->
+    ${yTicks.map(t => `<line x1="${PAD.left}" y1="${t.y.toFixed(1)}" x2="${PAD.left+innerW}" y2="${t.y.toFixed(1)}" stroke="${gridClr}" stroke-width="1" stroke-dasharray="3 3"/>`).join('')}
+    <!-- area fill -->
+    <polygon points="${areaPoints}" fill="url(#areaGrad)"/>
+    <!-- line -->
+    <polyline points="${linePoints}" fill="none" stroke="${lineClr}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <!-- dots + labels -->
+    ${points.map((p, i) => `
+      <circle cx="${scaleX(i).toFixed(1)}" cy="${scaleY(p.load).toFixed(1)}" r="4" fill="${dotClr}" stroke="var(--card)" stroke-width="2"/>
+      ${i === 0 || i === points.length-1 || p.load === Math.max(...loads) ?
+        `<text x="${scaleX(i).toFixed(1)}" y="${(scaleY(p.load)-8).toFixed(1)}" text-anchor="middle" fill="${dotClr}" font-size="9" font-weight="700" font-family="Barlow,sans-serif">${p.load}kg</text>` : ''
+      }`).join('')}
+    <!-- x-axis labels -->
+    ${points.filter((_, i) => i % Math.max(1, Math.floor(points.length/5)) === 0 || i === points.length-1).map((p, _, arr) => {
+      const i = points.indexOf(p);
+      return `<text x="${scaleX(i).toFixed(1)}" y="${H-4}" text-anchor="middle" fill="${textClr}" font-size="8" font-family="Barlow,sans-serif">${p.date}</text>`;
+    }).join('')}
+    <!-- y-axis labels -->
+    ${yTicks.map(t => `<text x="${PAD.left-4}" y="${(t.y+3).toFixed(1)}" text-anchor="end" fill="${textClr}" font-size="8" font-family="Barlow,sans-serif">${t.label}</text>`).join('')}
+  </svg>`;
+
+  container.innerHTML = svg;
+  const first = points[0].load, last = points[points.length-1].load;
+  const pct = first > 0 ? (((last-first)/first)*100).toFixed(1) : 0;
+  const trend = last > first ? `📈 +${pct}%` : last < first ? `📉 ${pct}%` : '⚖️ Estável';
+  if (subLabel) subLabel.textContent = `${points.length} treinos registrados · Evolução: ${trend} · Pico: ${Math.max(...loads)}kg`;
+}
+
+function renderMonthlyVolumeChart() {
+  const container = document.getElementById('monthlyVolumeChart'); if (!container) return;
+  const uid = state.dashUserId || state.activeUserId;
+  const filtered = uid ? history.filter(h => h.userId === uid || h.userId2 === uid) : history;
+
+  // Group by year-month
+  const byMonth = {};
+  filtered.forEach(h => {
+    if (!Array.isArray(h.series)) return;
+    const d = new Date(h.date);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+    if (!byMonth[key]) byMonth[key] = { label, vol: 0 };
+    const soloS = h.series.filter(s => !s.player || s.player === h.p1name);
+    byMonth[key].vol += soloS.reduce((a, s) => a + (s.reps||0)*(s.load||0), 0);
+  });
+
+  const months = Object.entries(byMonth).sort((a,b) => a[0].localeCompare(b[0])).slice(-8);
+  if (months.length < 2) { container.innerHTML = '<div class="chart-empty">Registre treinos por 2+ meses para ver o gráfico 📊</div>'; return; }
+
+  const vols = months.map(([,v]) => v.vol);
+  const maxV = Math.max(...vols) * 1.1 || 1;
+  const W = 320, H = 130, PAD = { top: 12, right: 8, bottom: 28, left: 40 };
+  const innerW = W - PAD.left - PAD.right, innerH = H - PAD.top - PAD.bottom;
+  const barW = (innerW / months.length) * 0.6;
+  const barGap = innerW / months.length;
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  const textClr = isDark ? '#9090A8' : '#6B6B6B';
+  const barClr  = '#FF3D25';
+
+  const bars = months.map(([, mv], i) => {
+    const barH = (mv.vol / maxV) * innerH;
+    const x = PAD.left + i * barGap + (barGap - barW) / 2;
+    const y = PAD.top + innerH - barH;
+    const volLabel = mv.vol > 999 ? (mv.vol/1000).toFixed(1)+'t' : mv.vol.toFixed(0);
+    return `
+      <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(barH,2).toFixed(1)}" rx="3" fill="${barClr}" opacity="0.85"/>
+      ${barH > 14 ? `<text x="${(x+barW/2).toFixed(1)}" y="${(y-3).toFixed(1)}" text-anchor="middle" fill="${barClr}" font-size="8" font-weight="700" font-family="Barlow,sans-serif">${volLabel}</text>` : ''}
+      <text x="${(x+barW/2).toFixed(1)}" y="${H-4}" text-anchor="middle" fill="${textClr}" font-size="8" font-family="Barlow,sans-serif">${mv.label}</text>`;
+  }).join('');
+
+  container.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;">
+    <!-- baseline -->
+    <line x1="${PAD.left}" y1="${PAD.top+innerH}" x2="${PAD.left+innerW}" y2="${PAD.top+innerH}" stroke="${textClr}" stroke-width="1"/>
+    ${bars}
+  </svg>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// NOTIFICAÇÕES / LEMBRETES
+// ═══════════════════════════════════════════════════════
+let notifSettings = { enabled: false, time: '07:00', days: [1,3,5] };
+try { notifSettings = { ...notifSettings, ...JSON.parse(localStorage.getItem('wgym_notif') || '{}') }; } catch(e) {}
+function saveNotifSettings() {
+  const timeEl = document.getElementById('notifTime');
+  if (timeEl) notifSettings.time = timeEl.value;
+  notifSettings.days = _notifSelectedDays;
+  localStorage.setItem('wgym_notif', JSON.stringify(notifSettings));
+  scheduleNotifications();
+  showToast('🔔 Lembretes salvos!');
+  renderNotifUI();
+}
+
+let _notifSelectedDays = [...(notifSettings.days || [1,3,5])];
+
+function renderNotifDayPicker() {
+  const el = document.getElementById('notifDays'); if (!el) return;
+  el.innerHTML = WEEK_DAYS.map((d, i) =>
+    `<span class="notif-day-chip ${_notifSelectedDays.includes(i)?'sel':''}" onclick="toggleNotifDay(${i})">${d}</span>`
+  ).join('');
+}
+
+function toggleNotifDay(i) {
+  const idx = _notifSelectedDays.indexOf(i);
+  if (idx >= 0) _notifSelectedDays.splice(idx, 1); else _notifSelectedDays.push(i);
+  renderNotifDayPicker();
+}
+
+async function toggleNotifications() {
+  if (!('Notification' in window)) { showToast('⚠️ Seu navegador não suporta notificações'); return; }
+  if (notifSettings.enabled) {
+    notifSettings.enabled = false;
+    localStorage.setItem('wgym_notif', JSON.stringify(notifSettings));
+    renderNotifUI(); showToast('🔕 Lembretes desativados'); return;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    notifSettings.enabled = true;
+    localStorage.setItem('wgym_notif', JSON.stringify(notifSettings));
+    scheduleNotifications();
+    renderNotifUI();
+    showToast('🔔 Lembretes ativados!');
+    // Show immediate sample
+    setTimeout(() => {
+      new Notification('Will Gym 🏋️', {
+        body: 'Lembretes ativados! Você vai arrasar nos treinos 💪',
+        icon: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#FF3D25"/><text y=".9em" font-size="80">🏋️</text></svg>')
+      });
+    }, 500);
+  } else {
+    showToast('⚠️ Permissão de notificação negada');
+  }
+}
+
+function scheduleNotifications() {
+  if (!notifSettings.enabled) return;
+  // Use ServiceWorker for persistent notifications if available
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'SCHEDULE_NOTIF', settings: notifSettings });
+  }
+  // Fallback: use setInterval to check every minute if a notification should fire
+  if (window._notifInterval) clearInterval(window._notifInterval);
+  window._notifInterval = setInterval(() => {
+    if (!notifSettings.enabled) return;
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    if (timeStr === notifSettings.time && notifSettings.days.includes(now.getDay())) {
+      const historyToday = history.some(h => new Date(h.date).toDateString() === now.toDateString());
+      if (!historyToday) {
+        const todayPlan = _getTodayPlanSuggestion();
+        const body = todayPlan
+          ? `Hoje é ${WEEK_DAYS[now.getDay()]} — ${todayPlan}. Bora treinar! 💪`
+          : 'Hoje é dia de treino! Não falte 💪';
+        new Notification('Will Gym 🏋️', { body });
+      }
+    }
+  }, 60000);
+}
+
+function _getTodayPlanSuggestion() {
+  const today = new Date().getDay();
+  for (const plan of trainingPlans) {
+    const d = plan.days.find(dd => dd.day === today && dd.groups.length);
+    if (d) return d.groups.join('+');
+  }
+  return null;
+}
+
+function renderNotifUI() {
+  const btn = document.getElementById('notifToggleBtn');
+  const status = document.getElementById('notifStatus');
+  const config = document.getElementById('notifConfig');
+  const hasPerm = typeof Notification !== 'undefined' && Notification.permission === 'granted';
+  if (btn) {
+    btn.textContent = notifSettings.enabled ? 'Desativar' : 'Ativar';
+    btn.style.background = notifSettings.enabled ? 'var(--success-bg)' : 'var(--primary-light)';
+    btn.style.color = notifSettings.enabled ? 'var(--success)' : 'var(--primary)';
+  }
+  if (status) {
+    if (!hasPerm) status.textContent = 'Permissão necessária — toque em Ativar';
+    else if (notifSettings.enabled) status.textContent = `🔔 Ativo — ${notifSettings.time} nas ${(notifSettings.days||[]).map(d=>WEEK_DAYS[d]).join(', ')}`;
+    else status.textContent = 'Desativado — toque para ativar';
+  }
+  if (config) {
+    config.style.display = hasPerm && notifSettings.enabled ? 'block' : 'none';
+    if (hasPerm && notifSettings.enabled) {
+      const timeEl = document.getElementById('notifTime'); if (timeEl) timeEl.value = notifSettings.time;
+      _notifSelectedDays = [...(notifSettings.days || [1,3,5])];
+      renderNotifDayPicker();
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PWA — INSTALL PROMPT
+// ═══════════════════════════════════════════════════════
+let _pwaInstallEvent = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _pwaInstallEvent = e;
+  // Show banner on Planos page if already there
+  const banner = document.getElementById('pwaBanner');
+  if (banner) banner.style.display = 'block';
+});
+window.addEventListener('appinstalled', () => {
+  _pwaInstallEvent = null;
+  const banner = document.getElementById('pwaBanner');
+  if (banner) banner.style.display = 'none';
+  showToast('🎉 Will Gym instalado com sucesso!');
+});
+
+function installPWA() {
+  if (!_pwaInstallEvent) {
+    // iOS Safari fallback instructions
+    showToast('No iOS: toque em Compartilhar → Adicionar à Tela Inicial');
+    return;
+  }
+  _pwaInstallEvent.prompt();
+  _pwaInstallEvent.userChoice.then(result => {
+    if (result.outcome === 'accepted') showToast('🎉 Instalando Will Gym...');
+    _pwaInstallEvent = null;
+  });
+}
+
+// Register inline Service Worker for offline + notification support
+(function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+  const swCode = `
+    const CACHE = 'willgym-v1';
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html'])).catch(()=>{}));
+      self.skipWaiting();
+    });
+    self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
+    self.addEventListener('fetch', e => {
+      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => new Response('Offline'))));
+    });
+    self.addEventListener('message', e => {
+      if (e.data && e.data.type === 'SCHEDULE_NOTIF') {
+        const s = e.data.settings;
+        self.registration.showNotification('Will Gym 🏋️', {
+          body: 'Hora do treino! Não falte hoje 💪',
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: 'willgym-reminder'
+        });
+      }
+    });
+  `;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+})();
+
+// ═══════════════════════════════════════════════════════
+// PLANOS PAGE — RENDER ALL
+// ═══════════════════════════════════════════════════════
+function renderPlanos() {
+  renderPlanSuggestion();
+  renderPlanList();
+  populateChartExSelect();
+  renderEvolutionChart();
+  renderMonthlyVolumeChart();
+  renderNotifUI();
+  // Show PWA banner if install available
+  const banner = document.getElementById('pwaBanner');
+  if (banner && _pwaInstallEvent) banner.style.display = 'block';
+  // Also show dashboard plan suggestion
+  renderDashboardPlanWidget();
+}
+
+function renderDashboardPlanWidget() {
+  // Inject plan suggestion into dashboard if it has a today widget area
+  const el = document.getElementById('dashPlanWidget');
+  if (!el) return;
+  const today = new Date().getDay();
+  let found = null;
+  for (const plan of trainingPlans) {
+    const d = plan.days.find(dd => dd.day === today && dd.groups.length);
+    if (d) { found = { plan, day: d }; break; }
+  }
+  if (!found) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  const groups = found.day.groups.map(g => (getAllGroups().find(gg=>gg.name===g)||{icon:'💪'}).icon + ' ' + g).join(' · ');
+  el.innerHTML = `<div class="plan-sugg-banner" style="margin-bottom:10px;">
+    <span class="plan-sugg-icon">🗓️</span>
+    <div class="plan-sugg-text">
+      <div class="plan-sugg-title">Hoje: ${found.plan.name}</div>
+      <div class="plan-sugg-sub">${groups}</div>
+    </div>
+    <button class="plan-sugg-btn" onclick="startPlanDay('${found.plan.id}',${today})">▶</button>
+  </div>`;
+}
+
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 
 // ═══════════════════════════════════════════════════════
@@ -5615,7 +6326,10 @@ if (currentAccount) {
   renderProfileDisplay();
   renderUserSelectors();
   renderDashboard();
+  renderDashboardPlanWidget();
   updateTrainStatus();
+  // Resume notifications if previously enabled
+  if (notifSettings.enabled) scheduleNotifications();
 } else {
   // Show auth screen
   document.getElementById('authScreen').classList.remove('hidden');
