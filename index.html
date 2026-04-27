@@ -1250,9 +1250,104 @@ select.form-input option { background: var(--card2); color: var(--text); }
   margin-top: 4px;
 }
 .congrats-close-btn:active { background: var(--border); }
-/* ══════════════════════════════════════════
-   LONG-TERM FEATURES CSS
-   ══════════════════════════════════════════ */
+
+/* ══ TRAINING SUMMARY MODAL ══ */
+.summary-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.82);
+  z-index: 2500; display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.summary-overlay.show { opacity: 1; pointer-events: all; }
+.summary-sheet {
+  background: var(--card); border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--border);
+  width: 100%; max-width: 480px;
+  max-height: 92vh; overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative;
+}
+.summary-overlay.show .summary-sheet { transform: translateY(0); }
+.summary-rainbow {
+  height: 4px; border-radius: 4px 4px 0 0;
+  background: linear-gradient(90deg, var(--primary), var(--warning), var(--success), var(--blue), var(--primary));
+  background-size: 300% 100%; animation: aiRainbow 3s linear infinite;
+}
+.summary-body { padding: 20px 16px 36px; }
+.summary-hero { text-align: center; margin-bottom: 18px; }
+.summary-hero-emoji { font-size: 56px; display: block; margin-bottom: 8px; animation: congratsBounce 0.5s ease; }
+@keyframes congratsBounce { 0%{transform:scale(0)} 60%{transform:scale(1.1)} 100%{transform:scale(1)} }
+.summary-hero-title {
+  font-family: var(--font-display); font-size: 26px; font-weight: 900;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--text); margin-bottom: 4px;
+}
+.summary-hero-sub { font-size: 13px; color: var(--muted); }
+.summary-meta-row {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px; margin-bottom: 16px;
+}
+.summary-meta {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 8px; text-align: center;
+}
+.summary-meta .sm-val {
+  font-family: var(--font-display); font-size: 24px; font-weight: 900;
+  color: var(--primary); line-height: 1;
+}
+.summary-meta .sm-val.green { color: var(--success); }
+.summary-meta .sm-val.blue { color: var(--blue); }
+.summary-meta .sm-val.gold { color: var(--gold); }
+.summary-meta .sm-label {
+  font-size: 9px; color: var(--muted); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;
+}
+.summary-section-title {
+  font-size: 10px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1px; margin: 12px 0 8px;
+}
+.summary-ex-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.summary-ex-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 12px;
+}
+.summary-ex-icon { font-size: 18px; flex-shrink: 0; }
+.summary-ex-info { flex: 1; min-width: 0; }
+.summary-ex-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.summary-ex-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.summary-ex-pr {
+  font-size: 10px; font-weight: 800; padding: 2px 8px;
+  border-radius: 10px; background: var(--gold-bg);
+  color: var(--gold); border: 1px solid rgba(255,215,0,0.3);
+  flex-shrink: 0; white-space: nowrap;
+}
+.summary-prs {
+  background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.04));
+  border: 1px solid rgba(255,215,0,0.3);
+  border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px;
+  display: none;
+}
+.summary-prs.show { display: block; }
+.summary-prs-title { font-size: 12px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+.summary-prs-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.summary-pr-chip {
+  background: var(--gold-bg); border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 20px; padding: 4px 10px;
+  font-size: 11px; font-weight: 700; color: var(--gold);
+}
+.summary-share-title {
+  font-size: 10px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; text-align: center;
+}
+.summary-share-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.summary-close-btn {
+  width: 100%; padding: 14px; background: var(--card2);
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  color: var(--muted); font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: var(--font-body); text-transform: uppercase;
+  letter-spacing: 0.5px; transition: all 0.2s; margin-top: 4px;
+}
+.summary-close-btn:active { background: var(--border); }
 
 /* ── 1. AI PERIODIZATION ── */
 .ai-section { margin-bottom: 10px; }
@@ -2311,7 +2406,43 @@ function updateTrainStatus(forceState) {
   </div>
 </div>
 
-<!-- QR SHARE MODAL -->
+<!-- ══ TRAINING SUMMARY MODAL ══ -->
+<div class="summary-overlay" id="summaryOverlay">
+  <div class="summary-sheet">
+    <div class="summary-rainbow"></div>
+    <div class="summary-body">
+      <div class="summary-hero">
+        <span class="summary-hero-emoji" id="sumEmoji">🏆</span>
+        <div class="summary-hero-title" id="sumTitle">Treino Concluído!</div>
+        <div class="summary-hero-sub" id="sumSub">Você foi incrível hoje!</div>
+      </div>
+      <div class="summary-meta-row">
+        <div class="summary-meta"><div class="sm-val" style="color:var(--primary);" id="sumDuration">00:00</div><div class="sm-label">Duração</div></div>
+        <div class="summary-meta"><div class="sm-val green" id="sumExCount">0</div><div class="sm-label">Exercícios</div></div>
+        <div class="summary-meta"><div class="sm-val gold" id="sumVolume">0</div><div class="sm-label">Vol. kg</div></div>
+      </div>
+      <div class="summary-meta-row" style="margin-top:-4px;">
+        <div class="summary-meta"><div class="sm-val blue" id="sumSeries">0</div><div class="sm-label">Séries</div></div>
+        <div class="summary-meta"><div class="sm-val" id="sumBestRM">—</div><div class="sm-label">Melhor 1RM</div></div>
+        <div class="summary-meta"><div class="sm-val" id="sumCalories">~0</div><div class="sm-label">Kcal est.</div></div>
+      </div>
+      <div class="summary-prs" id="sumPRs">
+        <div class="summary-prs-title">🥇 Novos Recordes Pessoais</div>
+        <div class="summary-prs-list" id="sumPRList"></div>
+      </div>
+      <div class="summary-section-title">Exercícios realizados</div>
+      <div class="summary-ex-list" id="sumExList"></div>
+      <div class="summary-share-title">Compartilhar treino completo</div>
+      <div class="summary-share-grid">
+        <button class="share-btn share-whatsapp" onclick="shareTrainingSummary('whatsapp')"><span class="sb-icon">💬</span>WhatsApp</button>
+        <button class="share-btn share-email" onclick="shareTrainingSummary('email')"><span class="sb-icon">✉️</span>E-mail</button>
+        <button class="share-btn share-copy" onclick="shareTrainingSummary('copy')"><span class="sb-icon">📋</span>Copiar</button>
+        <button class="share-btn share-more" onclick="shareTrainingSummary('native')"><span class="sb-icon">↗️</span>Mais</button>
+      </div>
+      <button class="summary-close-btn" onclick="closeSummaryModal()">✓ Fechar</button>
+    </div>
+  </div>
+</div>
 <div class="qr-overlay" id="qrOverlay">
   <div class="qr-sheet">
     <div class="qr-title" id="qrTitle">Compartilhar Plano</div>
@@ -4979,19 +5110,225 @@ function confirmStopTraining() {
 
 function concludeTraining() {
   if(!state.activeTraining){showToast('Nenhum treino em andamento');return;}
-  const done=(state.completedEx[state.group]||[]).length;
-  state.activeTraining=false;state.selectedEx=null;state.group=null;state.completedEx={};state.trainStart=null;
+
+  // Snapshot data BEFORE clearing state
+  const trainStart = state.trainStart;
+  const group = state.group;
+  const completedExercises = { ...state.completedEx };
+  const uid = state.activeUserId || state.activeP1Id;
+
+  // Collect all entries from this training session
+  const sessionEntries = trainStart
+    ? history.filter(h => h.trainStart === trainStart)
+    : [];
+
+  const done = Object.values(completedExercises).flat();
+
+  // Reset training state
+  state.activeTraining = false; state.selectedEx = null;
+  state.group = null; state.completedEx = {};
+  state.trainStart = null; state.sheetSelected = [];
   stopTrainTimer();
   renderGroupGrid();
-  document.getElementById('exerciseCard').style.display='none';
+  document.getElementById('exerciseCard').style.display = 'none';
   updateTrainStatus('done');
   document.getElementById('headerTimer').classList.remove('show');
   document.getElementById('activeTrainBar').classList.remove('show');
-  // Hide stop button
-  const sb = document.getElementById('stopTrainBtn'); if(sb) sb.style.display='none';
+  const sb = document.getElementById('stopTrainBtn'); if(sb) sb.style.display = 'none';
   stopTimer(); closeExSheet();
-  showToast('🎉 Treino encerrado! '+done+' exercícios.');
   goPage('dashboard'); renderDashboard();
+
+  // Show training summary modal
+  showTrainingSummary(sessionEntries, done.length, trainStart, group, uid);
+}
+
+// ═══════════════════════════════════════════════════════
+// TRAINING SUMMARY MODAL
+// ═══════════════════════════════════════════════════════
+let _trainingSummaryData = {};
+
+function showTrainingSummary(entries, exCount, trainStart, group, uid) {
+  // Build stats from history entries of this session
+  const now = new Date();
+  const startDate = trainStart ? new Date(trainStart) : now;
+  const durationSec = Math.floor((now - startDate) / 1000);
+  const mm = String(Math.floor(durationSec / 60)).padStart(2, '0');
+  const ss = String(durationSec % 60).padStart(2, '0');
+  const durationStr = mm + ':' + ss;
+
+  // Aggregate stats across all exercises
+  let totalVol = 0, totalSeries = 0, bestRM = 0, bestRMEx = '';
+  const prs = [];
+  const exItems = [];
+
+  entries.forEach(h => {
+    const isAerob = h.isAerobic || (h.series && h.series.some(s => s.isAerobic));
+    const soloS = h.series.filter(s => !s.player || s.player === h.p1name);
+
+    if (isAerob) {
+      const tempo = soloS.reduce((a, s) => a + (s.aerobTempo || 0), 0);
+      const vel = soloS.length ? soloS[0].aerobVelocidade || 0 : 0;
+      exItems.push({
+        name: h.exercise, icon: '🏃', isAerob: true,
+        detail: `${tempo}min${vel > 0 ? ' · ' + vel + 'km/h' : ''}`,
+        series: soloS.length, vol: 0, rm: 0, isPR: false
+      });
+      totalSeries += soloS.length;
+    } else {
+      const vol = soloS.reduce((a, s) => a + s.reps * (s.load || 0), 0);
+      const bestS = soloS.reduce((b, s) => (!b || (s.load||0) > (b.load||0)) ? s : b, null);
+      const rm = bestS ? calc1RM(bestS.load, bestS.reps) : 0;
+      totalVol += vol;
+      totalSeries += soloS.length;
+      if (rm > bestRM) { bestRM = rm; bestRMEx = h.exercise; }
+
+      // Check if this is a PR
+      const prevEntries = history.filter(hh => hh.exercise === h.exercise && hh.id !== h.id);
+      const prevBestRM = prevEntries.reduce((mx, e) => {
+        const s = e.series.filter(x => !x.player || x.player === e.p1name);
+        const r = s.reduce((b, x) => (!b || (x.load||0) > (b.load||0)) ? x : b, null);
+        return r ? Math.max(mx, calc1RM(r.load, r.reps)) : mx;
+      }, 0);
+      const isPR = rm > prevBestRM && rm > 0;
+      if (isPR) prs.push({ ex: h.exercise, rm });
+
+      const maxLoad = bestS ? bestS.load || 0 : 0;
+      exItems.push({
+        name: h.exercise, icon: '💪', isAerob: false,
+        detail: `${soloS.length} série${soloS.length !== 1 ? 's' : ''} · ${maxLoad > 0 ? maxLoad + 'kg' : 'sem carga'}${vol > 0 ? ' · ' + vol.toLocaleString('pt-BR') + 'kg vol.' : ''}`,
+        series: soloS.length, vol, rm, isPR
+      });
+    }
+  });
+
+  // Estimated calories (rough: ~5 kcal/min for strength, ~7 for cardio)
+  const durationMin = Math.max(1, Math.floor(durationSec / 60));
+  const hasAerob = exItems.some(e => e.isAerob);
+  const kcal = Math.round(durationMin * (hasAerob ? 6.5 : 5));
+
+  // Motivational messages based on performance
+  const msgs = prs.length > 0
+    ? ['🏆 Dia histórico! Novo(s) recorde(s) batido(s)!', '🔥 Você superou seus próprios limites hoje!', '🥇 Recordes pessoais no cardápio — parabéns!']
+    : exCount >= 5
+    ? ['💪 Treino completo e intenso! Você arrasou!', '⚡ Sessão completa! Seu corpo vai agradecer.', '🔥 Treino sólido do início ao fim!']
+    : ['👊 Mais um treino no seu histórico!', '✅ Consistência é a chave — parabéns!', '💪 Cada treino conta. Continue assim!'];
+  const msg = msgs[Math.floor(Math.random() * msgs.length)];
+
+  const emojis = prs.length > 0 ? ['🏆','🥇','🎖️'] : ['🎉','💪','🔥','⚡'];
+  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+  // Save for share
+  _trainingSummaryData = {
+    group, durationStr, exCount: exItems.length,
+    totalVol, totalSeries, bestRM, bestRMEx, prs, exItems, kcal
+  };
+
+  // Populate DOM
+  document.getElementById('sumEmoji').textContent = emoji;
+  document.getElementById('sumTitle').textContent = group ? group + ' — Concluído!' : 'Treino Concluído!';
+  document.getElementById('sumSub').textContent = msg;
+  document.getElementById('sumDuration').textContent = durationStr;
+  document.getElementById('sumExCount').textContent = exItems.length;
+  document.getElementById('sumVolume').textContent = totalVol > 999
+    ? (totalVol/1000).toFixed(1)+'t'
+    : totalVol > 0 ? totalVol.toLocaleString('pt-BR') : '0';
+  document.getElementById('sumSeries').textContent = totalSeries;
+  document.getElementById('sumBestRM').textContent = bestRM > 0 ? '~'+bestRM+'kg' : '—';
+  document.getElementById('sumCalories').textContent = '~'+kcal;
+
+  // PRs
+  const prEl = document.getElementById('sumPRs');
+  const prList = document.getElementById('sumPRList');
+  if (prs.length > 0) {
+    prEl.classList.add('show');
+    prList.innerHTML = prs.map(p =>
+      `<span class="summary-pr-chip">🥇 ${p.ex} ~${p.rm}kg</span>`
+    ).join('');
+  } else {
+    prEl.classList.remove('show');
+  }
+
+  // Exercise list
+  const exListEl = document.getElementById('sumExList');
+  if (exListEl) {
+    if (exItems.length === 0) {
+      exListEl.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:13px;padding:12px;">Nenhum exercício registrado nesta sessão</div>`;
+    } else {
+      exListEl.innerHTML = exItems.map(e => `
+        <div class="summary-ex-item">
+          <span class="summary-ex-icon">${e.icon}</span>
+          <div class="summary-ex-info">
+            <div class="summary-ex-name">${e.name}</div>
+            <div class="summary-ex-detail">${e.detail}</div>
+          </div>
+          ${e.isPR ? '<span class="summary-ex-pr">🥇 PR</span>' : ''}
+        </div>
+      `).join('');
+    }
+  }
+
+  // Show modal
+  document.getElementById('summaryOverlay').classList.add('show');
+}
+
+function closeSummaryModal() {
+  document.getElementById('summaryOverlay').classList.remove('show');
+}
+
+function buildTrainingSummaryText() {
+  const d = _trainingSummaryData;
+  const name = currentAccount ? currentAccount.name : 'Atleta';
+  const date = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+  const lines = [
+    '🏋️ *Will Gym — Treino Completo*',
+    '',
+    `👤 *${name}*${d.group ? ' · ' + d.group : ''}`,
+    `📅 ${date}`,
+    '',
+    '📊 *Resumo geral:*',
+    `• ⏱ Duração: ${d.durationStr}`,
+    `• 💪 Exercícios: ${d.exCount}`,
+    `• 📦 Volume total: ${d.totalVol > 0 ? d.totalVol.toLocaleString('pt-BR') + 'kg' : '—'}`,
+    `• 🔢 Séries: ${d.totalSeries}`,
+    `• 🔥 Kcal estimado: ~${d.kcal}`,
+  ];
+  if (d.bestRM > 0) lines.push(`• 🏆 Melhor 1RM: ~${d.bestRM}kg (${d.bestRMEx})`);
+  if (d.prs && d.prs.length > 0) {
+    lines.push('', '🥇 *Recordes pessoais:*');
+    d.prs.forEach(p => lines.push(`  • ${p.ex}: ~${p.rm}kg`));
+  }
+  if (d.exItems && d.exItems.length > 0) {
+    lines.push('', '📋 *Exercícios realizados:*');
+    d.exItems.forEach((e, i) => lines.push(`  ${i+1}. ${e.name} — ${e.detail}`));
+  }
+  lines.push('', '📱 _Registrado no Will Gym PRO_');
+  return lines.join('\n');
+}
+
+function shareTrainingSummary(method) {
+  const text = buildTrainingSummaryText();
+  const title = 'Will Gym — Treino Completo';
+  if (method === 'whatsapp') {
+    window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(text), '_blank');
+  } else if (method === 'email') {
+    window.location.href = 'mailto:?subject=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(text);
+  } else if (method === 'copy') {
+    const plain = text.replace(/\*/g, '').replace(/_/g, '');
+    navigator.clipboard.writeText(plain)
+      .then(() => showToast('📋 Treino copiado!'))
+      .catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = plain; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta); showToast('📋 Copiado!');
+      });
+  } else if (method === 'native') {
+    if (navigator.share) {
+      navigator.share({ title, text: text.replace(/\*/g,'').replace(/_/g,'') }).catch(() => {});
+    } else {
+      showToast('Compartilhamento não suportado neste navegador');
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════════
