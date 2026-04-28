@@ -485,7 +485,52 @@ select.form-input option { background: var(--card2); color: var(--text); }
 .chip-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(74,159,255,0.3); }
 .status-bar { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 
-/* ══ HIST ══ */
+/* ══ HIST DAY SHARE ══ */
+.hist-day-share-btn {
+  background: none; border: 1.5px solid var(--border);
+  color: var(--muted); border-radius: 20px;
+  padding: 3px 10px; font-size: 11px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; gap: 4px;
+  flex-shrink: 0; transition: all 0.15s;
+}
+.hist-day-share-btn:active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+
+/* ══ DAY SHARE MODAL ══ */
+.day-share-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+  z-index: 800; display: none; align-items: flex-end;
+  backdrop-filter: blur(4px);
+}
+.day-share-overlay.show { display: flex; }
+.day-share-sheet {
+  width: 100%; background: var(--card);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 0 0 env(safe-area-inset-bottom);
+  animation: sheetUp 0.3s cubic-bezier(0.32,0.72,0,1);
+  max-height: 90vh; overflow-y: auto;
+}
+.day-share-handle { width: 40px; height: 4px; background: var(--border2); border-radius: 3px; margin: 12px auto 0; }
+.day-share-header { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+.day-share-title { font-family: var(--font-display); font-size: 18px; font-weight: 800; text-transform: uppercase; }
+.day-share-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.day-share-body { padding: 14px 16px; }
+.day-share-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.dss-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 6px; text-align: center; }
+.dss-val { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--primary); }
+.dss-val.green { color: var(--success); }
+.dss-val.gold { color: var(--warning); }
+.dss-val.blue { color: var(--blue); }
+.dss-label { font-size: 10px; color: var(--muted); text-transform: uppercase; font-weight: 700; margin-top: 2px; letter-spacing: 0.4px; }
+.day-share-ex-list { margin-bottom: 14px; }
+.day-share-ex-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.day-share-ex-item:last-child { border-bottom: none; }
+.day-share-ex-icon { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; }
+.day-share-ex-name { font-size: 14px; font-weight: 600; flex: 1; }
+.day-share-ex-detail { font-size: 11px; color: var(--muted); }
+.day-share-pr { font-size: 11px; font-weight: 700; color: var(--warning); background: rgba(186,117,23,0.15); border-radius: 8px; padding: 2px 7px; flex-shrink: 0; }
+.day-share-section { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+.day-share-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.day-share-close { width: 100%; padding: 14px; background: var(--bg2); border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; cursor: pointer; color: var(--text); font-family: var(--font-body); margin-top: 4px; }
 .hist-search { padding: 10px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; width: 100%; background: var(--bg2); color: var(--text); font-family: var(--font-body); margin-bottom: 10px; }
 .hist-search:focus { outline: none; border-color: var(--primary); }
 .hist-search::placeholder { color: var(--muted); }
@@ -1528,41 +1573,6 @@ select.form-input option { background: var(--card2); color: var(--text); }
 }
 .ex-media-tab.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
 
-// ═══════════════════════════════════════════════════════
-// TRAIN STATUS — 3-state: Aguardando Início / Treinando / Treino Finalizado
-// ═══════════════════════════════════════════════════════
-function updateTrainStatus(forceState) {
-  const el = document.getElementById('trainStatus');
-  if (!el) return;
-  if (forceState) {
-    if (forceState === 'training') {
-      el.textContent = 'Treinando'; el.className = 'status-chip chip-green';
-    } else if (forceState === 'done') {
-      el.textContent = 'Treino Finalizado'; el.className = 'status-chip chip-blue';
-    } else {
-      el.textContent = 'Aguardando Início'; el.className = 'status-chip chip-yellow';
-    }
-    return;
-  }
-  // Auto-detect based on state and today's history
-  if (state.activeTraining) {
-    el.textContent = 'Treinando'; el.className = 'status-chip chip-green';
-    return;
-  }
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const hadWorkoutToday = history.some(h => {
-    const d = new Date(h.date);
-    const dk = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-    return dk === todayKey;
-  });
-  if (hadWorkoutToday) {
-    el.textContent = 'Treino Finalizado'; el.className = 'status-chip chip-blue';
-  } else {
-    el.textContent = 'Aguardando Início'; el.className = 'status-chip chip-yellow';
-  }
-}
-
-// ═══════════════════════════════════════════════════════
 </style>
 </head>
 <body>
@@ -2220,7 +2230,7 @@ function updateTrainStatus(forceState) {
 
   <div class="version-info">
     <div class="v-logo"><span>Will</span> Gym</div>
-    <div class="v-ver">Versão 23.0 · Splits · Gráficos · Notificações · PWA · 2025</div>
+    <div class="v-ver">Versão 26.0 · Compartilhar Treino do Dia · Fix updateTrainStatus · 2025</div>
   </div>
 </div>
 
@@ -2467,6 +2477,34 @@ function updateTrainStatus(forceState) {
   </div>
 </div>
 
+<!-- ══ DAY SHARE MODAL ══ -->
+<div class="day-share-overlay" id="dayShareOverlay" onclick="closeDayShareModal(event)">
+  <div class="day-share-sheet" id="dayShareSheet">
+    <div class="day-share-handle"></div>
+    <div class="day-share-header">
+      <div class="day-share-title" id="dayShareTitle">Resumo do Dia</div>
+      <div class="day-share-sub" id="dayShareSub">—</div>
+    </div>
+    <div class="day-share-body">
+      <div class="day-share-stats">
+        <div class="dss-card"><div class="dss-val" id="dsDuration">—</div><div class="dss-label">Exercícios</div></div>
+        <div class="dss-card"><div class="dss-val green" id="dsVolume">0</div><div class="dss-label">Volume kg</div></div>
+        <div class="dss-card"><div class="dss-val gold" id="dsSeries">0</div><div class="dss-label">Séries</div></div>
+      </div>
+      <div class="day-share-section">Exercícios realizados</div>
+      <div class="day-share-ex-list" id="dayShareExList"></div>
+      <div class="day-share-section">Compartilhar</div>
+      <div class="day-share-btns">
+        <button class="share-btn share-whatsapp" onclick="shareDaySummary('whatsapp')"><span class="sb-icon">💬</span>WhatsApp</button>
+        <button class="share-btn share-email" onclick="shareDaySummary('email')"><span class="sb-icon">✉️</span>E-mail</button>
+        <button class="share-btn share-copy" onclick="shareDaySummary('copy')"><span class="sb-icon">📋</span>Copiar</button>
+        <button class="share-btn share-more" onclick="shareDaySummary('native')"><span class="sb-icon">↗️</span>Mais</button>
+      </div>
+      <button class="day-share-close" onclick="closeDayShareModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div class="undo-toast" id="undoToast">
   <span id="undoToastMsg">Série removida</span>
@@ -2475,6 +2513,38 @@ function updateTrainStatus(forceState) {
 </div>
 
 <script>
+// ═══════════════════════════════════════════════════════
+// TRAIN STATUS — 3-state: Aguardando Início / Treinando / Treino Finalizado
+// ═══════════════════════════════════════════════════════
+function updateTrainStatus(forceState) {
+  const el = document.getElementById('trainStatus');
+  if (!el) return;
+  if (forceState) {
+    if (forceState === 'training') {
+      el.textContent = 'Treinando'; el.className = 'status-chip chip-green';
+    } else if (forceState === 'done') {
+      el.textContent = 'Treino Finalizado'; el.className = 'status-chip chip-blue';
+    } else {
+      el.textContent = 'Aguardando Início'; el.className = 'status-chip chip-yellow';
+    }
+    return;
+  }
+  if (state.activeTraining) {
+    el.textContent = 'Treinando'; el.className = 'status-chip chip-green';
+    return;
+  }
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const hadWorkoutToday = history.some(h => {
+    const d = new Date(h.date);
+    const dk = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    return dk === todayKey;
+  });
+  if (hadWorkoutToday) {
+    el.textContent = 'Treino Finalizado'; el.className = 'status-chip chip-blue';
+  } else {
+    el.textContent = 'Aguardando Início'; el.className = 'status-chip chip-yellow';
+  }
+}
 // ═══════════════════════════════════════════════════════
 // EXERCISES DATABASE
 // ═══════════════════════════════════════════════════════
@@ -5484,6 +5554,7 @@ function renderHistory() {
         <span class="hist-day-chevron">▼</span>
         <span class="hist-day-date">${dayLabel}</span>
         <div class="hist-day-summary">${summaryBadges}</div>
+        <button class="hist-day-share-btn" onclick="openDayShareModal('${dayKey}',event)" title="Compartilhar treino do dia">📤</button>
       </div>
       <div class="hist-day-body">
         ${bodyHtml}
@@ -5503,6 +5574,169 @@ function toggleDayGroup(dayKey) {
   } else {
     el.classList.add('open');
     _openDays.add(dayKey);
+  }
+}
+
+// ─── Day Share Modal ──────────────────────────────────
+let _dayShareData = null;
+
+function openDayShareModal(dayKey, evt) {
+  if (evt) { evt.stopPropagation(); evt.preventDefault(); }
+
+  const d = new Date(dayKey + 'T12:00:00');
+  const WEEKDAYS = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const isToday = dayKey === new Date().toISOString().slice(0,10);
+  const isYesterday = dayKey === new Date(Date.now()-86400000).toISOString().slice(0,10);
+  const dayLabel = isToday ? 'Hoje' : isYesterday ? 'Ontem'
+    : `${WEEKDAYS[d.getDay()]}, ${d.getDate()} de ${MONTHS[d.getMonth()]} de ${d.getFullYear()}`;
+  const dateStr = d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+
+  // Collect entries for this day
+  const entries = history.filter(h => {
+    if (!h || !h.date) return false;
+    const hd = new Date(h.date);
+    const hk = hd.getFullYear() + '-' + String(hd.getMonth()+1).padStart(2,'0') + '-' + String(hd.getDate()).padStart(2,'0');
+    return hk === dayKey;
+  });
+
+  // Build exMap for PR detection
+  const exMap = {};
+  history.forEach(h => { if (!exMap[h.exercise]) exMap[h.exercise] = []; exMap[h.exercise].push(h); });
+
+  // Aggregate stats
+  let totalVol = 0, totalSeries = 0, totalAerobMin = 0;
+  const exItems = [];
+  const prs = [];
+
+  entries.forEach(h => {
+    const isAerob = h.isAerobic || (h.series && h.series.some(s => s.isAerobic));
+    const soloS = (h.series || []).filter(s => !s.player || s.player === h.p1name);
+
+    if (isAerob) {
+      const tempo = soloS.reduce((a, s) => a + (s.aerobTempo || s.reps || 0), 0);
+      const vel = soloS.length ? (soloS[0].aerobVelocidade || soloS[0].load || 0) : 0;
+      totalAerobMin += tempo;
+      totalSeries += soloS.length;
+      exItems.push({ name: h.exercise, icon: '🏃', isAerob: true,
+        detail: `${tempo}min${vel > 0 ? ' · '+vel+'km/h' : ''}`, isPR: false,
+        athletes: h.groupUserIds?.length > 0 ? h.groupUserIds.map(id => users.find(u=>u&&u.id===id)?.name||'').filter(Boolean) : (h.p1name ? [h.p1name] : []) });
+    } else {
+      const vol = soloS.reduce((a, s) => a + s.reps * (s.load || 0), 0);
+      const bestS = soloS.reduce((b, s) => (!b || (s.load||0) > (b.load||0)) ? s : b, null);
+      const rm = bestS ? calc1RM(bestS.load, bestS.reps) : 0;
+      totalVol += vol; totalSeries += soloS.length;
+
+      // PR check
+      const allE = exMap[h.exercise] || [];
+      const idx = allE.indexOf(h);
+      const prevEntries = allE.slice(idx + 1);
+      const prevRM = prevEntries.reduce((mx, e) => {
+        const s = e.series.filter(x => !x.player || x.player === e.p1name);
+        const b = s.reduce((bb, x) => (!bb || (x.load||0)>(bb.load||0)) ? x : bb, null);
+        return b ? Math.max(mx, calc1RM(b.load, b.reps)) : mx;
+      }, 0);
+      const isPR = rm > prevRM && rm > 0;
+      if (isPR) prs.push({ ex: h.exercise, rm });
+
+      const maxLoad = bestS ? bestS.load || 0 : 0;
+      exItems.push({ name: h.exercise, icon: '💪', isAerob: false, isPR,
+        detail: `${soloS.length} série${soloS.length!==1?'s':''}${maxLoad>0?' · '+maxLoad+'kg':''}${vol>0?' · vol. '+vol.toLocaleString('pt-BR')+'kg':''}`,
+        athletes: h.groupUserIds?.length > 0 ? h.groupUserIds.map(id => users.find(u=>u&&u.id===id)?.name||'').filter(Boolean) : (h.p1name ? [h.p1name] : []) });
+    }
+  });
+
+  // Collect unique athlete names across all entries
+  const allAthletes = [...new Set(entries.flatMap(h => {
+    if (h.groupUserIds?.length) return h.groupUserIds.map(id => users.find(u=>u&&u.id===id)?.name||'').filter(Boolean);
+    const names = [];
+    if (h.p1name) names.push(h.p1name);
+    if (h.p2name) names.push(h.p2name);
+    return names;
+  }))];
+
+  _dayShareData = { dayKey, dayLabel, dateStr, entries, exItems, prs,
+    totalVol, totalSeries, totalAerobMin, allAthletes };
+
+  // Populate modal
+  document.getElementById('dayShareTitle').textContent = dayLabel;
+  document.getElementById('dayShareSub').textContent =
+    allAthletes.length > 0 ? '👤 ' + allAthletes.join(', ') : dateStr;
+  document.getElementById('dsDuration').textContent = exItems.length;
+  document.getElementById('dsVolume').textContent = totalVol > 999
+    ? (totalVol/1000).toFixed(1)+'t' : totalVol > 0 ? totalVol.toLocaleString('pt-BR') : '—';
+  document.getElementById('dsSeries').textContent = totalSeries;
+
+  document.getElementById('dayShareExList').innerHTML = exItems.map(e => `
+    <div class="day-share-ex-item">
+      <span class="day-share-ex-icon">${e.icon}</span>
+      <div style="flex:1;min-width:0;">
+        <div class="day-share-ex-name">${e.name}</div>
+        <div class="day-share-ex-detail">${e.detail}${e.athletes.length>1?' · '+e.athletes.join(', '):''}</div>
+      </div>
+      ${e.isPR ? '<span class="day-share-pr">🥇 PR</span>' : ''}
+    </div>`).join('') || '<div style="color:var(--muted);font-size:13px;padding:8px 0;">Nenhum exercício encontrado</div>';
+
+  document.getElementById('dayShareOverlay').classList.add('show');
+}
+
+function closeDayShareModal(evt) {
+  if (evt && evt.target !== document.getElementById('dayShareOverlay')) return;
+  document.getElementById('dayShareOverlay').classList.remove('show');
+}
+
+function buildDaySummaryText() {
+  const d = _dayShareData;
+  if (!d) return '';
+  const gymName = (currentAccount?.gymName) || 'Will Gym';
+  const lines = [
+    `🏋️ *${gymName} — Treino do Dia*`,
+    '',
+    `📅 *${d.dayLabel}*`,
+    d.allAthletes.length > 0 ? `👤 ${d.allAthletes.join(', ')}` : '',
+    '',
+    '📊 *Resumo:*',
+    `• 💪 Exercícios: ${d.exItems.length}`,
+    `• 📦 Volume: ${d.totalVol > 0 ? d.totalVol.toLocaleString('pt-BR')+'kg' : '—'}`,
+    `• 🔢 Séries: ${d.totalSeries}`,
+    d.totalAerobMin > 0 ? `• 🏃 Cardio: ${d.totalAerobMin}min` : '',
+  ].filter(l => l !== undefined);
+
+  if (d.prs.length > 0) {
+    lines.push('', '🥇 *Recordes pessoais:*');
+    d.prs.forEach(p => lines.push(`  • ${p.ex}: ~${p.rm}kg`));
+  }
+  if (d.exItems.length > 0) {
+    lines.push('', '📋 *Exercícios:*');
+    d.exItems.forEach((e, i) => lines.push(`  ${i+1}. ${e.icon} ${e.name} — ${e.detail}${e.isPR?' 🥇':''}`));
+  }
+  lines.push('', '📱 _Registrado no ' + gymName + '_');
+  return lines.filter(l => l !== null).join('\n');
+}
+
+function shareDaySummary(method) {
+  const text = buildDaySummaryText();
+  const title = 'Treino do Dia — Will Gym';
+  if (method === 'whatsapp') {
+    window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(text), '_blank');
+  } else if (method === 'email') {
+    window.location.href = 'mailto:?subject=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(text.replace(/\*/g,'').replace(/_/g,''));
+  } else if (method === 'copy') {
+    const plain = text.replace(/\*/g,'').replace(/_/g,'');
+    navigator.clipboard.writeText(plain)
+      .then(() => showToast('📋 Treino copiado!'))
+      .catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = plain; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta); showToast('📋 Copiado!');
+      });
+  } else if (method === 'native') {
+    if (navigator.share) {
+      navigator.share({ title, text: text.replace(/\*/g,'').replace(/_/g,'') }).catch(() => {});
+    } else {
+      showToast('Compartilhamento não suportado neste navegador');
+    }
   }
 }
 
