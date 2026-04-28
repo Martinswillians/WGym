@@ -2404,14 +2404,6 @@ select.form-input option { background: var(--card2); color: var(--text); }
       <span class="cpb-text" id="congratsPrText">Novo recorde pessoal!</span>
     </div>
 
-    <div class="share-section-title">Compartilhar resultado</div>
-    <div class="share-btns">
-      <button class="share-btn share-whatsapp" onclick="shareWorkout('whatsapp')"><span class="sb-icon">💬</span>WhatsApp</button>
-      <button class="share-btn share-email" onclick="shareWorkout('email')"><span class="sb-icon">✉️</span>E-mail</button>
-      <button class="share-btn share-copy" onclick="shareWorkout('copy')"><span class="sb-icon">📋</span>Copiar</button>
-      <button class="share-btn share-more" onclick="shareWorkout('native')"><span class="sb-icon">↗️</span>Mais</button>
-    </div>
-
     <button class="congrats-close-btn" onclick="closeCongratsModal()">Continuar Treino →</button>
   </div>
 </div>
@@ -3920,8 +3912,13 @@ function selectGroup(g) {
 
 function getLastLoadForUser(ex) {
   const uid = state.mode==='partner' ? state.activeP1Id : state.activeUserId;
-  // If uid is set, filter by user; otherwise show any entry for this exercise
-  const entries = history.filter(h => h.exercise===ex && (uid ? (h.userId===uid || h.userId2===uid) : true));
+  // Exclude current session entries so load always comes from a previous session
+  const curTS = state.activeTraining ? state.trainStart : null;
+  const entries = history.filter(h =>
+    h.exercise===ex &&
+    (uid ? (h.userId===uid || h.userId2===uid) : true) &&
+    (curTS ? h.trainStart !== curTS : true)
+  );
   if (!entries.length) return 0;
   const s = entries[0].series.filter(s=>!s.player||s.player===entries[0].p1name);
   const loads = s.map(x=>x.load||0);
@@ -3930,10 +3927,13 @@ function getLastLoadForUser(ex) {
 
 function getLastEntry(ex) {
   const uid = state.mode==='partner' ? state.activeP1Id : state.activeUserId;
-  if (uid) {
-    return history.find(h => h.exercise===ex && (h.userId===uid || h.userId2===uid)) || null;
-  }
-  return history.find(h => h.exercise===ex) || null;
+  // Exclude current session entries so prefill always comes from a prior session
+  const curTS = state.activeTraining ? state.trainStart : null;
+  const filter = h =>
+    h.exercise===ex &&
+    (curTS ? h.trainStart !== curTS : true) &&
+    (uid ? (h.userId===uid || h.userId2===uid) : true);
+  return history.find(filter) || null;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -5208,8 +5208,9 @@ function concludeTraining() {
   stopTimer(); closeExSheet();
   goPage('dashboard'); renderDashboard();
 
-  // Show training summary modal
-  showTrainingSummary(sessionEntries, done.length, trainStart, group, uid);
+  // Open the day share modal (historico share) for today's session
+  const todayKey = new Date().toISOString().slice(0,10);
+  setTimeout(() => openDayShareModal(todayKey, null), 350);
 }
 
 // ═══════════════════════════════════════════════════════
