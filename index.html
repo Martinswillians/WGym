@@ -241,6 +241,43 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
   font-family: var(--font-body); font-weight: 600;
 }
 .hist-edit-btn:active { background: var(--primary-light); color: var(--primary); }
+.hist-del-btn { opacity: 0.55; }
+.hist-del-btn:hover, .hist-del-btn:active { opacity: 1; background: var(--primary-light) !important; color: var(--primary) !important; }
+
+/* ══ CUSTOM CONFIRM MODAL ══ */
+.confirm-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.75);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.confirm-overlay.show { opacity: 1; pointer-events: all; }
+.confirm-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 28px 24px 22px;
+  width: 88%; max-width: 340px; text-align: center;
+  transform: scale(0.92); transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.confirm-overlay.show .confirm-box { transform: scale(1); }
+.confirm-icon { font-size: 40px; margin-bottom: 10px; }
+.confirm-title { font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+.confirm-msg { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.5; }
+.confirm-btns { display: flex; gap: 10px; }
+.confirm-btn-cancel {
+  flex: 1; padding: 12px; border-radius: 10px;
+  background: var(--card2); border: 1px solid var(--border);
+  color: var(--text); font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: var(--font-body); transition: all 0.15s;
+}
+.confirm-btn-cancel:active { opacity: 0.7; }
+.confirm-btn-ok {
+  flex: 1; padding: 12px; border-radius: 10px;
+  background: var(--primary); border: none;
+  color: #fff; font-size: 14px; font-weight: 800;
+  cursor: pointer; font-family: var(--font-body); transition: all 0.15s;
+}
+.confirm-btn-ok:active { opacity: 0.8; }
 
 .hist-datetime-edit {
   display: flex; align-items: center; gap: 8px;
@@ -558,7 +595,7 @@ select.form-input option { background: var(--card2); color: var(--text); }
 /* Exercise card inside day */
 .hist-item { border-left: 3px solid var(--primary); padding: 10px 12px; background: var(--card); border-bottom: 1px solid var(--border); }
 .hist-item:last-child { border-bottom: none; }
-.hist-date-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.hist-date-row { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; flex-wrap: nowrap; }
 .hist-date { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; flex: 1; }
 .hist-user-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; margin-bottom: 3px; }
 .hist-user-tag.p1-tag { background: var(--primary-light); color: var(--primary); border: 1px solid rgba(255,61,37,0.3); }
@@ -2404,6 +2441,14 @@ select.form-input option { background: var(--card2); color: var(--text); }
       <span class="cpb-text" id="congratsPrText">Novo recorde pessoal!</span>
     </div>
 
+    <div class="share-section-title">Compartilhar resultado</div>
+    <div class="share-btns">
+      <button class="share-btn share-whatsapp" onclick="shareWorkout('whatsapp')"><span class="sb-icon">💬</span>WhatsApp</button>
+      <button class="share-btn share-email" onclick="shareWorkout('email')"><span class="sb-icon">✉️</span>E-mail</button>
+      <button class="share-btn share-copy" onclick="shareWorkout('copy')"><span class="sb-icon">📋</span>Copiar</button>
+      <button class="share-btn share-more" onclick="shareWorkout('native')"><span class="sb-icon">↗️</span>Mais</button>
+    </div>
+
     <button class="congrats-close-btn" onclick="closeCongratsModal()">Continuar Treino →</button>
   </div>
 </div>
@@ -3912,13 +3957,8 @@ function selectGroup(g) {
 
 function getLastLoadForUser(ex) {
   const uid = state.mode==='partner' ? state.activeP1Id : state.activeUserId;
-  // Exclude current session entries so load always comes from a previous session
-  const curTS = state.activeTraining ? state.trainStart : null;
-  const entries = history.filter(h =>
-    h.exercise===ex &&
-    (uid ? (h.userId===uid || h.userId2===uid) : true) &&
-    (curTS ? h.trainStart !== curTS : true)
-  );
+  // If uid is set, filter by user; otherwise show any entry for this exercise
+  const entries = history.filter(h => h.exercise===ex && (uid ? (h.userId===uid || h.userId2===uid) : true));
   if (!entries.length) return 0;
   const s = entries[0].series.filter(s=>!s.player||s.player===entries[0].p1name);
   const loads = s.map(x=>x.load||0);
@@ -3927,13 +3967,10 @@ function getLastLoadForUser(ex) {
 
 function getLastEntry(ex) {
   const uid = state.mode==='partner' ? state.activeP1Id : state.activeUserId;
-  // Exclude current session entries so prefill always comes from a prior session
-  const curTS = state.activeTraining ? state.trainStart : null;
-  const filter = h =>
-    h.exercise===ex &&
-    (curTS ? h.trainStart !== curTS : true) &&
-    (uid ? (h.userId===uid || h.userId2===uid) : true);
-  return history.find(filter) || null;
+  if (uid) {
+    return history.find(h => h.exercise===ex && (h.userId===uid || h.userId2===uid)) || null;
+  }
+  return history.find(h => h.exercise===ex) || null;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -5208,9 +5245,8 @@ function concludeTraining() {
   stopTimer(); closeExSheet();
   goPage('dashboard'); renderDashboard();
 
-  // Open the day share modal (historico share) for today's session
-  const todayKey = new Date().toISOString().slice(0,10);
-  setTimeout(() => openDayShareModal(todayKey, null), 350);
+  // Show training summary modal (defer so DOM finishes updating first)
+  setTimeout(() => showTrainingSummary(sessionEntries, done.length, trainStart, group, uid), 200);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -5803,6 +5839,7 @@ function buildHistItem(h, exMap) {
         <span class="hist-date">${timeStr}</span>
         <button class="hist-edit-btn" onclick="toggleDateEdit(${h.id})" title="Editar horário">✏️ hora</button>
         ${!isHistAerobic ? `<button class="hist-edit-btn" onclick="openSeriesEdit(${h.id})" title="Editar séries" style="color:var(--blue);">📊 séries</button>` : ''}
+        <button class="hist-edit-btn hist-del-btn" onclick="confirmDeleteHistItem(${h.id})" title="Excluir exercício" style="color:var(--primary);margin-left:auto;">🗑 excluir</button>
       </div>
       <div id="histDtEdit_${h.id}" style="display:none;">
         <div class="hist-datetime-edit">
@@ -6299,6 +6336,56 @@ function importJSON(e){
   reader.readAsText(file);
   e.target.value = '';
 }
+// ═══════════════════════════════════════════════════════
+// CUSTOM CONFIRM MODAL
+// ═══════════════════════════════════════════════════════
+let _confirmCallback = null;
+
+function showConfirmModal({ icon = '🗑️', title = 'Confirmar', msg = '', okLabel = 'Confirmar', onOk }) {
+  document.getElementById('confirmIcon').textContent = icon;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmOkBtn').textContent = okLabel;
+  _confirmCallback = onOk || null;
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+  _confirmCallback = null;
+}
+
+function confirmModalOk() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+  if (typeof _confirmCallback === 'function') _confirmCallback();
+  _confirmCallback = null;
+}
+
+// ═══════════════════════════════════════════════════════
+// DELETE HIST ITEM (individual exercise entry)
+// ═══════════════════════════════════════════════════════
+function confirmDeleteHistItem(hId) {
+  const h = history.find(e => e.id === hId);
+  if (!h) return;
+  showConfirmModal({
+    icon: '🗑️',
+    title: 'Excluir exercício?',
+    msg: `"${h.exercise}" será removido do histórico permanentemente. Esta ação não pode ser desfeita.`,
+    okLabel: 'Excluir',
+    onOk: () => deleteHistItem(hId)
+  });
+}
+
+function deleteHistItem(hId) {
+  const idx = history.findIndex(e => e.id === hId);
+  if (idx === -1) return;
+  const exName = history[idx].exercise;
+  history.splice(idx, 1);
+  saveHistory();
+  renderHistory();
+  showToast('🗑 ' + exName + ' removido');
+}
+
 function saveHistory(){localStorage.setItem('wgym_history',JSON.stringify(history));}
 
 function resetAll(){if(confirm('Apagar TODOS os dados?')){if(confirm('Confirmar? Isso não pode ser desfeito.')){localStorage.clear();history=[];users=[];settings={vibration:true,autoProgress:true,weekGoal:4,theme:'dark'};state.customExByGroup={};applyTheme('dark');doLogout();}}}
@@ -8214,5 +8301,19 @@ if (currentAccount) {
   document.getElementById('authScreen').classList.remove('hidden');
 }
 </script>
+
+<!-- ══ CUSTOM CONFIRM MODAL ══ -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIcon">🗑️</div>
+    <div class="confirm-title" id="confirmTitle">Excluir exercício?</div>
+    <div class="confirm-msg" id="confirmMsg">Esta ação não pode ser desfeita.</div>
+    <div class="confirm-btns">
+      <button class="confirm-btn-cancel" onclick="closeConfirmModal()">Cancelar</button>
+      <button class="confirm-btn-ok" id="confirmOkBtn" onclick="confirmModalOk()">Excluir</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
