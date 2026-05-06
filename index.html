@@ -1879,7 +1879,7 @@ select.form-input option { background: var(--card2); color: var(--text); }
 
   <div class="card" id="exerciseCard" style="display:none;">
     <div class="divider" style="margin-top:0;"></div>
-    <button class="btn btn-danger" onclick="concludeTraining()">Encerrar Treino ■</button>
+    <button class="btn btn-danger" onclick="confirmStopTraining()">Encerrar Treino ■</button>
   </div>
 </div>
 
@@ -5430,12 +5430,29 @@ function shareWorkout(method) {
 }
 
 function confirmStopTraining() {
-  if (!state.activeTraining) return;
-  const done = (state.completedEx[state.group] || []).length;
-  const msg = done > 0
-    ? `Deseja encerrar esse treino?\n\n✅ ${done} exercício${done!==1?'s':''} concluído${done!==1?'s':''} até agora.`
-    : 'Deseja encerrar esse treino?';
-  if (confirm(msg)) concludeTraining();
+  if (!state.activeTraining) { showToast('Nenhum treino em andamento'); return; }
+
+  // Count ALL completed exercises across ALL groups in this session
+  const totalDone = Object.values(state.completedEx).flat().length;
+
+  // Also show session entries count from history (more reliable)
+  const sessionEntries = state.trainStart
+    ? history.filter(h => h.trainStart === state.trainStart)
+    : [];
+  const sessionCount = sessionEntries.length || totalDone;
+
+  const elapsed = state.trainStart
+    ? Math.floor((Date.now() - new Date(state.trainStart).getTime()) / 60000)
+    : 0;
+  const timeStr = elapsed > 0 ? `⏱ ${elapsed} minuto${elapsed !== 1 ? 's' : ''} de treino` : '';
+
+  const lines = ['⚠️ Deseja encerrar o treino?'];
+  if (sessionCount > 0) lines.push(`✅ ${sessionCount} exercício${sessionCount !== 1 ? 's' : ''} registrado${sessionCount !== 1 ? 's' : ''}`);
+  if (timeStr) lines.push(timeStr);
+  lines.push('');
+  lines.push('Seus resultados serão exibidos ao confirmar.');
+
+  if (confirm(lines.join('\n'))) concludeTraining();
 }
 
 function concludeTraining() {
