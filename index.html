@@ -2267,7 +2267,7 @@ select.form-input option { background: var(--card2); color: var(--text); }
 
   <div class="version-info">
     <div class="v-logo"><span>Will</span> Gym</div>
-    <div class="v-ver">Versão 26.0 · Compartilhar Treino do Dia · Fix updateTrainStatus · 2025</div>
+    <div class="v-ver">Versão 31.0 · Fix Definitivo Carga por Exercício · Fallback Legacy · UID Consistente · 2025</div>
   </div>
 </div>
 
@@ -2775,6 +2775,7 @@ function loginAccount(account) {
   renderDashboard();
   renderUserSelectors();
   updateTrainStatus();
+  setTimeout(warmExerciseCacheFromHistory, 200);
 }
 
 function doLogout() {
@@ -2805,8 +2806,10 @@ function updateGreeting() {
   // If there's an active training session
   const activeTag = state.activeTraining ? ' — Treino em andamento 🟢' : '';
 
-  document.getElementById('greetingTime').textContent = period + ' ' + emoji;
-  document.getElementById('greetingName').textContent = currentAccount.name;
+  const gtEl = document.getElementById('greetingTime');
+  const gnEl = document.getElementById('greetingName');
+  if (gtEl) gtEl.textContent = period + ' ' + emoji;
+  if (gnEl) gnEl.textContent = currentAccount.name;
   document.getElementById('greetingMsg').innerHTML = `Olá, <span class="g-name">${currentAccount.name}</span>!`;
   document.getElementById('greetingSub').textContent = sub + activeTag;
   document.getElementById('greetingAvatar').textContent = currentAccount.avatar;
@@ -3955,23 +3958,97 @@ function selectGroup(g) {
 
 
 
-function getLastLoadForUser(ex) {
-  const uid = state.mode==='partner' ? state.activeP1Id : state.activeUserId;
-  // If uid is set, filter by user; otherwise show any entry for this exercise
-  const entries = history.filter(h => h.exercise===ex && (uid ? (h.userId===uid || h.userId2===uid) : true));
-  if (!entries.length) return 0;
-  const s = entries[0].series.filter(s=>!s.player||s.player===entries[0].p1name);
-  const loads = s.map(x=>x.load||0);
-  return loads.length ? Math.max(...loads) : 0;
+// ─────────────────────────────────────────────────────
+// Resolve which athlete UID to use for history lookup
+// ─────────────────────────────────────────────────────
+function resolveActiveUid() {
+  if (state.mode === 'partner') return state.activeP1Id || null;
+  if (state.mode === 'group')   return (state.groupUserIds && state.groupUserIds[0]) || state.activeP1Id || null;
+  if (state.mode === 'free')    return (state.freeUserIds  && state.freeUserIds[0])  || state.activeUserId || null;
+  return state.activeUserId || null;
 }
 
+// Strict match: exercise name (case-insensitive) + athlete UID
+// If uid exists, ONLY return entries for that athlete.
+// If uid is null, return entries where userId is also null (unlinked legacy data).
+// This prevents cross-contamination between athletes AND between exercises.
 function getLastEntry(ex) {
-  const uid = state.mode==='partner' ? state.activeP1Id : state.activeUserId;
+  if (!ex) return null;
+  const uid = resolveActiveUid();
+  const exLower = ex.trim().toLowerCase();
+
   if (uid) {
-    return history.find(h => h.exercise===ex && (h.userId===uid || h.userId2===uid)) || null;
+    // First: strict match — same exercise AND same athlete
+    const strict = history.find(h =>
+      h.exercise && h.exercise.trim().toLowerCase() === exLower &&
+      (h.userId === uid || h.userId2 === uid || (h.groupUserIds || []).includes(uid))
+    );
+    if (strict) return strict;
+    // Fallback: any entry for same exercise (covers legacy entries before UID linking)
+    return history.find(h =>
+      h.exercise && h.exercise.trim().toLowerCase() === exLower
+    ) || null;
+  } else {
+    // No athlete context — match exercise only
+    return history.find(h =>
+      h.exercise && h.exercise.trim().toLowerCase() === exLower
+    ) || null;
   }
-  return history.find(h => h.exercise===ex) || null;
 }
+
+// Returns max load for THIS specific exercise for the active athlete. Never bleeds between exercises.
+// ═══════════════════════════════════════════════════════
+// EXERCISE LOAD/REPS CACHE — persists immediately, per exercise per athlete
+// Updated on every "Registrar Série" so data is available mid-session
+// ═══════════════════════════════════════════════════════
+function exCacheKey(ex, uid) {
+  const u = uid || resolveActiveUid() || 'guest';
+  const exKey = (ex || '').trim().toLowerCase().replace(/\s+/g, '_');
+  return 'wgym_excache_' + u + '_' + exKey;
+}
+
+function saveExerciseCache(ex, data, uid) {
+  if (!ex || !data) return;
+  try {
+    const key = exCacheKey(ex, uid);
+    // Always write all provided fields (don't merge with old - fresh write per exercise)
+    const toSave = { ...data, updatedAt: Date.now() };
+    localStorage.setItem(key, JSON.stringify(toSave));
+  } catch(e) {}
+}
+
+function getExerciseCache(ex, uid) {
+  if (!ex) return null;
+  try {
+    const raw = localStorage.getItem(exCacheKey(ex, uid));
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+// Save from ACTUAL series object — never from DOM
+// Called inside logSerie right after the serie is pushed to state.currentSeries
+function persistSerieToCache(ex, serie) {
+  if (!ex || !serie) return;
+  const uid = resolveActiveUid();
+  if (serie.isAerobic) {
+    saveExerciseCache(ex, {
+      aerobTempo:       serie.aerobTempo      || 0,
+      aerobVelocidade:  serie.aerobVelocidade || 0,
+      aerobInclinacao:  serie.aerobInclinacao || 0,
+      aerobIntensidade: serie.aerobIntensidade || 'moderado',
+      rest: serie.rest || 0,
+    }, uid);
+  } else {
+    saveExerciseCache(ex, {
+      load: serie.load  || 0,
+      reps: serie.reps  || 12,
+      rest: serie.rest  || 60,
+    }, uid);
+  }
+}
+
+// Legacy no-op — replaced by persistSerieToCache
+function persistCurrentInputs(ex) {}
 
 // ═══════════════════════════════════════════════════════
 // EXERCISE AUTOCOMPLETE ENGINE
@@ -4587,94 +4664,188 @@ function selectEx(ex) {
   goPage('exercicio'); updateExForm(); prefillLastLoad(ex); showToast('🎯 '+ex);
 }
 
-function prefillLastLoad(ex) {
-  const isAerobic = isAerobicExercise(ex, state.group);
+function getLastLoadForUser(ex) {
+  if (!ex) return 0;
+  const uid = resolveActiveUid();
+  const cache = getExerciseCache(ex, uid);
+  if (cache && (cache.load || 0) > 0) return cache.load;
+  const entry = getLastEntry(ex);
+  if (!entry) return 0;
+  const soloS = entry.series.filter(s => !s.player || s.player === entry.p1name);
+  const loads = soloS.map(x => x.load || 0);
+  return loads.length ? Math.max(...loads) : 0;
+}
 
-  if (isAerobic) {
-    // Reset aerobic fields to defaults first
-    const tempo = document.getElementById('aerobTempo');
-    const vel = document.getElementById('aerobVelocidade');
-    const incl = document.getElementById('aerobInclinacao');
-    const intens = document.getElementById('aerobIntensidade');
-    if (tempo) tempo.value = 30;
-    if (vel) vel.value = 0;
-    if (incl) incl.value = 0;
-    if (intens) intens.value = 'moderado';
 
-    // Load last aerobic session
-    const last = getLastEntry(ex);
-    const lastBanner = document.getElementById('aerobicLastBanner');
-    if (last && last.series && last.series.length) {
-      const lastS = last.series[0];
-      const lastTempo = lastS.aerobTempo || lastS.reps || 0;
-      const lastVel = lastS.aerobVelocidade || lastS.velocidade || 0;
-      const lastIncl = lastS.aerobInclinacao || lastS.inclinacao || 0;
-      // Prefill with last values
-      if (tempo && lastTempo > 0) tempo.value = lastTempo;
-      if (vel && lastVel > 0) vel.value = lastVel;
-      if (incl && lastIncl > 0) incl.value = lastIncl;
-      if (intens && lastS.aerobIntensidade) intens.value = lastS.aerobIntensidade;
-      // Show banner with last session data
-      if (lastBanner) {
-        lastBanner.classList.add('show');
-        const t = document.getElementById('lastAerobTempo');
-        const v = document.getElementById('lastAerobVel');
-        const i = document.getElementById('lastAerobIncl');
-        if (t) t.textContent = lastTempo > 0 ? lastTempo + 'min' : '—';
-        if (v) v.textContent = lastVel > 0 ? lastVel + 'km/h' : '—';
-        if (i) i.textContent = lastIncl > 0 ? lastIncl + '%' : '—';
+// ── Warm the exercise cache from history on first load ──
+// Runs once at startup: for every exercise in history that has no cache entry,
+// write the best load/reps so prefillLastLoad always finds data
+function warmExerciseCacheFromHistory() {
+  const uid = resolveActiveUid();
+  const seen = new Set();
+  // Process from newest to oldest
+  for (const h of history) {
+    if (!h || !h.exercise || !Array.isArray(h.series)) continue;
+    const ex = h.exercise.trim();
+    if (seen.has(ex)) continue;
+    // Only warm if no cache exists yet
+    const existing = getExerciseCache(ex, uid);
+    if (existing && existing.load > 0) { seen.add(ex); continue; }
+    const isAerob = h.isAerobic || h.series.some(s => s && s.isAerobic);
+    if (isAerob) {
+      const s = h.series[0];
+      if (s && (s.aerobTempo || s.aerobVelocidade)) {
+        saveExerciseCache(ex, {
+          aerobTempo:       s.aerobTempo      || 0,
+          aerobVelocidade:  s.aerobVelocidade || 0,
+          aerobInclinacao:  s.aerobInclinacao || 0,
+          aerobIntensidade: s.aerobIntensidade || 'moderado',
+          rest: s.rest || 0,
+        }, uid);
+        seen.add(ex);
       }
     } else {
-      if (lastBanner) lastBanner.classList.remove('show');
+      const soloS = h.series.filter(x => x && (!x.player || x.player === h.p1name));
+      if (soloS.length) {
+        const bestS = soloS.reduce((b, s) => (!b || (s.load||0) > (b.load||0)) ? s : b, null);
+        if (bestS && bestS.load > 0) {
+          saveExerciseCache(ex, {
+            load: bestS.load || 0,
+            reps: bestS.reps || 12,
+            rest: bestS.rest || 60,
+          }, uid);
+          seen.add(ex);
+        }
+      }
+    }
+  }
+  if (seen.size > 0) console.log('[WGym] Cache warmed for', seen.size, 'exercises');
+}
+
+function prefillLastLoad(ex) {
+  if (!ex) return;
+
+  // ── Always reset inputs to safe defaults first ──
+  const ids = {
+    load:'load', reps:'reps', series:'series', rest:'rest',
+    p1load:'p1load', p1reps:'p1reps', p1series:'p1series', p1rest:'p1rest',
+    p2load:'p2load', p2reps:'p2reps', p2series:'p2series', p2rest:'p2rest',
+  };
+  const defaults = {
+    load:0, reps:12, series:3, rest:60,
+    p1load:0, p1reps:12, p1series:3, p1rest:60,
+    p2load:0, p2reps:10, p2series:3, p2rest:60,
+  };
+  Object.entries(ids).forEach(([k, id]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = defaults[k];
+  });
+
+  const uid = resolveActiveUid();
+  const isAerobic = isAerobicExercise(ex, state.group);
+
+  // ── AEROBIC ──
+  if (isAerobic) {
+    const tempo = document.getElementById('aerobTempo');
+    const vel   = document.getElementById('aerobVelocidade');
+    const incl  = document.getElementById('aerobInclinacao');
+    const intens= document.getElementById('aerobIntensidade');
+    if (tempo)  tempo.value  = 30;
+    if (vel)    vel.value    = 0;
+    if (incl)   incl.value   = 0;
+    if (intens) intens.value = 'moderado';
+
+    // Priority 1: cache (most recent, survives app close)
+    const cache = getExerciseCache(ex, uid);
+    // Priority 2: history entry
+    const last  = getLastEntry(ex);
+    const lastS = last && last.series && last.series.length ? last.series[0] : null;
+
+    const src = cache || lastS;
+    if (src) {
+      const t = cache ? (cache.aerobTempo       || 0) : (lastS.aerobTempo       || lastS.reps   || 0);
+      const v = cache ? (cache.aerobVelocidade   || 0) : (lastS.aerobVelocidade  || 0);
+      const i = cache ? (cache.aerobInclinacao   || 0) : (lastS.aerobInclinacao  || 0);
+      const n = cache ? (cache.aerobIntensidade  || '') : (lastS.aerobIntensidade || '');
+      if (tempo  && t > 0) tempo.value  = t;
+      if (vel    && v > 0) vel.value    = v;
+      if (incl   && i > 0) incl.value   = i;
+      if (intens && n)     intens.value  = n;
+      const banner = document.getElementById('aerobicLastBanner');
+      if (banner) {
+        banner.classList.add('show');
+        const tEl = document.getElementById('lastAerobTempo');
+        const vEl = document.getElementById('lastAerobVel');
+        const iEl = document.getElementById('lastAerobIncl');
+        if (tEl) tEl.textContent = t > 0 ? t + 'min' : '—';
+        if (vEl) vEl.textContent = v > 0 ? v + 'km/h' : '—';
+        if (iEl) iEl.textContent = i > 0 ? i + '%'    : '—';
+      }
+    } else {
+      const banner = document.getElementById('aerobicLastBanner');
+      if (banner) banner.classList.remove('show');
     }
     return;
   }
 
-  // ── Musculação: ALWAYS reset inputs first ──
-  const loadEl = document.getElementById('load');
-  const repsEl = document.getElementById('reps');
-  const p1loadEl = document.getElementById('p1load');
-  const p1repsEl = document.getElementById('p1reps');
-  const p2loadEl = document.getElementById('p2load');
-  const p2repsEl = document.getElementById('p2reps');
+  // ── STRENGTH — Priority 1: cache per-uid, Priority 2: history ──
+  const cache = getExerciseCache(ex, uid);
+  const last  = getLastEntry(ex);
 
-  // Reset to defaults
-  if (loadEl) loadEl.value = 0;
-  if (repsEl) repsEl.value = 12;
-  if (p1loadEl) p1loadEl.value = 0;
-  if (p1repsEl) p1repsEl.value = 12;
-  if (p2loadEl) p2loadEl.value = 0;
-  if (p2repsEl) p2repsEl.value = 10;
+  let maxLoad = 0, lastReps = 12, lastSets = 3, lastRest = 60;
 
-  // Now fill from history for THIS specific exercise
-  const last = getLastEntry(ex);
-  if (!last) return;
-
-  // Solo/P1 data
-  const soloS = last.series.filter(x => !x.player || x.player === last.p1name);
-  if (soloS.length) {
-    const maxLoad = Math.max(...soloS.map(x => x.load || 0));
-    const lastReps = soloS[0].reps || 12;
-    if (maxLoad > 0) {
-      if (loadEl) loadEl.value = maxLoad;
-      if (p1loadEl) p1loadEl.value = maxLoad;
+  if (cache && (cache.load > 0 || cache.reps)) {
+    // Cache exists — use it (most recent data, includes mid-session, survives app close)
+    maxLoad  = cache.load || 0;
+    lastReps = cache.reps || 12;
+    lastSets = 3; // don't restore series count — user may want to change
+    lastRest = cache.rest || 60;
+  } else if (last) {
+    // No cache — fall back to history
+    const soloS = last.series.filter(x => !x.player || x.player === last.p1name);
+    if (soloS.length) {
+      maxLoad  = Math.max(...soloS.map(x => x.load || 0));
+      lastReps = soloS[0].reps || 12;
+      lastSets = 3;
+      lastRest = soloS[0].rest || 60;
     }
-    if (repsEl) repsEl.value = lastReps;
-    if (p1repsEl) p1repsEl.value = lastReps;
   }
 
-  // P2 data (partner mode)
-  if (state.mode === 'partner' && last.p2name) {
-    const p2S = last.series.filter(x => x.player === last.p2name);
-    if (p2S.length) {
-      const p2MaxLoad = Math.max(...p2S.map(x => x.load || 0));
-      const p2LastReps = p2S[0].reps || 10;
-      if (p2MaxLoad > 0 && p2loadEl) p2loadEl.value = p2MaxLoad;
-      if (p2repsEl) p2repsEl.value = p2LastReps;
-    }
+  // Apply to Solo / P1 fields
+  const loadEl    = document.getElementById('load');
+  const repsEl    = document.getElementById('reps');
+  const seriesEl  = document.getElementById('series');
+  const restEl    = document.getElementById('rest');
+  const p1loadEl  = document.getElementById('p1load');
+  const p1repsEl  = document.getElementById('p1reps');
+  const p1restEl  = document.getElementById('p1rest');
+
+  if (loadEl)   loadEl.value   = maxLoad;
+  if (repsEl)   repsEl.value   = lastReps;
+  if (seriesEl) seriesEl.value = lastSets;
+  if (restEl)   restEl.value   = lastRest;
+  if (p1loadEl) p1loadEl.value = maxLoad;
+  if (p1repsEl) p1repsEl.value = lastReps;
+  if (p1restEl) p1restEl.value = lastRest;
+
+  // P2 — from cache (p2-specific uid) or history
+  const p2loadEl  = document.getElementById('p2load');
+  const p2repsEl  = document.getElementById('p2reps');
+  const p2restEl  = document.getElementById('p2rest');
+
+  if (state.mode === 'partner') {
+    const p2uid  = state.activeP2Id || null;
+    const p2cache = p2uid ? getExerciseCache(ex, p2uid) : null;
+    const p2S    = last ? last.series.filter(x => x.player === last.p2name) : [];
+    const p2Load = (p2cache && p2cache.load > 0) ? p2cache.load :
+                   (p2S.length ? Math.max(...p2S.map(x => x.load || 0)) : 0);
+    const p2Reps = (p2cache && p2cache.reps) ? p2cache.reps :
+                   (p2S.length ? p2S[0].reps || 10 : 10);
+    if (p2loadEl) p2loadEl.value = p2Load;
+    if (p2repsEl) p2repsEl.value = p2Reps;
+    if (p2restEl && p2cache && p2cache.rest) p2restEl.value = p2cache.rest;
   }
 }
-
 function updateExForm() {
   const noSel=document.getElementById('noExSelected'), form=document.getElementById('exForm');
   if (!state.selectedEx){noSel.style.display='block';form.style.display='none';return;}
@@ -4682,9 +4853,11 @@ function updateExForm() {
   document.getElementById('exFormTitle').textContent=state.selectedEx;
   document.getElementById('exGroup').textContent=state.group||'–';
   updateModeChip(); renderSeriesLog();
+  // Media is handled by afterUpdateExForm/renderExMedia
+  // Only update instruction text directly; SVG is set inside renderExMedia
   const data=EX_SVG[state.selectedEx];
-  document.getElementById('exSvgWrap').innerHTML=data?data.svg:DEFAULT_SVG(state.selectedEx);
-  document.getElementById('exInstruction').textContent=data?data.instruction:'Execute com controle e postura correta.';
+  const instrEl = document.getElementById('exInstruction');
+  if (instrEl) instrEl.textContent = data ? data.instruction : 'Execute com controle e postura correta.';
 
   // ── Aerobic vs Regular form toggle ──
   const aerobic = isAerobicExercise(state.selectedEx, state.group);
@@ -4763,17 +4936,40 @@ function updateModeChip() {
 }
 
 function showSuggestion(ex) {
-  const sBox=document.getElementById('suggestionBox'), stagBox=document.getElementById('stagnationBox');
-  const uid=state.mode==='partner'?state.activeP1Id:state.activeUserId;
-  const entries=history.filter(h=>h.exercise===ex&&(uid?h.userId===uid:true));
-  if(!entries.length){sBox.style.display='none';stagBox.style.display='none';return;}
-  const soloS=entries[0].series.filter(s=>!s.player||s.player===entries[0].p1name);
-  if(!soloS.length){sBox.style.display='none';stagBox.style.display='none';return;}
-  const ll=Math.max(...soloS.map(s=>s.load||0)), lr=soloS[0]?.reps||0;
-  if(ll>0&&settings.autoProgress){const sg=lr>=12?+(ll+2.5).toFixed(1):ll; document.getElementById('suggText').textContent=lr>=12?'Meta atingida! Sugestão:':'Baseado no último treino:'; document.getElementById('suggVal').textContent=sg+'kg'; sBox.style.display='flex';}
-  else sBox.style.display='none';
-  if(entries.length>=3){const ls=entries.slice(0,3).map(e=>{const s=e.series.filter(x=>!x.player||x.player===e.p1name); return s.length?Math.max(...s.map(x=>x.load||0)):0;}); if(ls[0]<=ls[1]&&ls[1]<=ls[2]&&ls[2]>0){document.getElementById('stagnationText').textContent='📉 3 treinos sem evolução. Considere mudar o estímulo!'; stagBox.style.display='block';}else stagBox.style.display='none';}
-  else stagBox.style.display='none';
+  const sBox = document.getElementById('suggestionBox'), stagBox = document.getElementById('stagnationBox');
+  const uid = resolveActiveUid();
+  const exLower = (ex || '').trim().toLowerCase();
+
+  // Same strict matching as getLastEntry
+  const entries = uid
+    ? history.filter(h =>
+        h.exercise && h.exercise.trim().toLowerCase() === exLower &&
+        (h.userId === uid || h.userId2 === uid || (h.groupUserIds || []).includes(uid))
+      )
+    : history.filter(h =>
+        h.exercise && h.exercise.trim().toLowerCase() === exLower
+      );
+
+  if (!entries.length) { sBox.style.display='none'; stagBox.style.display='none'; return; }
+  const soloS = entries[0].series.filter(s => !s.player || s.player === entries[0].p1name);
+  if (!soloS.length) { sBox.style.display='none'; stagBox.style.display='none'; return; }
+  const ll = Math.max(...soloS.map(s => s.load || 0)), lr = soloS[0]?.reps || 0;
+  if (ll > 0 && settings.autoProgress) {
+    const sg = lr >= 12 ? +(ll + 2.5).toFixed(1) : ll;
+    document.getElementById('suggText').textContent = lr >= 12 ? 'Meta atingida! Sugestão:' : 'Baseado no último treino:';
+    document.getElementById('suggVal').textContent = sg + 'kg';
+    sBox.style.display = 'flex';
+  } else sBox.style.display = 'none';
+  if (entries.length >= 3) {
+    const ls = entries.slice(0, 3).map(e => {
+      const s = e.series.filter(x => !x.player || x.player === e.p1name);
+      return s.length ? Math.max(...s.map(x => x.load || 0)) : 0;
+    });
+    if (ls[0] <= ls[1] && ls[1] <= ls[2] && ls[2] > 0) {
+      document.getElementById('stagnationText').textContent = '📉 3 treinos sem evolução. Considere mudar o estímulo!';
+      stagBox.style.display = 'block';
+    } else stagBox.style.display = 'none';
+  } else stagBox.style.display = 'none';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -4840,6 +5036,10 @@ function logSerie() {
       });
     }
     if (restV > 0) startTimer(restV);
+    // Persist the last-pushed aerobic serie to cache immediately
+    if (state.currentSeries.length > 0) {
+      persistSerieToCache(state.selectedEx, state.currentSeries[state.currentSeries.length - 1]);
+    }
     renderSeriesLog();
     if (settings.vibration && navigator.vibrate) navigator.vibrate([50, 30, 50]);
     showToast('✓ ' + (tempo > 0 ? tempo + 'min' : '') + (vel > 0 ? ' · ' + vel + 'km/h' : '') + ' registrado!');
@@ -4878,6 +5078,11 @@ function logSerie() {
     const num=state.currentSeries.filter(x=>!x.player).length+1;
     for(let i=0;i<s;i++) state.currentSeries.push({serie:num+i,reps:r,load:l,rest,player:null,ts:Date.now()});
     startTimer(rest);
+  }
+  // Persist the last-pushed serie to cache immediately (reliable: from actual data, not DOM)
+  if (state.currentSeries.length > 0) {
+    const lastSerie = state.currentSeries[state.currentSeries.length - 1];
+    persistSerieToCache(state.selectedEx, lastSerie);
   }
   renderSeriesLog();
   if(settings.vibration&&navigator.vibrate) navigator.vibrate([50,30,50]);
@@ -4983,6 +5188,14 @@ function deleteSerie(idx) {
   showUndoToast('Série removida');
 }
 
+function showToast(msg, duration) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration || 2400);
+}
+
 function showUndoToast(msg) {
   const toast = document.getElementById('undoToast');
   const msgEl = document.getElementById('undoToastMsg');
@@ -5024,12 +5237,16 @@ function undoDeleteSerie() {
 // ═══════════════════════════════════════════════════════
 function concludeExercise() {
   if(!state.selectedEx||!state.currentSeries.length){showToast('Registre pelo menos uma série');return;}
+
+  // Capture exercise name immediately — must not change mid-function
+  const exerciseName = state.selectedEx;
+
   const notes=document.getElementById('exNotes').value;
-  if(notes) localStorage.setItem('wgym_notes_'+state.selectedEx,notes);
+  if(notes) localStorage.setItem('wgym_notes_'+exerciseName,notes);
   const isFreeMulti = state.mode === 'free' && state.freeUserIds && state.freeUserIds.length > 1;
-  const uid = (state.mode==='partner' || state.mode==='group' || isFreeMulti)
-    ? state.activeP1Id
-    : state.activeUserId;
+
+  // Always use resolveActiveUid() — same function used by getLastEntry — guarantees consistency
+  const uid  = resolveActiveUid();
   const uid2 = state.mode==='partner' ? state.activeP2Id : null;
   const groupUserIds = state.mode==='group'
     ? [...state.groupUserIds]
@@ -5040,10 +5257,9 @@ function concludeExercise() {
 
   if (isAerobic) {
     seriesCount = state.currentSeries.length;
-    totalVol = state.currentSeries.reduce((a,s)=>a+(s.aerobTempo||0),0); // total minutes
+    totalVol = state.currentSeries.reduce((a,s)=>a+(s.aerobTempo||0),0);
     rm = 0;
-    const prevEntry = getLastEntry(state.selectedEx);
-    const prevTempo = prevEntry ? prevEntry.series.reduce((a,s)=>a+(s.aerobTempo||s.reps||0),0) : 0;
+    const prevEntry = getLastEntry(exerciseName);
     const avgVel = state.currentSeries.reduce((a,s)=>a+(s.aerobVelocidade||0),0) / state.currentSeries.length;
     const prevAvgVel = prevEntry ? prevEntry.series.reduce((a,s)=>a+(s.aerobVelocidade||0),0)/prevEntry.series.length : 0;
     isNewPR = (avgVel > prevAvgVel && avgVel > 0) || (!prevEntry && totalVol > 0);
@@ -5053,21 +5269,28 @@ function concludeExercise() {
     const bestS=soloS.reduce((b,s)=>(!b||(s.load||0)>(b.load||0))?s:b,null);
     rm=bestS?calc1RM(bestS.load,bestS.reps):0;
     seriesCount=soloS.length;
-    const prevEntry=getLastEntry(state.selectedEx);
+    const prevEntry=getLastEntry(exerciseName);
     if(prevEntry&&bestS){const prevBest=prevEntry.series.filter(s=>!s.player||s.player===prevEntry.p1name);const prevRM=prevBest.reduce((mx,s)=>Math.max(mx,calc1RM(s.load||0,s.reps||0)),0);if(rm>prevRM)isNewPR=true;}
     else if(!prevEntry&&rm>0){isNewPR=true;}
   }
 
-  history.unshift({id:Date.now(),date:new Date().toISOString(),exercise:state.selectedEx,group:state.group,mode:state.mode,p1name:state.p1name,p2name:state.p2name,userId:uid||null,userId2:uid2||null,groupUserIds,series:[...state.currentSeries],notes,trainStart:state.trainStart,isAerobic});
+  // ── Final cache save from the best serie of this session (guarantee for next open) ──
+  const finalSeries = state.currentSeries.filter(s => !s.player || s.player === state.p1name);
+  if (finalSeries.length > 0) {
+    const bestSerie = finalSeries.reduce((b, s) => (!b || (s.load||0) > (b.load||0)) ? s : b, null);
+    if (bestSerie) persistSerieToCache(exerciseName, bestSerie);
+  }
+
+  history.unshift({id:Date.now(),date:new Date().toISOString(),exercise:exerciseName,group:state.group,mode:state.mode,p1name:state.p1name,p2name:state.p2name,userId:uid||null,userId2:uid2||null,groupUserIds,series:[...state.currentSeries],notes,trainStart:state.trainStart,isAerobic});
   saveHistory();
   if(!state.completedEx[state.group])state.completedEx[state.group]=[];
-  if(!state.completedEx[state.group].includes(state.selectedEx))state.completedEx[state.group].push(state.selectedEx);
+  if(!state.completedEx[state.group].includes(exerciseName))state.completedEx[state.group].push(exerciseName);
   state.currentSeries=[]; stopTimer();
   document.getElementById('timerBox').classList.remove('show');
   document.getElementById('seriesLogCard').style.display='none';
   renderGroupGrid(); updateActiveBar(); updateTrainStatus();
   if(settings.vibration&&navigator.vibrate)navigator.vibrate([100,50,100,50,200]);
-  showCongratsModal(state.selectedEx, seriesCount, totalVol, rm, isNewPR, isAerobic);
+  showCongratsModal(exerciseName, seriesCount, totalVol, rm, isNewPR, isAerobic);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -6051,7 +6274,7 @@ function renderSettings() {
   syncToggle('toggleAuto',settings.autoProgress);
   const wg=document.getElementById('weekGoal'); if(wg)wg.value=settings.weekGoal;
   const ts=new Set(history.map(h=>new Date(h.date).toDateString())).size;
-  const tkg=history.reduce((a,h)=>{const s=h.series.filter(x=>!x.player||x.player===h.p1name); return a+s.reduce((b,x)=>b+x.reps*(x.load||0),0);},0);
+  const tkg=history.reduce((a,h)=>{if(!h||!Array.isArray(h.series))return a; const s=h.series.filter(x=>!x.player||x.player===h.p1name); return a+s.reduce((b,x)=>b+x.reps*(x.load||0),0);},0);
   const st=document.getElementById('statTotal'); if(st)st.textContent=ts;
   const se=document.getElementById('statExs'); if(se)se.textContent=history.length;
   const sk=document.getElementById('statKg'); if(sk)sk.textContent=tkg>999?(tkg/1000).toFixed(1)+'t':tkg.toLocaleString('pt-BR');
@@ -8294,6 +8517,8 @@ if (currentAccount) {
   renderProfileDisplay();
   renderUserSelectors();
   renderDashboard();
+  // Warm exercise cache from history on startup
+  setTimeout(warmExerciseCacheFromHistory, 300);
   renderDashboardPlanWidget();
   updateTrainStatus();
   if (notifSettings.enabled) scheduleNotifications();
