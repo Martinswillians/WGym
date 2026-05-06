@@ -9,7 +9,7 @@
 Aplicação web progressiva (PWA) de academia — 100% offline, sem backend, sem instalação.  
 Registre, analise e compartilhe seus treinos direto do navegador.
 
-[![Versão](https://img.shields.io/badge/versão-28.0-FF3D25?style=flat-square)](https://github.com/Martinswillians/WGym)
+[![Versão](https://img.shields.io/badge/versão-33.0-FF3D25?style=flat-square)](https://github.com/Martinswillians/WGym)
 [![Licença](https://img.shields.io/badge/licença-MIT-green?style=flat-square)](LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-Instalável-4A9FFF?style=flat-square)](https://github.com/Martinswillians/WGym)
 [![HTML Only](https://img.shields.io/badge/stack-HTML%20%2F%20CSS%20%2F%20JS-F5A623?style=flat-square)](https://github.com/Martinswillians/WGym)
