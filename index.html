@@ -1610,6 +1610,44 @@ select.form-input option { background: var(--card2); color: var(--text); }
 }
 .ex-media-tab.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
 
+/* ══ EXERCISE QUEUE PROGRESS ══ */
+.queue-bar {
+  display: none; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 10px;
+}
+.queue-bar.show { display: block; }
+.queue-bar-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+}
+.queue-bar-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+.queue-bar-count { font-size: 11px; font-weight: 700; color: var(--primary); }
+.queue-dots { display: flex; gap: 5px; flex-wrap: wrap; }
+.queue-dot {
+  height: 6px; flex: 1; min-width: 18px; max-width: 40px;
+  border-radius: 3px; background: var(--border); transition: background 0.3s;
+}
+.queue-dot.done { background: var(--success); }
+.queue-dot.current { background: var(--primary); animation: pulse 1.5s infinite; }
+.queue-dot.pending { background: var(--border); }
+.queue-names { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+.queue-name-chip {
+  font-size: 10px; padding: 2px 8px; border-radius: 10px;
+  font-weight: 700; white-space: nowrap;
+}
+.queue-name-chip.done { background: var(--success-bg); color: var(--success); }
+.queue-name-chip.current { background: var(--primary-light); color: var(--primary); border: 1px solid rgba(255,61,37,0.3); }
+.queue-name-chip.pending { background: var(--bg2); color: var(--muted); border: 1px solid var(--border); }
+/* Skip button */
+.btn-skip-exercise {
+  width: 100%; padding: 12px; background: transparent;
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  color: var(--muted); font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: var(--font-body); text-transform: uppercase;
+  letter-spacing: 0.5px; transition: all 0.2s; margin-top: 6px;
+  display: none;
+}
+.btn-skip-exercise.show { display: block; }
+.btn-skip-exercise:active { background: var(--bg2); border-color: var(--primary); color: var(--primary); }
 </style>
 </head>
 <body>
@@ -1939,6 +1977,16 @@ select.form-input option { background: var(--card2); color: var(--text); }
 
 <!-- ══ EXERCÍCIO ══ -->
 <div id="page-exercicio" class="page">
+  <!-- Queue progress bar — visible when multiple exercises selected -->
+  <div class="queue-bar" id="queueBar">
+    <div class="queue-bar-header">
+      <span class="queue-bar-title">🎯 Fila de exercícios</span>
+      <span class="queue-bar-count" id="queueBarCount"></span>
+    </div>
+    <div class="queue-dots" id="queueDots"></div>
+    <div class="queue-names" id="queueNames"></div>
+  </div>
+
   <div id="noExSelected" class="empty"><div class="empty-icon">🎯</div><div class="empty-text">Selecione um exercício<br>na aba Treino</div></div>
   <div id="exForm" style="display:none;">
     <div class="card" style="padding:12px;">
@@ -2074,6 +2122,7 @@ select.form-input option { background: var(--card2); color: var(--text); }
       <span class="card-title">Notas</span>
       <textarea class="notes-area" id="exNotes" rows="2" placeholder="Anotações, sensações, foco muscular..."></textarea>
       <div class="btn-row" style="margin-top:10px;"><button class="btn btn-success" onclick="concludeExercise()">Concluir Exercício ✓</button></div>
+      <button class="btn-skip-exercise" id="btnSkipExercise" onclick="skipToNextExercise()">↩ Cancelar e ir para próximo →</button>
     </div>
   </div>
 </div>
@@ -3850,6 +3899,7 @@ function renderSheetExList() {
     const exS = ex.replace(/'/g,"\\'");
     const isSel = selected.includes(ex);
     const isDone = done.includes(ex);
+    const selIdx = selected.indexOf(ex); // 0-based position in queue
 
     // Count how many times this exercise was done by this user
     const entries = uid
@@ -3857,8 +3907,18 @@ function renderSheetExList() {
       : history.filter(h => h.exercise === ex);
     const lastCount = entries.length;
 
+    // Badge: order number if selected, green check if done this session, empty circle otherwise
+    let badge;
+    if (isSel) {
+      badge = `<div style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;font-family:var(--font-display);flex-shrink:0;box-shadow:0 0 8px rgba(255,61,37,0.4);">${selIdx + 1}</div>`;
+    } else if (isDone) {
+      badge = `<div class="ex-check" style="background:var(--success);border-color:var(--success);color:white;">✓</div>`;
+    } else {
+      badge = `<div class="ex-check"></div>`;
+    }
+
     return `<div class="ex-item ${isSel?'sheet-selected':''} ${isDone?'done':''}" onclick="toggleSheetEx('${exS}')">
-      <div class="ex-check">${isSel?'✓':(isDone?'✓':'')}</div>
+      ${badge}
       <div style="flex:1;min-width:0;">
         <div class="ex-name" style="margin-bottom:${lastCount>0?'2px':'0'};">${ex}</div>
         ${lastCount > 0 ? `<div style="font-size:10px;color:var(--muted);">${groupIcon} ${state.group} · <span style="color:var(--success);">${lastCount}× realizado</span></div>` : ''}
@@ -4888,6 +4948,8 @@ function updateExForm() {
   document.getElementById('exNotes').value=localStorage.getItem('wgym_notes_'+state.selectedEx)||'';
   // Render exercise video/svg media
   if (typeof afterUpdateExForm === 'function') afterUpdateExForm();
+  // Render queue progress bar
+  renderQueueBar();
 }
 
 function updateModeChip() {
@@ -5347,6 +5409,111 @@ function showCongratsModal(exName, seriesCount, vol, rm, isNewPR, isAerobic) {
   document.getElementById('congratsOverlay').classList.add('show');
 }
 
+
+// ═══════════════════════════════════════════════════════
+// EXERCISE QUEUE — progress bar + skip navigation
+// ═══════════════════════════════════════════════════════
+
+function renderQueueBar() {
+  const sel = state.sheetSelected || [];
+  const bar = document.getElementById('queueBar');
+  const btnSkip = document.getElementById('btnSkipExercise');
+
+  if (!bar) return;
+
+  if (sel.length < 2) {
+    bar.classList.remove('show');
+    if (btnSkip) btnSkip.classList.remove('show');
+    return;
+  }
+
+  bar.classList.add('show');
+  if (btnSkip) btnSkip.classList.add('show');
+
+  const currentIdx = state.selectedEx ? sel.indexOf(state.selectedEx) : 0;
+  const remaining = sel.length - currentIdx - 1;
+
+  // Count badge
+  const countEl = document.getElementById('queueBarCount');
+  if (countEl) {
+    countEl.textContent = `${currentIdx + 1} / ${sel.length}`;
+  }
+
+  // Dots
+  const dotsEl = document.getElementById('queueDots');
+  if (dotsEl) {
+    dotsEl.innerHTML = sel.map((ex, i) => {
+      let cls = 'pending';
+      // Check if this exercise was already concluded (exists in history with current trainStart)
+      const sessionDone = state.trainStart
+        ? history.some(h => h.exercise === ex && h.trainStart === state.trainStart)
+        : false;
+      if (sessionDone) cls = 'done';
+      else if (i === currentIdx) cls = 'current';
+      return `<div class="queue-dot ${cls}" title="${ex}"></div>`;
+    }).join('');
+  }
+
+  // Name chips
+  const namesEl = document.getElementById('queueNames');
+  if (namesEl) {
+    namesEl.innerHTML = sel.map((ex, i) => {
+      let cls = 'pending';
+      const sessionDone = state.trainStart
+        ? history.some(h => h.exercise === ex && h.trainStart === state.trainStart)
+        : false;
+      if (sessionDone) cls = 'done';
+      else if (i === currentIdx) cls = 'current';
+      const prefix = sessionDone ? '✓ ' : (i === currentIdx ? '' : `${i+1}. `);
+      return `<span class="queue-name-chip ${cls}">${prefix}${ex}</span>`;
+    }).join('');
+  }
+
+  // Update skip button text
+  if (btnSkip) {
+    if (remaining > 0) {
+      const nextEx = sel[currentIdx + 1];
+      btnSkip.textContent = `↩ Cancelar  →  ${nextEx}`;
+      btnSkip.classList.add('show');
+    } else {
+      // Last exercise — skip goes back to treino
+      btnSkip.textContent = '↩ Cancelar exercício';
+      btnSkip.classList.add('show');
+    }
+  }
+}
+
+function skipToNextExercise() {
+  const sel = state.sheetSelected || [];
+  const currentIdx = state.selectedEx ? sel.indexOf(state.selectedEx) : -1;
+
+  // Discard current unsaved series
+  state.currentSeries = [];
+  stopTimer();
+  const timerBox = document.getElementById('timerBox');
+  if (timerBox) timerBox.classList.remove('show');
+  const slc = document.getElementById('seriesLogCard');
+  if (slc) slc.style.display = 'none';
+  const sl = document.getElementById('seriesLog');
+  if (sl) sl.innerHTML = '';
+
+  if (currentIdx >= 0 && currentIdx < sel.length - 1) {
+    // Go to next exercise
+    const nextEx = sel[currentIdx + 1];
+    state.selectedEx = nextEx;
+    goPage('exercicio');
+    prefillLastLoad(nextEx);
+    renderQueueBar();
+    showToast('⏭ ' + nextEx);
+  } else {
+    // No more exercises — go back to treino
+    state.sheetSelected = [];
+    state.selectedEx = null;
+    goPage('treino');
+    showToast('Exercício cancelado');
+  }
+}
+
 function closeCongratsModal() {
   document.getElementById('congratsOverlay').classList.remove('show');
   // Check if there are more exercises queued (from multi-select)
@@ -5358,15 +5525,20 @@ function closeCongratsModal() {
     state.selectedEx = nextEx;
     state.currentSeries = [];
     stopTimer();
-    document.getElementById('timerBox').classList.remove('show');
-    document.getElementById('seriesLogCard').style.display='none';
-    document.getElementById('seriesLog').innerHTML='';
-    updateExForm(); prefillLastLoad(nextEx);
+    const tb = document.getElementById('timerBox');
+    if (tb) tb.classList.remove('show');
+    const slc = document.getElementById('seriesLogCard');
+    if (slc) slc.style.display = 'none';
+    const sl = document.getElementById('seriesLog');
+    if (sl) sl.innerHTML = '';
+    goPage('exercicio');
+    prefillLastLoad(nextEx);
+    renderQueueBar();
     showToast('➡️ Próximo: ' + nextEx);
   } else {
     // No more queued, go back to treino
     state.sheetSelected = [];
-    setTimeout(()=>goPage('treino'), 200);
+    setTimeout(() => goPage('treino'), 200);
   }
 }
 
