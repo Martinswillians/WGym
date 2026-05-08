@@ -2110,6 +2110,10 @@ select.form-input option { background: var(--card2); color: var(--text); }
       <div class="timer-num" id="timerNum">60</div>
       <button class="timer-skip" onclick="skipTimer()">Pular ▶</button>
     </div>
+
+    <!-- Skip button — always visible when queue has 2+ exercises (before AND after series) -->
+    <button class="btn-skip-exercise" id="btnSkipExercise" onclick="skipToNextExercise()" style="display:none;">↩ Cancelar e ir para próximo →</button>
+
     <div class="card" id="seriesLogCard" style="display:none;">
       <div class="card-title">Séries registradas</div>
       <div class="vol-metrics">
@@ -2122,7 +2126,6 @@ select.form-input option { background: var(--card2); color: var(--text); }
       <span class="card-title">Notas</span>
       <textarea class="notes-area" id="exNotes" rows="2" placeholder="Anotações, sensações, foco muscular..."></textarea>
       <div class="btn-row" style="margin-top:10px;"><button class="btn btn-success" onclick="concludeExercise()">Concluir Exercício ✓</button></div>
-      <button class="btn-skip-exercise" id="btnSkipExercise" onclick="skipToNextExercise()">↩ Cancelar e ir para próximo →</button>
     </div>
   </div>
 </div>
@@ -5423,33 +5426,27 @@ function renderQueueBar() {
 
   if (sel.length < 2) {
     bar.classList.remove('show');
-    if (btnSkip) btnSkip.classList.remove('show');
+    if (btnSkip) btnSkip.style.display = 'none';
     return;
   }
 
   bar.classList.add('show');
-  if (btnSkip) btnSkip.classList.add('show');
 
   const currentIdx = state.selectedEx ? sel.indexOf(state.selectedEx) : 0;
   const remaining = sel.length - currentIdx - 1;
 
   // Count badge
   const countEl = document.getElementById('queueBarCount');
-  if (countEl) {
-    countEl.textContent = `${currentIdx + 1} / ${sel.length}`;
-  }
+  if (countEl) countEl.textContent = `${currentIdx + 1} / ${sel.length}`;
 
   // Dots
   const dotsEl = document.getElementById('queueDots');
   if (dotsEl) {
     dotsEl.innerHTML = sel.map((ex, i) => {
-      let cls = 'pending';
-      // Check if this exercise was already concluded (exists in history with current trainStart)
       const sessionDone = state.trainStart
         ? history.some(h => h.exercise === ex && h.trainStart === state.trainStart)
         : false;
-      if (sessionDone) cls = 'done';
-      else if (i === currentIdx) cls = 'current';
+      let cls = sessionDone ? 'done' : (i === currentIdx ? 'current' : 'pending');
       return `<div class="queue-dot ${cls}" title="${ex}"></div>`;
     }).join('');
   }
@@ -5458,34 +5455,48 @@ function renderQueueBar() {
   const namesEl = document.getElementById('queueNames');
   if (namesEl) {
     namesEl.innerHTML = sel.map((ex, i) => {
-      let cls = 'pending';
       const sessionDone = state.trainStart
         ? history.some(h => h.exercise === ex && h.trainStart === state.trainStart)
         : false;
-      if (sessionDone) cls = 'done';
-      else if (i === currentIdx) cls = 'current';
+      let cls = sessionDone ? 'done' : (i === currentIdx ? 'current' : 'pending');
       const prefix = sessionDone ? '✓ ' : (i === currentIdx ? '' : `${i+1}. `);
       return `<span class="queue-name-chip ${cls}">${prefix}${ex}</span>`;
     }).join('');
   }
 
-  // Update skip button text
+  // Always-visible skip button — update text and show
   if (btnSkip) {
     if (remaining > 0) {
       const nextEx = sel[currentIdx + 1];
-      btnSkip.textContent = `↩ Cancelar  →  ${nextEx}`;
-      btnSkip.classList.add('show');
+      btnSkip.textContent = `↩ Cancelar  →  Ir para: ${nextEx}`;
     } else {
-      // Last exercise — skip goes back to treino
       btnSkip.textContent = '↩ Cancelar exercício';
-      btnSkip.classList.add('show');
     }
+    // Always show when queue has 2+ (before AND after series registration)
+    btnSkip.style.display = 'block';
+    btnSkip.classList.add('show');
   }
 }
 
 function skipToNextExercise() {
   const sel = state.sheetSelected || [];
   const currentIdx = state.selectedEx ? sel.indexOf(state.selectedEx) : -1;
+  const hasSeries = state.currentSeries && state.currentSeries.length > 0;
+  const remaining = sel.length - currentIdx - 1;
+
+  // Build confirmation message
+  const lines = [];
+  if (hasSeries) {
+    lines.push(`⚠️ Cancelar "${state.selectedEx}"?`);
+    lines.push(`As ${state.currentSeries.length} série${state.currentSeries.length > 1 ? 's' : ''} registrada${state.currentSeries.length > 1 ? 's' : ''} serão descartadas.`);
+  } else {
+    lines.push(`Pular "${state.selectedEx}"?`);
+  }
+  if (remaining > 0) {
+    lines.push(`\nPróximo: ${sel[currentIdx + 1]}`);
+  }
+
+  if (!confirm(lines.join('\n'))) return;
 
   // Discard current unsaved series
   state.currentSeries = [];
@@ -5497,8 +5508,7 @@ function skipToNextExercise() {
   const sl = document.getElementById('seriesLog');
   if (sl) sl.innerHTML = '';
 
-  if (currentIdx >= 0 && currentIdx < sel.length - 1) {
-    // Go to next exercise
+  if (currentIdx >= 0 && remaining > 0) {
     const nextEx = sel[currentIdx + 1];
     state.selectedEx = nextEx;
     goPage('exercicio');
@@ -5506,7 +5516,7 @@ function skipToNextExercise() {
     renderQueueBar();
     showToast('⏭ ' + nextEx);
   } else {
-    // No more exercises — go back to treino
+    // Last or not found — go back to treino
     state.sheetSelected = [];
     state.selectedEx = null;
     goPage('treino');
