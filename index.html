@@ -1851,6 +1851,80 @@ select.form-input option { background: var(--card2); color: var(--text); }
 .weight-timeline-photo:active { border-color: var(--primary); transform: scale(0.96); }
 .weight-timeline-date { font-size: 9px; color: var(--muted); text-align: center; margin-top: 3px; font-weight: 700; }
 .weight-timeline-val { font-size: 10px; color: var(--text); text-align: center; font-weight: 800; }
+
+/* ══ SPOTIFY PLAYER ══ */
+.spotify-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #0d1117 100%);
+  border: 1px solid rgba(30,215,96,0.3);
+  border-radius: var(--radius); padding: 14px; margin-bottom: 10px;
+  position: relative; overflow: hidden;
+}
+.spotify-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #1DB954, #1ed760);
+}
+.spotify-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+.spotify-logo {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #1DB954; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.spotify-title { font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff; }
+.spotify-sub { font-size: 10px; color: #8A9BBF; margin-top: 1px; }
+.spotify-embed-wrap {
+  border-radius: 12px; overflow: hidden; margin-bottom: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.spotify-embed-wrap iframe { display: block; border: none; width: 100%; }
+/* Playlists grid */
+.spotify-playlists { display: flex; flex-direction: column; gap: 6px; }
+.spotify-pl-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm);
+  cursor: pointer; transition: all 0.18s;
+}
+.spotify-pl-item:active, .spotify-pl-item.active {
+  background: rgba(29,185,84,0.15); border-color: rgba(29,185,84,0.4);
+}
+.spotify-pl-icon { font-size: 22px; flex-shrink: 0; width: 36px; text-align: center; }
+.spotify-pl-info { flex: 1; }
+.spotify-pl-name { font-size: 13px; font-weight: 700; color: #fff; }
+.spotify-pl-desc { font-size: 10px; color: #8A9BBF; margin-top: 1px; }
+.spotify-pl-play {
+  background: #1DB954; border: none; color: #000;
+  border-radius: 50%; width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 12px; flex-shrink: 0; transition: all 0.2s;
+}
+.spotify-pl-play:active { transform: scale(0.9); }
+/* Custom URL input */
+.spotify-custom {
+  margin-top: 10px; padding: 10px 12px;
+  background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.15);
+  border-radius: var(--radius-sm);
+}
+.spotify-custom input {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; padding: 8px 12px; color: #fff;
+  font-size: 12px; width: 100%; margin-bottom: 8px; font-family: var(--font-body);
+  outline: none;
+}
+.spotify-custom input::placeholder { color: #8A9BBF; }
+.spotify-custom input:focus { border-color: #1DB954; }
+.spotify-open-btn {
+  background: #1DB954; color: #000; border: none; border-radius: 20px;
+  padding: 8px 16px; font-size: 12px; font-weight: 800; cursor: pointer;
+  font-family: var(--font-body); text-transform: uppercase; letter-spacing: 0.5px;
+  transition: all 0.2s; width: 100%;
+}
+.spotify-open-btn:active { filter: brightness(0.9); }
+.spotify-section-label {
+  font-size: 10px; color: #8A9BBF; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;
+}
 </style>
 
   <!-- Service Worker registration via Blob URL (works for local HTML files) -->
@@ -2240,6 +2314,18 @@ self.addEventListener('message', e => {
 
 <!-- ══ EXERCÍCIO ══ -->
 <div id="page-exercicio" class="page">
+  <!-- Spotify mini player — shown during workout -->
+  <div id="spotifyMiniWrap" style="display:none;margin-bottom:8px;">
+    <div class="spotify-card" style="padding:10px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div class="spotify-logo" style="width:24px;height:24px;font-size:13px;">🎵</div>
+        <span style="font-size:11px;font-weight:700;color:#1DB954;">Música</span>
+        <button onclick="goPage('planos')" style="margin-left:auto;background:transparent;border:none;color:#8A9BBF;cursor:pointer;font-size:11px;">Gerenciar ▶</button>
+      </div>
+      <div id="spotifyMiniEmbed"></div>
+    </div>
+  </div>
+
   <!-- Queue progress bar — visible when multiple exercises selected -->
   <div class="queue-bar" id="queueBar">
     <div class="queue-bar-header">
@@ -2634,6 +2720,40 @@ self.addEventListener('message', e => {
 
 <!-- ══ PAGE: PLANOS & GRÁFICOS ══ -->
 <div id="page-planos" class="page">
+
+  <!-- SPOTIFY PLAYER -->
+  <div class="spotify-card" id="spotifyFullCard">
+    <div class="spotify-header">
+      <div class="spotify-logo">🎵</div>
+      <div>
+        <div class="spotify-title">Spotify</div>
+        <div class="spotify-sub">Músicas para treinar</div>
+      </div>
+      <button onclick="toggleSpotifyExpand()" id="spotifyExpandBtn"
+        style="margin-left:auto;background:rgba(255,255,255,0.08);border:none;color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;">
+        ▲ Minimizar
+      </button>
+    </div>
+    <!-- Current player embed -->
+    <div class="spotify-embed-wrap" id="spotifyEmbedWrap">
+      <div id="spotifyEmbedContainer" style="min-height:80px;display:flex;align-items:center;justify-content:center;color:#8A9BBF;font-size:12px;">
+        Selecione uma playlist abaixo
+      </div>
+    </div>
+    <!-- Preset playlists -->
+    <div id="spotifyPlaylistsSection">
+      <div class="spotify-section-label">🏋️ Playlists para treino</div>
+      <div class="spotify-playlists" id="spotifyPlaylistGrid"></div>
+      <!-- Custom URL -->
+      <div class="spotify-custom">
+        <div class="spotify-section-label" style="margin-bottom:6px;">🔗 Sua playlist</div>
+        <input type="text" id="spotifyCustomUrl"
+          placeholder="Cole link do Spotify (álbum, playlist, artista...)"
+          oninput="onSpotifyUrlInput(this.value)">
+        <button class="spotify-open-btn" onclick="loadCustomSpotify()">▶ Carregar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- AI PERIODIZATION -->
   <div class="ai-section">
@@ -9176,6 +9296,8 @@ function patchUpdateExForm() {
 // PLANOS PAGE — RENDER ALL (updated)
 // ═══════════════════════════════════════════════════════
 function renderPlanos() {
+  renderSpotifyPlaylists();
+  restoreSpotifySession();
   renderPlanSuggestion();
   renderPlanList();
   populateChartExSelect();
@@ -9749,6 +9871,131 @@ function renderIMCCard() {
   } else {
     list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:11px;padding:12px;">Nenhum registro ainda.<br>Toque em "+ Registrar" para começar.</div>';
   }
+}
+
+
+// ═══════════════════════════════════════════════════════
+// SPOTIFY PLAYER
+// Embed API: https://open.spotify.com/embed/{type}/{id}
+// ═══════════════════════════════════════════════════════
+
+// Preset workout playlists (public Spotify URIs)
+const SPOTIFY_PRESETS = [
+  { icon:'💪', name:'Beast Mode',        desc:'Rock/Metal pesado para treino',    id:'37i9dQZF1DX76Wlfdnj7AP', type:'playlist' },
+  { icon:'⚡', name:'Power Workout',     desc:'Energia máxima, BPM alto',         id:'37i9dQZF1DXdxkX6IPaR48', type:'playlist' },
+  { icon:'🏃', name:'Running Pace',      desc:'Ideal para aeróbico',              id:'37i9dQZF1DX0HRj9P7NxeE', type:'playlist' },
+  { icon:'🎵', name:'Hip-Hop Workout',   desc:'Hip-Hop e Trap motivacional',      id:'37i9dQZF1DX6GwdWRQMQpq', type:'playlist' },
+  { icon:'🔥', name:'Summer Hits',       desc:'Pop animado para treinar',         id:'37i9dQZF1DXbTxeAdrVG2l', type:'playlist' },
+  { icon:'🎸', name:'Rock Classics',     desc:'Clássicos do rock para motivar',   id:'37i9dQZF1DWXRqgorJj26U', type:'playlist' },
+];
+
+let _spotifyCurrentId = null;
+let _spotifyExpanded = true;
+let _spotifyCurrentType = 'playlist';
+
+function renderSpotifyPlaylists() {
+  const grid = document.getElementById('spotifyPlaylistGrid');
+  if (!grid) return;
+  grid.innerHTML = SPOTIFY_PRESETS.map((pl, i) => `
+    <div class="spotify-pl-item ${_spotifyCurrentId === pl.id ? 'active' : ''}" onclick="loadSpotifyPreset(${i})">
+      <span class="spotify-pl-icon">${pl.icon}</span>
+      <div class="spotify-pl-info">
+        <div class="spotify-pl-name">${pl.name}</div>
+        <div class="spotify-pl-desc">${pl.desc}</div>
+      </div>
+      <button class="spotify-pl-play" onclick="event.stopPropagation();loadSpotifyPreset(${i})">▶</button>
+    </div>`).join('');
+}
+
+function loadSpotifyPreset(idx) {
+  const pl = SPOTIFY_PRESETS[idx];
+  if (!pl) return;
+  loadSpotifyEmbed(pl.id, pl.type, pl.name);
+}
+
+function loadSpotifyEmbed(id, type, name) {
+  _spotifyCurrentId = id;
+  _spotifyCurrentType = type || 'playlist';
+  const embedUrl = `https://open.spotify.com/embed/${_spotifyCurrentType}/${id}?utm_source=generator&theme=0&autoplay=1`;
+  const container = document.getElementById('spotifyEmbedContainer');
+  if (container) {
+    container.innerHTML = `<iframe
+      src="${embedUrl}"
+      width="100%" height="152"
+      frameborder="0"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy"
+      style="border-radius:12px;">
+    </iframe>`;
+  }
+  // Update mini player in exercise page
+  const mini = document.getElementById('spotifyMiniEmbed');
+  if (mini) {
+    mini.innerHTML = `<iframe
+      src="${embedUrl}"
+      width="100%" height="80"
+      frameborder="0"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy"
+      style="border-radius:8px;">
+    </iframe>`;
+    const wrap = document.getElementById('spotifyMiniWrap');
+    if (wrap) wrap.style.display = 'block';
+  }
+  // Highlight active playlist
+  renderSpotifyPlaylists();
+  if (name) showToast('🎵 ' + name);
+  // Save preference
+  try { localStorage.setItem('wgym_spotify', JSON.stringify({ id, type: _spotifyCurrentType })); } catch(e) {}
+}
+
+function loadCustomSpotify() {
+  const input = document.getElementById('spotifyCustomUrl');
+  const val = (input?.value || '').trim();
+  if (!val) { showToast('⚠️ Cole um link do Spotify'); return; }
+  const parsed = parseSpotifyUrl(val);
+  if (!parsed) { showToast('❌ Link inválido. Use um link do Spotify.'); return; }
+  loadSpotifyEmbed(parsed.id, parsed.type, 'Sua playlist');
+}
+
+function parseSpotifyUrl(url) {
+  // Accepts: https://open.spotify.com/playlist/ID or spotify:playlist:ID
+  const patterns = [
+    /open\.spotify\.com\/(playlist|album|track|artist|show|episode)\/([A-Za-z0-9]+)/,
+    /spotify:(playlist|album|track|artist|show|episode):([A-Za-z0-9]+)/,
+  ];
+  for (const re of patterns) {
+    const m = url.match(re);
+    if (m) return { type: m[1], id: m[2] };
+  }
+  // Maybe just an ID
+  if (/^[A-Za-z0-9]{22}$/.test(url)) return { type: 'playlist', id: url };
+  return null;
+}
+
+function onSpotifyUrlInput(val) {
+  // Auto-detect and preview as user types
+  if (val.length > 20 && parseSpotifyUrl(val)) {
+    const btn = document.querySelector('.spotify-open-btn');
+    if (btn) btn.style.background = '#1DB954';
+  }
+}
+
+function toggleSpotifyExpand() {
+  _spotifyExpanded = !_spotifyExpanded;
+  const section = document.getElementById('spotifyPlaylistsSection');
+  const btn = document.getElementById('spotifyExpandBtn');
+  if (section) section.style.display = _spotifyExpanded ? 'block' : 'none';
+  if (btn) btn.textContent = _spotifyExpanded ? '▲ Minimizar' : '▼ Expandir';
+}
+
+function restoreSpotifySession() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('wgym_spotify') || 'null');
+    if (saved && saved.id) {
+      loadSpotifyEmbed(saved.id, saved.type || 'playlist', null);
+    }
+  } catch(e) {}
 }
 
 // INIT
