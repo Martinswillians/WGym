@@ -1648,7 +1648,261 @@ select.form-input option { background: var(--card2); color: var(--text); }
 }
 .btn-skip-exercise.show { display: block; }
 .btn-skip-exercise:active { background: var(--bg2); border-color: var(--primary); color: var(--primary); }
+/* ══ SESSION RECOVERY BANNER ══ */
+.session-recovery-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+  z-index: 5000; display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.session-recovery-overlay.show { display: flex; }
+.session-recovery-card {
+  background: var(--card); border-radius: 20px;
+  border: 1px solid var(--border); border-top: 3px solid var(--warning);
+  padding: 24px 20px; width: 100%; max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  animation: bounceIn 0.4s ease;
+}
+.sr-icon { font-size: 44px; text-align: center; display: block; margin-bottom: 10px; }
+.sr-title { font-family: var(--font-display); font-size: 22px; font-weight: 900;
+  text-transform: uppercase; letter-spacing: 1px; text-align: center;
+  color: var(--warning); margin-bottom: 6px; }
+.sr-subtitle { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 16px; line-height: 1.5; }
+.sr-stats { display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px; margin-bottom: 20px; }
+.sr-stat { background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 8px; text-align: center; }
+.sr-stat .ssv { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--warning); }
+.sr-stat .ssl { font-size: 10px; color: var(--muted); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.sr-btns { display: flex; flex-direction: column; gap: 8px; }
+.sr-btn-continue {
+  width: 100%; padding: 14px; background: var(--warning); color: #000;
+  border: none; border-radius: var(--radius); font-size: 14px; font-weight: 800;
+  cursor: pointer; font-family: var(--font-body); text-transform: uppercase;
+  letter-spacing: 0.5px; transition: all 0.2s;
+}
+.sr-btn-continue:active { filter: brightness(0.9); }
+.sr-btn-discard {
+  width: 100%; padding: 12px; background: transparent;
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  color: var(--muted); font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: var(--font-body); text-transform: uppercase;
+  letter-spacing: 0.5px; transition: all 0.2s;
+}
+.sr-btn-discard:active { border-color: var(--primary); color: var(--primary); }
+
+/* ══ DRAG-AND-DROP QUEUE ══ */
+.queue-item-draggable {
+  cursor: grab; user-select: none; -webkit-user-select: none;
+  touch-action: none; transition: transform 0.15s, opacity 0.15s, box-shadow 0.15s;
+}
+.queue-item-draggable.dragging {
+  opacity: 0.5; transform: scale(0.97); cursor: grabbing;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.queue-item-draggable.drag-over { border-color: var(--warning) !important; background: rgba(245,166,35,0.1) !important; }
+.drag-handle { color: var(--muted); font-size: 16px; padding: 0 8px 0 0;
+  cursor: grab; flex-shrink: 0; }
+.drag-handle:active { cursor: grabbing; }
+
+/* ══ QUICK TEMPLATES ══ */
+.template-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:4px;}
+.template-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 10px 10px;cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden;}
+.template-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary);opacity:0;transition:opacity 0.2s;}
+.template-card:active,.template-card:hover{border-color:var(--primary);background:var(--primary-light);}
+.template-card:active::before,.template-card:hover::before{opacity:1;}
+.template-card-name{font-family:var(--font-display);font-size:14px;font-weight:800;color:var(--text);margin-bottom:2px;padding-right:44px;}
+.template-card-meta{font-size:10px;color:var(--muted);font-weight:600;}
+.template-card-exs{font-size:10px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.template-card-actions{position:absolute;top:7px;right:7px;display:flex;gap:3px;}
+.template-action-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);border-radius:5px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;transition:all 0.15s;}
+.template-action-btn:active{color:var(--primary);border-color:var(--primary);}
+.tmpl-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3500;display:none;align-items:flex-end;justify-content:center;}
+.tmpl-modal-overlay.show{display:flex;}
+.tmpl-modal-sheet{background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:480px;border-top:1px solid var(--border);max-height:85vh;overflow-y:auto;}
+.tmpl-ex-pick-list{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;margin:8px 0;}
+.tmpl-ex-pick-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;}
+.tmpl-ex-pick-item.selected{border-color:var(--primary);background:var(--primary-light);}
+.tmpl-ex-pick-item .tep-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.tmpl-ex-pick-item.selected .tep-check{background:var(--primary);border-color:var(--primary);color:white;}
+/* ══ APPLY SUGGESTION ══ */
+.sugg-apply-btn{background:var(--warning);color:#000;border:none;border-radius:8px;padding:4px 12px;font-size:11px;font-weight:800;cursor:pointer;font-family:var(--font-body);text-transform:uppercase;transition:all 0.2s;margin-left:6px;flex-shrink:0;}
+.sugg-apply-btn:active{filter:brightness(0.9);}
+/* ══ REST PRESETS ══ */
+.rest-presets{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.rest-preset-chip{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--bg2);color:var(--muted);transition:all 0.18s;font-family:var(--font-body);}
+.rest-preset-chip:active,.rest-preset-chip.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+/* ══ HISTORY PERIOD FILTER ══ */
+.hist-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.hist-filter-chip{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--bg2);color:var(--muted);transition:all 0.18s;font-family:var(--font-body);white-space:nowrap;}
+.hist-filter-chip.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+/* ══ CHART TOOLTIP ══ */
+.chart-tooltip{position:fixed;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;pointer-events:none;z-index:600;opacity:0;transition:opacity 0.15s;box-shadow:0 4px 16px rgba(0,0,0,0.4);max-width:180px;}
+.chart-tooltip.show{opacity:1;}
+.chart-tooltip .ct-date{font-size:10px;color:var(--muted);margin-bottom:2px;}
+.chart-tooltip .ct-load{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--primary);}
+.chart-tooltip .ct-detail{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* ══ IMC / BODY METRICS ══ */
+.imc-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px; margin-top: 8px;
+}
+.imc-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.imc-value-display {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px;
+  text-align: center; margin-bottom: 10px;
+}
+.imc-value-display .imc-num {
+  font-family: var(--font-display); font-size: 36px; font-weight: 900;
+  line-height: 1;
+}
+.imc-value-display .imc-cat {
+  font-size: 12px; font-weight: 700; margin-top: 4px; padding: 3px 10px;
+  border-radius: 20px; display: inline-block;
+}
+.imc-cat.abaixo { background: var(--blue-bg); color: var(--blue); }
+.imc-cat.normal { background: var(--success-bg); color: var(--success); }
+.imc-cat.sobrepeso { background: var(--warning-bg); color: var(--warning); }
+.imc-cat.obesidade { background: rgba(255,61,37,0.12); color: var(--primary); }
+.imc-progress { height: 8px; background: var(--border); border-radius: 4px; margin: 8px 0; overflow:hidden; position:relative; }
+.imc-progress-bar { height: 100%; border-radius: 4px; transition: width 0.5s; background: var(--success); }
+.imc-legend { display:flex; justify-content:space-between; font-size:9px; color:var(--muted); font-weight:600; }
+/* Weight history list */
+.weight-hist-list { max-height: 160px; overflow-y: auto; display:flex; flex-direction:column; gap:4px; margin-top:8px; }
+.weight-hist-item {
+  display:flex; align-items:center; gap:10px; padding:8px 10px;
+  background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm);
+}
+.weight-hist-item .whi-date { font-size:10px; color:var(--muted); flex:1; }
+.weight-hist-item .whi-val { font-family:var(--font-display); font-size:16px; font-weight:800; color:var(--text); }
+.weight-hist-item .whi-diff { font-size:11px; font-weight:700; }
+.weight-hist-item .whi-del { color:var(--muted); cursor:pointer; font-size:12px; padding:2px 6px; }
+/* Profile photo section in view card */
+.profile-body-row { display:flex; gap:12px; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); }
+.profile-body-stat { flex:1; text-align:center; }
+.profile-body-stat .pbs-val { font-family:var(--font-display); font-size:20px; font-weight:800; color:var(--text); }
+.profile-body-stat .pbs-label { font-size:9px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+
+/* ══ WEIGHT PHOTO HISTORY ══ */
+.weight-entry-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.82);
+  z-index: 4000; display: none; align-items: flex-end; justify-content: center;
+}
+.weight-entry-overlay.show { display: flex; }
+.weight-entry-sheet {
+  background: var(--card); border-radius: 20px 20px 0 0;
+  padding: 20px 16px 40px; width: 100%; max-width: 480px;
+  border-top: 1px solid var(--border);
+  animation: slideUp 0.3s ease;
+}
+.weight-entry-title { font-family: var(--font-display); font-size: 18px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+/* Photo area */
+.weight-photo-area {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  min-height: 140px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer; transition: all 0.2s; margin-bottom: 12px;
+  position: relative; overflow: hidden; background: var(--bg2);
+}
+.weight-photo-area:active { border-color: var(--primary); background: var(--primary-light); }
+.weight-photo-area img { width: 100%; height: 180px; object-fit: cover; display: none; }
+.weight-photo-placeholder { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.weight-photo-placeholder span:first-child { font-size: 36px; }
+.weight-photo-placeholder span:last-child { font-size: 12px; color: var(--muted); font-weight: 600; }
+.weight-photo-change {
+  position: absolute; bottom: 8px; right: 8px;
+  background: rgba(0,0,0,0.6); color: white; border: none;
+  border-radius: 8px; padding: 5px 10px; font-size: 11px;
+  font-weight: 700; cursor: pointer; backdrop-filter: blur(4px);
+}
+/* History cards with photo */
+.weight-hist-item { flex-direction: column; padding: 0; overflow: hidden; }
+.weight-hist-top { display: flex; align-items: center; gap: 10px; padding: 10px 12px; width: 100%; }
+.weight-hist-photo { width: 100%; max-height: 220px; object-fit: cover; display: none; cursor: pointer; }
+.weight-hist-photo.show { display: block; }
+.weight-photo-expand-btn {
+  font-size: 10px; color: var(--muted); font-weight: 700; cursor: pointer;
+  padding: 3px 8px; background: var(--bg2); border-radius: 10px;
+  border: 1px solid var(--border); transition: all 0.2s;
+  white-space: nowrap;
+}
+.weight-photo-expand-btn:active { border-color: var(--primary); color: var(--primary); }
+/* Photo fullscreen viewer */
+.photo-viewer-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+  z-index: 6000; display: none; align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px;
+}
+.photo-viewer-overlay.show { display: flex; }
+.photo-viewer-img { max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 8px; }
+.photo-viewer-info { color: white; text-align: center; font-size: 13px; }
+.photo-viewer-close { background: rgba(255,255,255,0.15); border: none; color: white;
+  border-radius: 20px; padding: 8px 20px; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: var(--font-body); }
+/* Timeline view for weight photos */
+.weight-timeline { display: flex; gap: 8px; overflow-x: auto; padding: 8px 0 4px;
+  scrollbar-width: thin; }
+.weight-timeline-item { flex-shrink: 0; width: 80px; cursor: pointer; }
+.weight-timeline-photo { width: 80px; height: 80px; object-fit: cover;
+  border-radius: 10px; border: 2px solid var(--border); transition: all 0.2s; }
+.weight-timeline-photo:active { border-color: var(--primary); transform: scale(0.96); }
+.weight-timeline-date { font-size: 9px; color: var(--muted); text-align: center; margin-top: 3px; font-weight: 700; }
+.weight-timeline-val { font-size: 10px; color: var(--text); text-align: center; font-weight: 800; }
 </style>
+
+  <!-- Service Worker registration via Blob URL (works for local HTML files) -->
+  <script>
+  (function() {
+    if (!('serviceWorker' in navigator)) return;
+    const SW_CODE = `
+const CACHE = 'wgym-v1';
+const ASSETS = []; // dynamic — we cache on fetch
+
+self.addEventListener('install', e => { self.skipWaiting(); });
+self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
+
+self.addEventListener('fetch', e => {
+  // Only cache same-origin GET requests
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(resp => {
+        if (!resp || resp.status !== 200 || resp.type === 'opaque') return resp;
+        const clone = resp.clone();
+        caches.open(CACHE).then(cache => cache.put(e.request, clone));
+        return resp;
+      }).catch(() => cached || new Response('Offline', {status: 503}));
+    })
+  );
+});
+
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SCHEDULE_NOTIF') {
+    // Notifications handled by main thread
+  }
+});
+`;
+    try {
+      const blob = new Blob([SW_CODE], {type: 'application/javascript'});
+      const swUrl = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(swUrl, {scope: './'})
+        .then(reg => {
+          console.log('[WGym] Service Worker registered');
+          // Cache current page
+          if (caches && reg.active) {
+            caches.open('wgym-v1').then(c => c.add(window.location.href)).catch(()=>{});
+          }
+        })
+        .catch(e => console.warn('[WGym] SW registration failed:', e));
+    } catch(e) {
+      console.warn('[WGym] SW blob failed:', e);
+    }
+  })();
+  </script>
 </head>
 <body>
 
@@ -1907,6 +2161,15 @@ select.form-input option { background: var(--card2); color: var(--text); }
     <button class="btn btn-primary" style="margin-top:10px;" onclick="startSuggestedWorkout()">▶ Iniciar Treino Sugerido</button>
   </div>
 
+  <div class="card" id="quickTemplatesCard" style="margin-bottom:10px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="card-title" style="margin-bottom:0;">⚡ Templates Rápidos</div>
+      <button onclick="openTemplateModal(null)" style="background:var(--primary);border:none;color:white;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font-body);">+ Novo</button>
+    </div>
+    <div id="templateGrid" class="template-grid"></div>
+    <div id="templateEmpty" style="text-align:center;color:var(--muted);font-size:12px;padding:8px 0;display:none;">Crie um template para treinar mais rápido!</div>
+  </div>
+
   <div id="groupCard" class="card">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
       <div class="card-title" style="margin-bottom:0;">Grupo muscular</div>
@@ -2005,7 +2268,7 @@ select.form-input option { background: var(--card2); color: var(--text); }
         <span class="text-sm" style="color:var(--muted);">Grupo: <strong id="exGroup" style="color:var(--text);">–</strong></span>
         <span id="modeChip" class="status-chip chip-red">Solo</span>
       </div>
-      <div id="suggestionBox" class="suggestion-box" style="display:none;"><span class="sb-icon">💡</span><div class="sb-text" id="suggText">Sugestão</div><div class="sb-val" id="suggVal">—</div></div>
+      <div id="suggestionBox" class="suggestion-box" style="display:none;"><span class="sb-icon">💡</span><div class="sb-text" id="suggText">Sugestão</div><div class="sb-val" id="suggVal">—</div><button class="sugg-apply-btn" onclick="applySuggestion()">✓ Aplicar</button></div>
       <div id="stagnationBox" class="stagnation-box" style="display:none;"><div class="sbox-text" id="stagnationText"></div></div>
       <div id="soloForm">
         <div class="card-title">Configuração da série</div>
@@ -2022,6 +2285,12 @@ select.form-input option { background: var(--card2); color: var(--text); }
             ⏱ <span id="restDefaultLabel">Salvar como padrão</span>
           </span>
           <span class="rest-save-indicator" id="restSaveIndicator">✓ Salvo!</span>
+        </div>
+        <div class="rest-presets">
+          <span class="rest-preset-chip" onclick="applyRestPreset(45)">💪 45s</span>
+          <span class="rest-preset-chip" onclick="applyRestPreset(90)">🏋️ 90s</span>
+          <span class="rest-preset-chip" onclick="applyRestPreset(180)">⚡ 3min</span>
+          <span class="rest-preset-chip" onclick="applyRestPreset(0)">🏃 Sem desc.</span>
         </div>
       </div>
 
@@ -2134,6 +2403,12 @@ select.form-input option { background: var(--card2); color: var(--text); }
 <div id="page-historico" class="page">
   <div class="card" style="padding:12px 14px;">
     <input type="text" class="hist-search" id="histSearch" placeholder="🔍 Buscar exercício, grupo ou atleta..." oninput="renderHistory()">
+    <div class="hist-filters">
+      <span class="hist-filter-chip active" data-period="all" onclick="setHistFilter('all')">Todos</span>
+      <span class="hist-filter-chip" data-period="week" onclick="setHistFilter('week')">📅 Semana</span>
+      <span class="hist-filter-chip" data-period="month" onclick="setHistFilter('month')">📆 Mês</span>
+      <span class="hist-filter-chip" data-period="3months" onclick="setHistFilter('3months')">🗓 3 Meses</span>
+    </div>
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <span class="fw7" style="font-size:13px; color:var(--muted);" id="histCount">0 registros</span>
       <div style="display:flex; gap:6px;">
@@ -2168,6 +2443,24 @@ select.form-input option { background: var(--card2); color: var(--text); }
       <button class="profile-action-btn logout" onclick="doLogout()">↩ Sair</button>
     </div>
   </div>
+  <!-- IMC Card below profile view -->
+  <div class="imc-card" id="imcCard" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-family:var(--font-display);font-size:15px;font-weight:800;">📊 IMC & Composição</div>
+      <button onclick="openWeightEntry()" style="background:var(--primary);border:none;color:white;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font-body);">+ Registrar</button>
+    </div>
+    <div class="profile-body-row">
+      <div class="profile-body-stat"><div class="pbs-val" id="viewHeight">—</div><div class="pbs-label">Altura</div></div>
+      <div class="profile-body-stat"><div class="pbs-val" id="viewWeight">—</div><div class="pbs-label">Peso</div></div>
+      <div class="profile-body-stat"><div class="pbs-val" id="viewIMC">—</div><div class="pbs-label">IMC</div></div>
+    </div>
+    <div class="imc-progress"><div class="imc-progress-bar" id="imcProgressBar"></div></div>
+    <div class="imc-legend"><span>Abaixo<br>(&lt;18.5)</span><span>Normal<br>(18.5–24.9)</span><span>Sobre.<br>(25–29.9)</span><span>Obeso<br>(&gt;30)</span></div>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-top:10px;margin-bottom:6px;">📅 Histórico de Peso</div>
+    <!-- Photo timeline -->
+    <div class="weight-timeline" id="weightTimeline"></div>
+    <div class="weight-hist-list" id="weightHistList"></div>
+  </div>
 
   <!-- EDIT mode — hidden by default -->
   <div class="profile-edit-card" id="profileEditCard" style="display:none;">
@@ -2194,6 +2487,22 @@ select.form-input option { background: var(--card2); color: var(--text); }
       <div class="form-group">
         <label class="form-label">Nome</label>
         <input class="form-input form-input-left" type="text" id="editProfileName" placeholder="Seu nome" maxlength="20">
+      </div>
+      <!-- Body metrics -->
+      <div class="profile-edit-row">
+        <div class="form-group">
+          <label class="form-label">Altura (cm)</label>
+          <input class="form-input form-input-left" type="number" id="editProfileHeight" placeholder="175" min="100" max="250" step="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Peso atual (kg)</label>
+          <input class="form-input form-input-left" type="number" id="editProfileWeight" placeholder="70" min="30" max="300" step="0.1">
+        </div>
+      </div>
+      <!-- IMC preview -->
+      <div id="imcPreview" style="display:none;" class="imc-value-display">
+        <div class="imc-num" id="imcPreviewNum">—</div>
+        <div class="imc-cat" id="imcPreviewCat">IMC</div>
       </div>
       <div class="profile-edit-row">
         <div class="form-group" style="position:relative;">
@@ -2595,6 +2904,24 @@ select.form-input option { background: var(--card2); color: var(--text); }
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- ══ SESSION RECOVERY MODAL ══ -->
+<div class="session-recovery-overlay" id="sessionRecoveryOverlay">
+  <div class="session-recovery-card">
+    <span class="sr-icon">⚡</span>
+    <div class="sr-title">Treino Interrompido!</div>
+    <div class="sr-subtitle" id="srSubtitle">Detectamos um treino que não foi finalizado.<br>Deseja continuar de onde parou?</div>
+    <div class="sr-stats">
+      <div class="sr-stat"><div class="ssv" id="srExCount">0</div><div class="ssl">Exercícios</div></div>
+      <div class="sr-stat"><div class="ssv" id="srSeriesCount">0</div><div class="ssl">Séries</div></div>
+      <div class="sr-stat"><div class="ssv" id="srTime">—</div><div class="ssl">Duração</div></div>
+    </div>
+    <div class="sr-btns">
+      <button class="sr-btn-continue" onclick="restoreSession()">⚡ Continuar treino</button>
+      <button class="sr-btn-discard" onclick="discardSession()">🗑 Descartar e começar do zero</button>
+    </div>
+  </div>
+</div>
 <div class="undo-toast" id="undoToast">
   <span id="undoToastMsg">Série removida</span>
   <button class="undo-toast-btn" onclick="undoDeleteSerie()">↩ Desfazer</button>
@@ -2828,6 +3155,7 @@ function loginAccount(account) {
   renderUserSelectors();
   updateTrainStatus();
   setTimeout(warmExerciseCacheFromHistory, 200);
+  setTimeout(checkSessionRecovery, 400);
 }
 
 function doLogout() {
@@ -3347,10 +3675,23 @@ function openProfileEdit() {
   const nameEl = document.getElementById('editProfileName');
   if (nameEl) nameEl.value = currentAccount.name || '';
   ['editProfilePass','editProfileConfirm'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  // Pre-fill height and weight
+  const hEl = document.getElementById('editProfileHeight');
+  const wEl = document.getElementById('editProfileWeight');
+  if (hEl) hEl.value = currentAccount.height || '';
+  if (wEl) wEl.value = currentAccount.weight || '';
   document.getElementById('profileViewCard').style.display = 'none';
   document.getElementById('profileEditCard').style.display = 'block';
   updateEditPhotoUI();
-  setTimeout(() => { if (nameEl) nameEl.focus(); }, 150);
+  // Add live IMC preview listeners
+  setTimeout(() => {
+    if (nameEl) nameEl.focus();
+    const hInput = document.getElementById('editProfileHeight');
+    const wInput = document.getElementById('editProfileWeight');
+    if (hInput) hInput.addEventListener('input', updateIMCPreview);
+    if (wInput) wInput.addEventListener('input', updateIMCPreview);
+    updateIMCPreview();
+  }, 150);
 }
 
 function closeProfileEdit() {
@@ -3366,9 +3707,11 @@ function togglePassVis(inputId) {
 
 function saveProfileEdits() {
   if (!currentAccount || currentAccount.guest) { showToast('Visitante não pode editar perfil'); return; }
-  const name = (document.getElementById('editProfileName')?.value || '').trim();
-  const pass = document.getElementById('editProfilePass')?.value || '';
+  const name    = (document.getElementById('editProfileName')?.value || '').trim();
+  const pass    = document.getElementById('editProfilePass')?.value || '';
   const confirm = document.getElementById('editProfileConfirm')?.value || '';
+  const height  = parseFloat(document.getElementById('editProfileHeight')?.value) || 0;
+  const weight  = parseFloat(document.getElementById('editProfileWeight')?.value) || 0;
 
   if (!name) { showToast('⚠️ Digite seu nome'); return; }
   if (pass && pass.length < 6) { showToast('⚠️ Senha mínimo 6 caracteres'); return; }
@@ -3378,21 +3721,121 @@ function saveProfileEdits() {
   if (acc) {
     acc.name = name;
     if (pass) acc.passwordHash = simpleHash(pass);
+    if (height > 0) acc.height = height;
+    if (weight > 0) {
+      if (!acc.weightHistory) acc.weightHistory = [];
+      const lastW = acc.weightHistory[0];
+      if (!lastW || Math.abs(lastW.weight - weight) > 0.05) {
+        acc.weightHistory.unshift({ weight, date: new Date().toISOString() });
+        if (acc.weightHistory.length > 52) acc.weightHistory = acc.weightHistory.slice(0, 52);
+      }
+      acc.weight = weight;
+    }
     saveAccounts();
     currentAccount = acc;
     localStorage.setItem('wgym_session', acc.id);
   }
 
   renderProfileDisplay();
+  renderIMCCard();
   updateHeaderUser();
   updateGreeting();
+  showToast(pass ? '✅ Perfil e senha atualizados!' : '✅ Perfil atualizado!');
+  setTimeout(() => { closeProfileEdit(); renderSettings(); }, 800);
+}
 
-  // Visual feedback: show success banner then return
-  showToast(pass ? '✅ Perfil e senha atualizados!' : '✅ Perfil atualizado com sucesso!');
-  setTimeout(() => {
-    closeProfileEdit();
-    renderSettings();
-  }, 800);
+// ═══════════════════════════════════════════════════════
+// IMC — Body metrics
+// ═══════════════════════════════════════════════════════
+function calcIMC(weight, height) {
+  if (!weight || !height) return null;
+  const hm = height / 100;
+  return Math.round((weight / (hm * hm)) * 10) / 10;
+}
+
+function getIMCCategory(imc) {
+  if (imc < 18.5) return { label: '🔵 Abaixo do peso', cls: 'abaixo', color: 'var(--blue)' };
+  if (imc < 25)   return { label: '🟢 Peso normal',    cls: 'normal', color: 'var(--success)' };
+  if (imc < 30)   return { label: '🟡 Sobrepeso',      cls: 'sobrepeso', color: 'var(--warning)' };
+  return              { label: '🔴 Obesidade',       cls: 'obesidade', color: 'var(--primary)' };
+}
+
+function renderIMCCard() {
+  if (!currentAccount) return;
+  const card = document.getElementById('imcCard');
+  if (!card) return;
+  const weight = currentAccount.weight || 0;
+  const height = currentAccount.height || 0;
+  if (!weight && !height) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  const imc = calcIMC(weight, height);
+  const viewH = document.getElementById('viewHeight');
+  const viewW = document.getElementById('viewWeight');
+  const viewI = document.getElementById('viewIMC');
+  if (viewH) viewH.textContent = height > 0 ? height + 'cm' : '—';
+  if (viewW) viewW.textContent = weight > 0 ? weight + 'kg' : '—';
+  if (imc && viewI) {
+    const cat = getIMCCategory(imc);
+    viewI.textContent = imc;
+    viewI.style.color = cat.color;
+    const bar = document.getElementById('imcProgressBar');
+    if (bar) {
+      const pct = Math.min(100, Math.max(0, ((imc - 15) / 25) * 100));
+      bar.style.width = pct + '%';
+      bar.style.background = cat.color;
+    }
+  } else if (viewI) { viewI.textContent = '—'; }
+  // Weight history list
+  const list = document.getElementById('weightHistList');
+  if (!list) return;
+  const hist = currentAccount.weightHistory || [];
+  if (hist.length) {
+    list.innerHTML = hist.slice(0, 8).map((w, i) => {
+      const next = hist[i + 1];
+      const diff = next ? +(w.weight - next.weight).toFixed(1) : null;
+      const diffHtml = diff !== null
+        ? `<span class="whi-diff" style="color:${diff > 0 ? 'var(--success)' : diff < 0 ? 'var(--primary)' : 'var(--muted)'}">${diff > 0 ? '↓' : diff < 0 ? '↑' : '='} ${Math.abs(diff)}kg</span>`
+        : '<span class="whi-diff" style="color:var(--muted)">—</span>';
+      const date = new Date(w.date).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'2-digit'});
+      return `<div class="weight-hist-item">
+        <span class="whi-date">${date}</span>
+        <span class="whi-val">${w.weight}kg</span>
+        ${diffHtml}
+        <span class="whi-del" onclick="deleteWeightEntry(${i})">✕</span>
+      </div>`;
+    }).join('');
+  } else {
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:11px;padding:8px;">Nenhum registro ainda.<br>Edite seu perfil para adicionar.</div>';
+  }
+}
+
+function deleteWeightEntry(idx) {
+  if (!currentAccount || !currentAccount.weightHistory) return;
+  if (!confirm('Remover este registro?')) return;
+  currentAccount.weightHistory.splice(idx, 1);
+  if (currentAccount.weightHistory.length > 0) currentAccount.weight = currentAccount.weightHistory[0].weight;
+  const acc = accounts.find(a => a.id === currentAccount.id);
+  if (acc) { acc.weightHistory = currentAccount.weightHistory; acc.weight = currentAccount.weight; saveAccounts(); }
+  renderIMCCard();
+  showToast('🗑 Registro removido');
+}
+
+function updateIMCPreview() {
+  const h = parseFloat(document.getElementById('editProfileHeight')?.value) || 0;
+  const w = parseFloat(document.getElementById('editProfileWeight')?.value) || 0;
+  const prev = document.getElementById('imcPreview');
+  const numEl = document.getElementById('imcPreviewNum');
+  const catEl = document.getElementById('imcPreviewCat');
+  if (!prev) return;
+  const imc = calcIMC(w, h);
+  if (imc) {
+    prev.style.display = 'block';
+    const c = getIMCCategory(imc);
+    if (numEl) { numEl.textContent = imc; numEl.style.color = c.color; }
+    if (catEl) { catEl.textContent = c.label; catEl.className = 'imc-cat ' + c.cls; }
+  } else {
+    prev.style.display = 'none';
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -3678,7 +4121,7 @@ function goPage(p, tabEl) {
   else { const idx=PAGES.indexOf(p); if(idx>=0){const tabs=document.querySelectorAll('.nav-tab'); if(tabs[idx])tabs[idx].classList.add('active');} }
   if (p==='historico') renderHistory();
   if (p==='exercicio') updateExForm();
-  if (p==='treino') { renderGroupGrid(); renderUserSelectors(); }
+  if (p==='treino') { renderGroupGrid(); renderUserSelectors(); renderTemplateGrid(); }
   if (p==='dashboard') { updateGreeting(); renderDashboard(); }
   if (p==='config') renderSettings();
   if (p==='planos') { renderPlanos(); }
@@ -3946,12 +4389,38 @@ function updateSheetStartBar() {
   const sel = state.sheetSelected || [];
   const bar = document.getElementById('sheetStartBar');
   const summary = document.getElementById('sheetSelSummary');
+  if (!bar || !summary) return;
   if (sel.length > 0) {
     bar.classList.add('show');
-    const label = sel.length === 1
-      ? `<strong>${sel[0]}</strong> selecionado`
-      : `<strong>${sel.length}</strong> exercícios selecionados`;
-    summary.innerHTML = label;
+    if (sel.length === 1) {
+      // Single exercise — simple label
+      summary.innerHTML = `<span style="color:var(--primary);font-weight:800;">1.</span> <strong>${sel[0]}</strong> selecionado`;
+    } else {
+      // Multiple — show draggable ordered list
+      summary.innerHTML = `
+        <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">
+          Arraste para reordenar
+        </div>
+        <div id="dragQueueList" style="display:flex;flex-direction:column;gap:4px;">
+          ${sel.map((ex, i) => `
+            <div class="queue-item-draggable"
+              data-idx="${i}"
+              draggable="true"
+              ondragstart="onDragStart(event,${i})"
+              ondragover="onDragOver(event,${i})"
+              ondrop="onDrop(event,${i})"
+              ondragend="onDragEnd(event)"
+              ontouchstart="onTouchStart(event,${i})"
+              ontouchmove="onTouchMove(event)"
+              ontouchend="onTouchEnd(event,${i})"
+              style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;">
+              <span class="drag-handle">⠿</span>
+              <span style="background:var(--primary);color:white;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">${i+1}</span>
+              <span style="font-size:13px;font-weight:600;flex:1;text-align:left;">${ex}</span>
+            </div>
+          `).join('')}
+        </div>`;
+    }
   } else {
     bar.classList.remove('show');
   }
@@ -4902,11 +5371,13 @@ function prefillLastLoad(ex) {
     const p2S    = last ? last.series.filter(x => x.player === last.p2name) : [];
     const p2Load = (p2cache && p2cache.load > 0) ? p2cache.load :
                    (p2S.length ? Math.max(...p2S.map(x => x.load || 0)) : 0);
-    const p2Reps = (p2cache && p2cache.reps) ? p2cache.reps :
-                   (p2S.length ? p2S[0].reps || 10 : 10);
+    const p2Reps = (p2cache && p2cache.reps > 0) ? p2cache.reps :
+                   (p2S.length ? (p2S[0].reps || 12) : 12);
+    const p2Rest = (p2cache && p2cache.rest > 0) ? p2cache.rest :
+                   (p2S.length ? (p2S[0].rest || 60) : 60);
     if (p2loadEl) p2loadEl.value = p2Load;
     if (p2repsEl) p2repsEl.value = p2Reps;
-    if (p2restEl && p2cache && p2cache.rest) p2restEl.value = p2cache.rest;
+    if (p2restEl) p2restEl.value = p2Rest;
   }
 }
 function updateExForm() {
@@ -5106,6 +5577,7 @@ function logSerie() {
       persistSerieToCache(state.selectedEx, state.currentSeries[state.currentSeries.length - 1]);
     }
     renderSeriesLog();
+    saveActiveSession(); // persist session state after aerobic serie
     if (settings.vibration && navigator.vibrate) navigator.vibrate([50, 30, 50]);
     showToast('✓ ' + (tempo > 0 ? tempo + 'min' : '') + (vel > 0 ? ' · ' + vel + 'km/h' : '') + ' registrado!');
     return;
@@ -5137,6 +5609,12 @@ function logSerie() {
     const numP1=state.currentSeries.filter(x=>x.player===state.p1name).length+1, numP2=state.currentSeries.filter(x=>x.player===state.p2name).length+1;
     for(let i=0;i<p1s;i++) state.currentSeries.push({serie:numP1+i,reps:p1r,load:p1l,rest:p1rest,player:state.p1name,ts:Date.now()});
     for(let i=0;i<p2s;i++) state.currentSeries.push({serie:numP2+i,reps:p2r,load:p2l,rest:p2rest,player:state.p2name,ts:Date.now()});
+    // Save cache for P1 with P1 uid
+    saveExerciseCache(state.selectedEx, { load: p1l, reps: p1r, rest: p1rest }, state.activeP1Id || resolveActiveUid());
+    // Save cache for P2 with P2 uid (key insight: separate uid so it doesn't overwrite P1)
+    if (state.activeP2Id) {
+      saveExerciseCache(state.selectedEx, { load: p2l, reps: p2r, rest: p2rest }, state.activeP2Id);
+    }
     startTimer(Math.max(p1rest,p2rest));
   } else {
     const s=parseInt(document.getElementById('series').value)||1, r=parseInt(document.getElementById('reps').value)||0, l=parseFloat(document.getElementById('load').value)||0, rest=parseInt(document.getElementById('rest').value)||60;
@@ -5150,6 +5628,7 @@ function logSerie() {
     persistSerieToCache(state.selectedEx, lastSerie);
   }
   renderSeriesLog();
+  saveActiveSession(); // persist full session state after every serie
   if(settings.vibration&&navigator.vibrate) navigator.vibrate([50,30,50]);
   showToast('✓ Série registrada!');
 }
@@ -5340,14 +5819,23 @@ function concludeExercise() {
   }
 
   // ── Final cache save from the best serie of this session (guarantee for next open) ──
-  const finalSeries = state.currentSeries.filter(s => !s.player || s.player === state.p1name);
-  if (finalSeries.length > 0) {
-    const bestSerie = finalSeries.reduce((b, s) => (!b || (s.load||0) > (b.load||0)) ? s : b, null);
-    if (bestSerie) persistSerieToCache(exerciseName, bestSerie);
+  const finalSeriesP1 = state.currentSeries.filter(s => !s.player || s.player === state.p1name);
+  if (finalSeriesP1.length > 0) {
+    const bestP1 = finalSeriesP1.reduce((b, s) => (!b || (s.load||0) > (b.load||0)) ? s : b, null);
+    if (bestP1) persistSerieToCache(exerciseName, bestP1);
+  }
+  // Save P2 cache separately with P2's uid
+  if (state.mode === 'partner' && state.activeP2Id) {
+    const finalSeriesP2 = state.currentSeries.filter(s => s.player === state.p2name);
+    if (finalSeriesP2.length > 0) {
+      const bestP2 = finalSeriesP2.reduce((b, s) => (!b || (s.load||0) > (b.load||0)) ? s : b, null);
+      if (bestP2) saveExerciseCache(exerciseName, { load: bestP2.load || 0, reps: bestP2.reps || 12, rest: bestP2.rest || 60 }, state.activeP2Id);
+    }
   }
 
   history.unshift({id:Date.now(),date:new Date().toISOString(),exercise:exerciseName,group:state.group,mode:state.mode,p1name:state.p1name,p2name:state.p2name,userId:uid||null,userId2:uid2||null,groupUserIds,series:[...state.currentSeries],notes,trainStart:state.trainStart,isAerobic});
   saveHistory();
+  saveActiveSession(); // update snapshot after exercise concludes (currentSeries cleared)
   if(!state.completedEx[state.group])state.completedEx[state.group]=[];
   if(!state.completedEx[state.group].includes(exerciseName))state.completedEx[state.group].push(exerciseName);
   state.currentSeries=[]; stopTimer();
@@ -5493,7 +5981,7 @@ function skipToNextExercise() {
     lines.push(`Pular "${state.selectedEx}"?`);
   }
   if (remaining > 0) {
-    lines.push(`\nPróximo: ${sel[currentIdx + 1]}`);
+    lines.push('Próximo: ' + sel[currentIdx + 1]);
   }
 
   if (!confirm(lines.join('\n'))) return;
@@ -5657,6 +6145,7 @@ function concludeTraining() {
   state.activeTraining = false; state.selectedEx = null;
   state.group = null; state.completedEx = {};
   state.trainStart = null; state.sheetSelected = [];
+  clearActiveSession(); // remove persisted session — training finished cleanly
   stopTrainTimer();
   renderGroupGrid();
   document.getElementById('exerciseCard').style.display = 'none';
@@ -5909,7 +6398,8 @@ function renderHistory() {
   const content = document.getElementById('historyContent');
   if (!content) return;
   const query = (document.getElementById('histSearch')?.value || '').toLowerCase().trim();
-  const validHistory = history.filter(h => h && h.exercise && Array.isArray(h.series));
+  const periodHistory = getHistFilteredHistory();
+  const validHistory = periodHistory.filter(h => h && h.exercise && Array.isArray(h.series));
 
   let filtered = validHistory;
   if (query) filtered = validHistory.filter(h =>
@@ -8699,6 +9189,568 @@ function renderPlanos() {
 }
 
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// FEATURE A — SESSION PERSISTENCE & RECOVERY
+// Saves full training state after every serie registration.
+// Checks for unfinished session on app open.
+// ═══════════════════════════════════════════════════════
+const SESSION_KEY = 'wgym_active_session';
+
+function saveActiveSession() {
+  if (!state.activeTraining) return;
+  const snapshot = {
+    savedAt:       Date.now(),
+    trainStart:    state.trainStart,
+    group:         state.group,
+    mode:          state.mode,
+    selectedEx:    state.selectedEx,
+    sheetSelected: state.sheetSelected || [],
+    completedEx:   state.completedEx,
+    currentSeries: state.currentSeries,
+    p1name:        state.p1name,
+    p2name:        state.p2name,
+    activeUserId:  state.activeUserId,
+    activeP1Id:    state.activeP1Id,
+    activeP2Id:    state.activeP2Id,
+    groupUserIds:  state.groupUserIds || [],
+    // Recent history entries from this session (for context)
+    sessionEntries: state.trainStart
+      ? history.filter(h => h.trainStart === state.trainStart).map(h => h.id)
+      : [],
+  };
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(snapshot)); } catch(e) {}
+}
+
+function clearActiveSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
+
+function getActiveSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const snap = JSON.parse(raw);
+    // Only restore if saved within last 4 hours
+    if (!snap.savedAt || Date.now() - snap.savedAt > 4 * 3600 * 1000) {
+      clearActiveSession();
+      return null;
+    }
+    return snap;
+  } catch(e) { return null; }
+}
+
+function checkSessionRecovery() {
+  const snap = getActiveSession();
+  if (!snap) return;
+
+  // Count exercises and series in this session
+  const sessionEntries = snap.trainStart
+    ? history.filter(h => h.trainStart === snap.trainStart)
+    : [];
+  const seriesTotal = sessionEntries.reduce((a, h) => a + (h.series || []).length, 0)
+                    + (snap.currentSeries || []).length;
+  const exDone = sessionEntries.length;
+  const elapsed = snap.trainStart
+    ? Math.floor((Date.now() - new Date(snap.trainStart).getTime()) / 60000)
+    : 0;
+  const timeStr = elapsed >= 60
+    ? `${Math.floor(elapsed/60)}h${elapsed%60>0?elapsed%60+'m':''}`
+    : `${elapsed}min`;
+
+  const el = document.getElementById('sessionRecoveryOverlay');
+  const sub = document.getElementById('srSubtitle');
+  const exc = document.getElementById('srExCount');
+  const ser = document.getElementById('srSeriesCount');
+  const tim = document.getElementById('srTime');
+
+  if (el) el.classList.add('show');
+  if (sub) sub.textContent = `Treino de ${snap.group || 'Livre'} interrompido.
+Deseja continuar de onde parou?`;
+  if (exc) exc.textContent = exDone + (snap.currentSeries?.length > 0 ? '+' : '');
+  if (ser) ser.textContent = seriesTotal;
+  if (tim) tim.textContent = timeStr;
+}
+
+function restoreSession() {
+  const snap = getActiveSession();
+  if (!snap) return;
+  const el = document.getElementById('sessionRecoveryOverlay');
+  if (el) el.classList.remove('show');
+
+  // Restore state
+  state.activeTraining  = true;
+  state.trainStart      = snap.trainStart;
+  state.group           = snap.group;
+  state.mode            = snap.mode || 'alone';
+  state.selectedEx      = snap.selectedEx;
+  state.sheetSelected   = snap.sheetSelected || [];
+  state.completedEx     = snap.completedEx   || {};
+  state.currentSeries   = snap.currentSeries || [];
+  state.p1name          = snap.p1name;
+  state.p2name          = snap.p2name;
+  state.activeUserId    = snap.activeUserId;
+  state.activeP1Id      = snap.activeP1Id;
+  state.activeP2Id      = snap.activeP2Id;
+  state.groupUserIds    = snap.groupUserIds  || [];
+
+  // Resume UI
+  startTrainTimer();
+  updateTrainStatus('training');
+  updateActiveBar();
+  renderGroupGrid();
+  renderWeekGoalBar();
+
+  if (snap.selectedEx) {
+    goPage('exercicio');
+    prefillLastLoad(snap.selectedEx);
+    renderQueueBar();
+    if (snap.currentSeries.length > 0) {
+      renderSeriesLog();
+      document.getElementById('seriesLogCard').style.display = 'block';
+    }
+    showToast('⚡ Treino restaurado! Continue de onde parou.');
+  } else {
+    goPage('treino');
+    showToast('⚡ Treino restaurado!');
+  }
+}
+
+function discardSession() {
+  if (!confirm('Descartar o treino interrompido?\n\nOs exercícios já concluídos foram salvos no histórico.')) return;
+  clearActiveSession();
+  const el = document.getElementById('sessionRecoveryOverlay');
+  if (el) el.classList.remove('show');
+  showToast('🗑 Sessão descartada');
+}
+
+// ═══════════════════════════════════════════════════════
+// FEATURE B — DRAG-AND-DROP QUEUE REORDER
+// Touch + mouse, works on mobile Chrome.
+// ═══════════════════════════════════════════════════════
+let _dragSrcIdx = null;
+let _dragEl = null;
+let _touchStartY = 0;
+let _touchCurrentIdx = null;
+
+// Drag-and-drop rendering is integrated directly into updateSheetStartBar
+
+// ── Mouse drag events ──
+function onDragStart(e, idx) {
+  _dragSrcIdx = idx;
+  _dragEl = e.currentTarget;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => { if (_dragEl) _dragEl.classList.add('dragging'); }, 0);
+}
+
+function onDragOver(e, idx) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  // Highlight target
+  document.querySelectorAll('.queue-item-draggable').forEach(el => el.classList.remove('drag-over'));
+  if (idx !== _dragSrcIdx) e.currentTarget.classList.add('drag-over');
+}
+
+function onDrop(e, targetIdx) {
+  e.preventDefault();
+  if (_dragSrcIdx === null || _dragSrcIdx === targetIdx) return;
+  reorderQueue(_dragSrcIdx, targetIdx);
+}
+
+function onDragEnd(e) {
+  document.querySelectorAll('.queue-item-draggable').forEach(el => {
+    el.classList.remove('dragging', 'drag-over');
+  });
+  _dragSrcIdx = null;
+  _dragEl = null;
+}
+
+// ── Touch drag events ──
+function onTouchStart(e, idx) {
+  _dragSrcIdx = idx;
+  _touchStartY = e.touches[0].clientY;
+  _touchCurrentIdx = idx;
+  e.currentTarget.classList.add('dragging');
+}
+
+function onTouchMove(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const y = touch.clientY;
+  // Find element under touch
+  const els = document.querySelectorAll('.queue-item-draggable');
+  els.forEach(el => el.classList.remove('drag-over'));
+  const target = document.elementFromPoint(touch.clientX, y);
+  const item = target?.closest('.queue-item-draggable');
+  if (item) {
+    const idx = parseInt(item.dataset.idx);
+    if (!isNaN(idx) && idx !== _dragSrcIdx) {
+      item.classList.add('drag-over');
+      _touchCurrentIdx = idx;
+    }
+  }
+}
+
+function onTouchEnd(e, originalIdx) {
+  document.querySelectorAll('.queue-item-draggable').forEach(el => {
+    el.classList.remove('dragging', 'drag-over');
+  });
+  if (_touchCurrentIdx !== null && _touchCurrentIdx !== _dragSrcIdx) {
+    reorderQueue(_dragSrcIdx, _touchCurrentIdx);
+  }
+  _dragSrcIdx = null;
+  _touchCurrentIdx = null;
+}
+
+function reorderQueue(fromIdx, toIdx) {
+  const sel = state.sheetSelected;
+  const item = sel.splice(fromIdx, 1)[0];
+  sel.splice(toIdx, 0, item);
+  state.sheetSelected = sel;
+  // Re-render
+  renderSheetExList();
+  updateSheetStartBar();
+  renderDraggableQueue();
+  showToast('↕️ Ordem atualizada');
+}
+
+// Hook renderDraggableQueue into updateSheetStartBar
+// renderDraggableQueue is now integrated directly into updateSheetStartBar above
+
+
+// ═══ QUICK TEMPLATES ═══
+let quickTemplates=[];
+try{quickTemplates=JSON.parse(localStorage.getItem('wgym_templates')||'[]');}catch(e){}
+function saveTemplates(){localStorage.setItem('wgym_templates',JSON.stringify(quickTemplates));}
+let _editTmplId=null,_tmplEmoji='🏋️',_tmplExs=[];
+
+function renderTemplateGrid(){
+  const grid=document.getElementById('templateGrid');
+  const empty=document.getElementById('templateEmpty');
+  if(!grid)return;
+  if(!quickTemplates.length){grid.innerHTML='';if(empty)empty.style.display='block';return;}
+  if(empty)empty.style.display='none';
+  grid.innerHTML=quickTemplates.map(t=>`<div class="template-card" onclick="startTemplate('${t.id}')">
+    <div class="template-card-actions">
+      <div class="template-action-btn" onclick="event.stopPropagation();openTemplateModal('${t.id}')">✏️</div>
+      <div class="template-action-btn" onclick="event.stopPropagation();deleteTemplate('${t.id}')">🗑</div>
+    </div>
+    <div class="template-card-name">${t.emoji} ${t.name}</div>
+    <div class="template-card-meta">${t.group} · ${t.exercises.length} exerc.</div>
+    <div class="template-card-exs">${t.exercises.join(', ')}</div>
+  </div>`).join('');
+}
+
+function openTemplateModal(id){
+  _editTmplId=id;
+  const t=id?quickTemplates.find(x=>x.id===id):null;
+  document.getElementById('tmplModalTitle').textContent=t?'Editar Template':'Novo Template';
+  document.getElementById('tmplName').value=t?t.name:'';
+  _tmplEmoji=t?t.emoji:'🏋️';
+  _tmplExs=t?[...t.exercises]:[];
+  const sel=document.getElementById('tmplGroup');
+  if(sel){const groups=getAllGroups();sel.innerHTML=groups.map(g=>`<option value="${g.name}"${t&&t.group===g.name?' selected':''}>${g.icon} ${g.name}</option>`).join('');}
+  const er=document.getElementById('tmplEmojiRow');
+  if(er){const ems=['🏋️','💪','🔥','⚡','🎯','🦾','🏃','🥊','🧠','🦵','🏆','⚽'];
+    er.innerHTML=ems.map(em=>`<span style="font-size:22px;cursor:pointer;padding:4px;border-radius:6px;${em===_tmplEmoji?'background:var(--primary-light);outline:2px solid var(--primary);':''}" onclick="selectTmplEmoji('${em}')">${em}</span>`).join('');}
+  loadTmplExercises();
+  document.getElementById('tmplModalOverlay').classList.add('show');
+}
+function selectTmplEmoji(em){
+  _tmplEmoji=em;
+  document.querySelectorAll('#tmplEmojiRow span').forEach(s=>{s.style.background=s.textContent===em?'var(--primary-light)':'';s.style.outline=s.textContent===em?'2px solid var(--primary)':'';});
+}
+function loadTmplExercises(){
+  const g=document.getElementById('tmplGroup')?.value||'';
+  const exs=[...(EXERCISES[g]||[]),...(state.customExByGroup[g]||[])];
+  const list=document.getElementById('tmplExList');
+  if(!list)return;
+  list.innerHTML=exs.map(ex=>{const s=_tmplExs.includes(ex);const exS=ex.replace(/'/g,"\'");
+    return `<div class="tmpl-ex-pick-item ${s?'selected':''}" onclick="toggleTmplEx('${exS}')"><div class="tep-check">${s?'✓':''}</div><span style="font-size:13px;font-weight:600;">${ex}</span></div>`;}).join('');
+  document.getElementById('tmplSelCount').textContent=_tmplExs.length;
+}
+function toggleTmplEx(ex){const i=_tmplExs.indexOf(ex);if(i>=0)_tmplExs.splice(i,1);else _tmplExs.push(ex);loadTmplExercises();}
+function closeTemplateModal(){document.getElementById('tmplModalOverlay').classList.remove('show');_editTmplId=null;_tmplExs=[];}
+function saveTemplate(){
+  const name=document.getElementById('tmplName').value.trim();
+  if(!name){showToast('⚠️ Digite um nome');return;}
+  if(!_tmplExs.length){showToast('⚠️ Selecione exercícios');return;}
+  const group=document.getElementById('tmplGroup').value;
+  if(_editTmplId){const t=quickTemplates.find(x=>x.id===_editTmplId);if(t){t.name=name;t.emoji=_tmplEmoji;t.group=group;t.exercises=[..._tmplExs];}}
+  else{quickTemplates.push({id:Date.now().toString(),name,emoji:_tmplEmoji,group,exercises:[..._tmplExs],createdAt:new Date().toISOString()});}
+  saveTemplates();closeTemplateModal();renderTemplateGrid();showToast('✅ Template salvo!');
+}
+function deleteTemplate(id){
+  const t=quickTemplates.find(x=>x.id===id);
+  if(!t||!confirm('Excluir "'+t.name+'"?'))return;
+  quickTemplates=quickTemplates.filter(x=>x.id!==id);saveTemplates();renderTemplateGrid();showToast('🗑 Removido');
+}
+function startTemplate(id){
+  const t=quickTemplates.find(x=>x.id===id);if(!t)return;
+  if(!ensureAthleteSelected())return;
+  state.group=t.group;state.sheetSelected=[...t.exercises];state.mode=state.mode||'alone';
+  if(!state.activeTraining){state.activeTraining=true;state.trainStart=new Date().toISOString();startTrainTimer();}
+  updateTrainStatus('training');
+  const ex=t.exercises[0];state.selectedEx=ex;state.currentSeries=[];
+  const oc=document.getElementById('exSheetOverlay');if(oc)oc.classList.remove('show');
+  const os=document.getElementById('exSheet');if(os)os.classList.remove('show');
+  const ec=document.getElementById('exerciseCard');if(ec)ec.style.display='block';
+  stopTimer();goPage('exercicio');prefillLastLoad(ex);renderQueueBar();
+  showToast('⚡ '+t.name+' iniciado!');
+}
+
+// ═══ APPLY SUGGESTION ═══
+function applySuggestion(){
+  const val=document.getElementById('suggVal');if(!val)return;
+  const kg=parseFloat(val.textContent.replace('kg',''));if(isNaN(kg))return;
+  const le=document.getElementById('load'),p1=document.getElementById('p1load');
+  if(le)le.value=kg;if(p1)p1.value=kg;
+  const btn=document.querySelector('.sugg-apply-btn');
+  if(btn){btn.textContent='✓ OK!';btn.style.background='var(--success)';setTimeout(()=>{btn.textContent='✓ Aplicar';btn.style.background='';},2000);}
+  showToast('✅ Carga aplicada: '+kg+'kg');
+}
+
+// ═══ REST PRESETS ═══
+function applyRestPreset(seconds){
+  const restEl=document.getElementById('rest');
+  if(restEl){
+    const opts=Array.from(restEl.options).map(o=>parseInt(o.value));
+    if(seconds<=0){restEl.value=opts[0]||30;}
+    else if(opts.includes(seconds)){restEl.value=seconds;}
+    else{const closest=opts.reduce((p,c)=>Math.abs(c-seconds)<Math.abs(p-seconds)?c:p);restEl.value=closest;}
+  }
+  const p1r=document.getElementById('p1rest');if(p1r&&restEl)p1r.value=restEl.value;
+  document.querySelectorAll('.rest-preset-chip').forEach(c=>c.classList.remove('active'));
+  event.target.classList.add('active');
+  updateRestDefaultBadge(state.selectedEx,parseInt(restEl?.value||seconds));
+  showToast('⏱ Descanso: '+formatRestLabel(seconds>0?seconds:parseInt(restEl?.value||30)));
+}
+
+// ═══ HISTORY PERIOD FILTER ═══
+let _histPeriodFilter='all';
+function setHistFilter(period){
+  _histPeriodFilter=period;
+  document.querySelectorAll('.hist-filter-chip').forEach(c=>c.classList.toggle('active',c.dataset.period===period));
+  renderHistory();
+}
+function getHistFilteredHistory(){
+  if(_histPeriodFilter==='all')return history;
+  const now=new Date(),cutoff=new Date(now);
+  if(_histPeriodFilter==='week')cutoff.setDate(now.getDate()-7);
+  else if(_histPeriodFilter==='month')cutoff.setMonth(now.getMonth()-1);
+  else if(_histPeriodFilter==='3months')cutoff.setMonth(now.getMonth()-3);
+  return history.filter(h=>new Date(h.date)>=cutoff);
+}
+
+// ═══ INTERACTIVE CHART ═══
+function showChartTooltip(e,date,load,detail){
+  const tip=document.getElementById('chartTooltip');if(!tip)return;
+  document.getElementById('ctDate').textContent=date;
+  document.getElementById('ctLoad').textContent=load;
+  document.getElementById('ctDetail').textContent=detail;
+  const r=e.target?.getBoundingClientRect?.()||{left:100,top:100};
+  tip.style.left=Math.min(r.left+10,window.innerWidth-190)+'px';
+  tip.style.top=Math.max(r.top-75,10)+'px';
+  tip.classList.add('show');
+}
+function hideChartTooltip(){const tip=document.getElementById('chartTooltip');if(tip)tip.classList.remove('show');}
+
+
+// ═══════════════════════════════════════════════════════
+// WEIGHT + PHOTO ENTRY
+// ═══════════════════════════════════════════════════════
+let _weightPhotoDataUrl = null;
+
+function openWeightEntry() {
+  // Pre-fill current weight
+  const cur = currentAccount ? (currentAccount.weight || '') : '';
+  const el = document.getElementById('weightEntryVal');
+  if (el) el.value = cur;
+  const noteEl = document.getElementById('weightEntryNote');
+  if (noteEl) noteEl.value = '';
+  // Reset photo
+  _weightPhotoDataUrl = null;
+  const preview = document.getElementById('weightPhotoPreview');
+  const ph = document.getElementById('weightPhotoPH');
+  const changeBtn = document.getElementById('weightPhotoChangeBtn');
+  if (preview) { preview.style.display = 'none'; preview.src = ''; }
+  if (ph) ph.style.display = 'flex';
+  if (changeBtn) changeBtn.style.display = 'none';
+  document.getElementById('weightEntryOverlay').classList.add('show');
+  setTimeout(() => el && el.focus(), 200);
+}
+
+function closeWeightEntry() {
+  document.getElementById('weightEntryOverlay').classList.remove('show');
+  _weightPhotoDataUrl = null;
+}
+
+function triggerWeightPhotoInput() {
+  document.getElementById('weightPhotoInput').click();
+}
+
+function handleWeightPhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      // Resize to max 600px keeping aspect ratio
+      const canvas = document.createElement('canvas');
+      const MAX = 600;
+      const ratio = Math.min(MAX / img.width, MAX / img.height);
+      canvas.width = Math.round(img.width * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      _weightPhotoDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+      // Show preview
+      const preview = document.getElementById('weightPhotoPreview');
+      const ph = document.getElementById('weightPhotoPH');
+      const changeBtn = document.getElementById('weightPhotoChangeBtn');
+      if (preview) { preview.src = _weightPhotoDataUrl; preview.style.display = 'block'; }
+      if (ph) ph.style.display = 'none';
+      if (changeBtn) changeBtn.style.display = 'block';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function saveWeightEntry() {
+  const weightEl = document.getElementById('weightEntryVal');
+  const noteEl = document.getElementById('weightEntryNote');
+  const weight = parseFloat(weightEl?.value) || 0;
+  if (!weight || weight < 20 || weight > 400) {
+    showToast('⚠️ Digite um peso válido'); return;
+  }
+  if (!currentAccount) return;
+
+  const entry = {
+    weight,
+    date: new Date().toISOString(),
+    note: noteEl?.value?.trim() || '',
+    photo: _weightPhotoDataUrl || null,
+  };
+
+  const acc = accounts.find(a => a.id === currentAccount.id);
+  if (acc) {
+    if (!acc.weightHistory) acc.weightHistory = [];
+    acc.weightHistory.unshift(entry);
+    if (acc.weightHistory.length > 52) acc.weightHistory = acc.weightHistory.slice(0, 52);
+    acc.weight = weight;
+    saveAccounts();
+    currentAccount = acc;
+  }
+
+  closeWeightEntry();
+  renderIMCCard();
+  showToast('✅ Registro salvo!' + (_weightPhotoDataUrl ? ' 📸' : ''));
+}
+
+// ═══════════════════════════════════════════════════════
+// PHOTO VIEWER
+// ═══════════════════════════════════════════════════════
+function openPhotoViewer(src, info) {
+  const overlay = document.getElementById('photoViewerOverlay');
+  const img = document.getElementById('photoViewerImg');
+  const infoEl = document.getElementById('photoViewerInfo');
+  if (!overlay || !img) return;
+  img.src = src;
+  if (infoEl) infoEl.textContent = info || '';
+  overlay.classList.add('show');
+}
+
+function closePhotoViewer() {
+  document.getElementById('photoViewerOverlay').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════════
+// OVERRIDE renderIMCCard to support photos
+// ═══════════════════════════════════════════════════════
+function renderIMCCard() {
+  if (!currentAccount) return;
+  const card = document.getElementById('imcCard');
+  if (!card) return;
+  const weight = currentAccount.weight || 0;
+  const height = currentAccount.height || 0;
+  if (!weight && !height) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+
+  const imc = calcIMC(weight, height);
+  const viewH = document.getElementById('viewHeight');
+  const viewW = document.getElementById('viewWeight');
+  const viewI = document.getElementById('viewIMC');
+  if (viewH) viewH.textContent = height > 0 ? height + 'cm' : '—';
+  if (viewW) viewW.textContent = weight > 0 ? weight + 'kg' : '—';
+  if (imc && viewI) {
+    const cat = getIMCCategory(imc);
+    viewI.textContent = imc;
+    viewI.style.color = cat.color;
+    const bar = document.getElementById('imcProgressBar');
+    if (bar) {
+      const pct = Math.min(100, Math.max(0, ((imc - 15) / 25) * 100));
+      bar.style.width = pct + '%';
+      bar.style.background = cat.color;
+    }
+  } else if (viewI) { viewI.textContent = '—'; }
+
+  const hist = currentAccount.weightHistory || [];
+
+  // Photo timeline (only entries with photos)
+  const timeline = document.getElementById('weightTimeline');
+  if (timeline) {
+    const photosOnly = hist.filter(w => w.photo);
+    if (photosOnly.length > 0) {
+      timeline.style.display = 'flex';
+      timeline.innerHTML = photosOnly.slice(0, 12).map((w, i) => {
+        const date = new Date(w.date).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+        const infoStr = w.weight + 'kg · ' + date;
+        return `<div class="weight-timeline-item" onclick="openPhotoViewer('${w.photo}','${infoStr}')">
+          <img class="weight-timeline-photo" src="${w.photo}" alt="${w.weight}kg">
+          <div class="weight-timeline-val">${w.weight}kg</div>
+          <div class="weight-timeline-date">${date}</div>
+        </div>`;
+      }).join('');
+    } else {
+      timeline.style.display = 'none';
+      timeline.innerHTML = '';
+    }
+  }
+
+  // History list
+  const list = document.getElementById('weightHistList');
+  if (!list) return;
+  if (hist.length) {
+    list.innerHTML = hist.slice(0, 10).map((w, i) => {
+      const next = hist[i + 1];
+      const diff = next ? +(w.weight - next.weight).toFixed(1) : null;
+      const diffHtml = diff !== null
+        ? `<span class="whi-diff" style="color:${diff > 0 ? 'var(--success)' : diff < 0 ? 'var(--primary)' : 'var(--muted)'}">${diff > 0 ? '▼' : diff < 0 ? '▲' : '='} ${Math.abs(diff)}kg</span>`
+        : '';
+      const date = new Date(w.date).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', year:'2-digit'});
+      const hasPhoto = !!w.photo;
+      const noteHtml = w.note ? `<div style="font-size:10px;color:var(--muted);padding:0 12px 8px;font-style:italic;">📝 ${w.note}</div>` : '';
+      const photoHtml = hasPhoto ? `<img class="weight-hist-photo show" src="${w.photo}" alt="" onclick="openPhotoViewer('${w.photo}','${w.weight}kg · ${date}')">` : '';
+      return `<div class="weight-hist-item">
+        <div class="weight-hist-top">
+          <span class="whi-date" style="display:flex;flex-direction:column;gap:1px;">
+            <span>${date}</span>
+            ${hasPhoto ? `<span class="weight-photo-expand-btn" onclick="openPhotoViewer('${w.photo}','${w.weight}kg · ${date}')">📷 ver foto</span>` : ''}
+          </span>
+          <span class="whi-val">${w.weight}kg</span>
+          ${diffHtml}
+          <span class="whi-del" onclick="deleteWeightEntry(${i})">✕</span>
+        </div>
+        ${noteHtml}
+      </div>`;
+    }).join('');
+  } else {
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:11px;padding:12px;">Nenhum registro ainda.<br>Toque em "+ Registrar" para começar.</div>';
+  }
+}
+
 // INIT
 // ═══════════════════════════════════════════════════════
 loadCustomEx();
@@ -8706,6 +9758,7 @@ normalizeSlots();
 applyTheme(settings.theme);
 renderRegEmojiGrid();
 renderGroupGrid();
+renderTemplateGrid();
 patchUpdateExForm();
 
 // If already logged in, skip auth screen
@@ -8718,6 +9771,8 @@ if (currentAccount) {
   renderDashboard();
   // Warm exercise cache from history on startup
   setTimeout(warmExerciseCacheFromHistory, 300);
+  // Check for interrupted session
+  setTimeout(checkSessionRecovery, 500);
   renderDashboardPlanWidget();
   updateTrainStatus();
   if (notifSettings.enabled) scheduleNotifications();
@@ -8739,5 +9794,74 @@ if (currentAccount) {
   </div>
 </div>
 
+<!-- CHART TOOLTIP -->
+<div class="chart-tooltip" id="chartTooltip"><div class="ct-date" id="ctDate"></div><div class="ct-load" id="ctLoad"></div><div class="ct-detail" id="ctDetail"></div></div>
+<!-- TEMPLATE MODAL -->
+<div class="tmpl-modal-overlay" id="tmplModalOverlay">
+  <div class="tmpl-modal-sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-family:var(--font-display);font-size:18px;font-weight:800;text-transform:uppercase;" id="tmplModalTitle">Novo Template</div>
+      <button onclick="closeTemplateModal()" style="background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:16px;">✕</button>
+    </div>
+    <div class="form-group" style="margin-bottom:10px;">
+      <label class="form-label">Nome</label>
+      <input class="form-input" type="text" id="tmplName" placeholder="Ex: Treino A — Peito" maxlength="30">
+    </div>
+    <div class="form-group" style="margin-bottom:10px;">
+      <label class="form-label">Emoji</label>
+      <div id="tmplEmojiRow" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:8px;">
+      <label class="form-label">Grupo</label>
+      <select class="form-input" id="tmplGroup" onchange="loadTmplExercises()" style="text-align:left;padding-left:10px;"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Exercícios (<span id="tmplSelCount">0</span> selecionados)</label>
+      <div class="tmpl-ex-pick-list" id="tmplExList"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn btn-outline" onclick="closeTemplateModal()" style="flex:1;margin-top:0;">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTemplate()" style="flex:2;margin-top:0;">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- WEIGHT ENTRY SHEET -->
+<div class="weight-entry-overlay" id="weightEntryOverlay">
+  <div class="weight-entry-sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="weight-entry-title">📸 Registrar Peso</div>
+      <button onclick="closeWeightEntry()" style="background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:16px;">✕</button>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">Peso (kg)</label>
+      <input class="form-input" type="number" id="weightEntryVal" placeholder="70.5" min="30" max="300" step="0.1" style="font-size:18px;font-weight:700;text-align:center;">
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">Foto de progresso <span style="color:var(--muted);font-size:10px;">(opcional)</span></label>
+      <div class="weight-photo-area" id="weightPhotoArea" onclick="triggerWeightPhotoInput()">
+        <div class="weight-photo-placeholder" id="weightPhotoPH">
+          <span>📷</span>
+          <span>Toque para adicionar foto</span>
+        </div>
+        <img id="weightPhotoPreview" src="" alt="foto">
+        <button class="weight-photo-change" id="weightPhotoChangeBtn" style="display:none;" onclick="event.stopPropagation();triggerWeightPhotoInput()">Trocar foto</button>
+      </div>
+      <input type="file" id="weightPhotoInput" accept="image/*" style="display:none;" onchange="handleWeightPhoto(event)">
+    </div>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label">Anotação <span style="color:var(--muted);font-size:10px;">(opcional)</span></label>
+      <input class="form-input" type="text" id="weightEntryNote" placeholder="Ex: Após treino, em jejum..." maxlength="60">
+    </div>
+    <button class="btn btn-primary" style="margin-top:0;" onclick="saveWeightEntry()">💾 Salvar Registro</button>
+  </div>
+</div>
+
+<!-- PHOTO FULLSCREEN VIEWER -->
+<div class="photo-viewer-overlay" id="photoViewerOverlay" onclick="closePhotoViewer()">
+  <img class="photo-viewer-img" id="photoViewerImg" src="" alt="">
+  <div class="photo-viewer-info" id="photoViewerInfo"></div>
+  <button class="photo-viewer-close">✕ Fechar</button>
+</div>
 </body>
 </html>
