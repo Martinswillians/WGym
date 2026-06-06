@@ -2078,6 +2078,7 @@ self.addEventListener('message', e => {
     <button class="nav-tab" onclick="goPage('exercicio',this)">Exercício</button>
     <button class="nav-tab" onclick="goPage('historico',this)">Histórico</button>
     <button class="nav-tab" onclick="goPage('planos',this)">📊 Planos</button>
+    <button class="nav-tab" onclick="goPage('configuracoes',this)">⚙️ Config</button>
   </div>
 </div>
 
@@ -2108,6 +2109,21 @@ self.addEventListener('message', e => {
   <div class="card" style="padding:10px 14px;">
     <div class="card-title" style="margin-bottom:6px;">Visualizando dados de</div>
     <div class="user-pills" id="dashUserPills"></div>
+  </div>
+
+  <!-- DASHBOARD QUICK CARDS -->
+  <div style="display:flex;gap:8px;margin-bottom:10px;">
+    <div id="dashWeightCard" onclick="openWeightEntry()" style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;cursor:pointer;display:none;">
+      <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:5px;">⚖️ Peso atual</div>
+      <div style="font-family:var(--font-display);font-size:24px;font-weight:900;color:var(--text);line-height:1;" id="dashWeight">—</div>
+      <div style="font-size:10px;margin-top:3px;" id="dashIMCBadge"></div>
+      <div style="font-size:9px;color:var(--primary);font-weight:700;margin-top:6px;">+ Registrar →</div>
+    </div>
+    <div onclick="goPage('planos')" style="flex:1;background:linear-gradient(135deg,#0d2a1a,#0a1a10);border:1px solid rgba(29,185,84,0.3);border-radius:var(--radius);padding:12px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="font-size:9px;color:#1DB954;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">🎵 Spotify</div>
+      <div style="font-size:28px;line-height:1;margin:4px 0;">🎧</div>
+      <div style="font-size:9px;font-weight:700;" id="dashSpotifyStatus">Escolher playlist</div>
+    </div>
   </div>
 
   <!-- WEEKLY GOAL BAR -->
@@ -2512,7 +2528,7 @@ self.addEventListener('message', e => {
 <div id="page-config" class="page">
   <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
     <button onclick="goPage('dashboard')" style="background:var(--card2); border:1px solid var(--border); color:var(--text); width:36px; height:36px; border-radius:8px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;">←</button>
-    <span style="font-family:var(--font-display); font-size:22px; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Configurações</span>
+    <span style="font-family:var(--font-display); font-size:22px; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Perfil</span>
   </div>
 
   <!-- Logged-in user profile — VIEW mode by default -->
@@ -2644,6 +2660,13 @@ self.addEventListener('message', e => {
   <input type="file" id="profilePhotoCamera" accept="image/*" capture="user" style="display:none;" onchange="handleProfilePhoto(event)">
   <input type="file" id="profilePhotoGallery" accept="image/*" style="display:none;" onchange="handleProfilePhoto(event)">
 
+
+</div>
+
+<!-- PAGE: CONFIGURACOES -->
+<div id="page-configuracoes" class="page">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;"><span style="font-family:var(--font-display);font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:1px;">⚙️ Configurações</span></div>
+
   <div class="settings-section">
     <div class="settings-section-title">Grupos Musculares</div>
     <div id="settingsGroupList"></div>
@@ -2719,6 +2742,8 @@ self.addEventListener('message', e => {
 </div>
 
 <!-- ══ PAGE: PLANOS & GRÁFICOS ══ -->
+</div>
+
 <div id="page-planos" class="page">
 
   <!-- SPOTIFY PLAYER -->
@@ -4231,7 +4256,7 @@ function selectDashUser(id) { state.dashUserId=id; renderDashUserPills(); render
 // ═══════════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════════
-const PAGES = ['dashboard','treino','exercicio','historico','planos'];
+const PAGES = ['dashboard','treino','exercicio','historico','planos','configuracoes'];
 function goPage(p, tabEl) {
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
@@ -4244,6 +4269,7 @@ function goPage(p, tabEl) {
   if (p==='treino') { renderGroupGrid(); renderUserSelectors(); renderTemplateGrid(); }
   if (p==='dashboard') { updateGreeting(); renderDashboard(); }
   if (p==='config') renderSettings();
+  if (p==='configuracoes') renderSettings();
   if (p==='planos') { renderPlanos(); }
 }
 
@@ -7052,6 +7078,7 @@ function clearHistory() {
 // ═══════════════════════════════════════════════════════
 function renderDashboard() {
   renderDashUserPills();
+  renderDashboardQuickCards();
   renderWeekGoalBar();
   const now=new Date(), ws=new Date(now); ws.setDate(now.getDate()-now.getDay()); ws.setHours(0,0,0,0);
   const uid=state.dashUserId;
@@ -9768,6 +9795,7 @@ function saveWeightEntry() {
 
   closeWeightEntry();
   renderIMCCard();
+  renderDashboardQuickCards();
   showToast('✅ Registro salvo!' + (_weightPhotoDataUrl ? ' 📸' : ''));
 }
 
@@ -9996,6 +10024,39 @@ function restoreSpotifySession() {
       loadSpotifyEmbed(saved.id, saved.type || 'playlist', null);
     }
   } catch(e) {}
+}
+
+
+function renderDashboardQuickCards() {
+  if (!currentAccount) return;
+  const weight = currentAccount.weight || 0;
+  const height = currentAccount.height || 0;
+  const wCard = document.getElementById('dashWeightCard');
+  if (wCard) {
+    if (weight > 0) {
+      wCard.style.display = 'block';
+      const wEl = document.getElementById('dashWeight');
+      const imcEl = document.getElementById('dashIMCBadge');
+      if (wEl) wEl.textContent = weight + 'kg';
+      const imc = typeof calcIMC === 'function' ? calcIMC(weight, height) : null;
+      if (imcEl && imc) {
+        const cat = typeof getIMCCategory === 'function' ? getIMCCategory(imc) : null;
+        imcEl.textContent = 'IMC ' + imc + (cat ? ' - ' + cat.label.replace(/[^a-zA-Za-zÀ-ú ]/g,'').trim() : '');
+        imcEl.style.color = cat ? cat.color : 'var(--muted)';
+      }
+    } else { wCard.style.display = 'none'; }
+  }
+  const spotEl = document.getElementById('dashSpotifyStatus');
+  if (spotEl) {
+    try {
+      const saved = JSON.parse(localStorage.getItem('wgym_spotify') || 'null');
+      if (saved && saved.id && typeof SPOTIFY_PRESETS !== 'undefined') {
+        const preset = SPOTIFY_PRESETS.find(p => p.id === saved.id);
+        spotEl.textContent = preset ? preset.icon + ' ' + preset.name : 'Playlist ativa';
+        spotEl.style.color = '#1DB954';
+      } else { spotEl.textContent = 'Toque para escolher'; spotEl.style.color = '#8A9BBF'; }
+    } catch(e) {}
+  }
 }
 
 // INIT
