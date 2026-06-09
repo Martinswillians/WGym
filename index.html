@@ -1925,6 +1925,68 @@ select.form-input option { background: var(--card2); color: var(--text); }
   font-size: 10px; color: #8A9BBF; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;
 }
+
+/* ══ SPOTIFY OAUTH ══ */
+.spotify-login-btn {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  width: 100%; padding: 14px; border-radius: 30px;
+  background: #1DB954; border: none; color: #000;
+  font-size: 15px; font-weight: 800; cursor: pointer;
+  font-family: var(--font-body); letter-spacing: 0.3px;
+  transition: all 0.2s; margin-bottom: 12px;
+}
+.spotify-login-btn:active { filter: brightness(0.88); transform: scale(0.98); }
+.spotify-login-btn .slb-icon { font-size: 22px; }
+.spotify-logout-btn {
+  background: transparent; border: 1px solid rgba(29,185,84,0.4);
+  color: #1DB954; border-radius: 20px; padding: 5px 14px;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  font-family: var(--font-body); transition: all 0.2s;
+}
+.spotify-logout-btn:active { background: rgba(29,185,84,0.1); }
+.spotify-user-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  padding: 10px 12px; background: rgba(29,185,84,0.08);
+  border: 1px solid rgba(29,185,84,0.25); border-radius: var(--radius-sm);
+}
+.spotify-user-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+.spotify-user-name { font-size: 13px; font-weight: 700; color: #fff; flex: 1; }
+.spotify-user-plan { font-size: 10px; color: #1DB954; font-weight: 700; }
+/* Player controls */
+.spotify-player-card {
+  background: rgba(0,0,0,0.3); border: 1px solid rgba(29,185,84,0.2);
+  border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px;
+}
+.spotify-now-playing {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+.spotify-track-art { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: #333; }
+.spotify-track-info { flex: 1; min-width: 0; }
+.spotify-track-name { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spotify-track-artist { font-size: 11px; color: #8A9BBF; margin-top: 2px; }
+.spotify-progress { height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; margin: 8px 0; cursor: pointer; position: relative; }
+.spotify-progress-fill { height: 100%; background: #1DB954; border-radius: 2px; transition: width 1s linear; }
+.spotify-time-row { display: flex; justify-content: space-between; font-size: 9px; color: #8A9BBF; margin-bottom: 10px; }
+.spotify-controls { display: flex; align-items: center; justify-content: center; gap: 20px; }
+.sp-ctrl-btn { background: none; border: none; color: #fff; cursor: pointer; font-size: 20px; padding: 4px; transition: all 0.15s; }
+.sp-ctrl-btn:active { transform: scale(0.88); }
+.sp-ctrl-btn.play-pause { background: #1DB954; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #000; }
+.sp-ctrl-btn.play-pause:active { filter: brightness(0.85); }
+.sp-ctrl-btn.small { font-size: 16px; color: #8A9BBF; }
+.spotify-volume-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.spotify-vol-slider { flex: 1; -webkit-appearance: none; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.15); outline: none; }
+.spotify-vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; cursor: pointer; }
+.spotify-client-id-setup {
+  background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.3);
+  border-radius: var(--radius-sm); padding: 12px; margin-bottom: 12px;
+  font-size: 12px; color: var(--warning); line-height: 1.6;
+}
+.spotify-client-id-setup input {
+  width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; padding: 8px 10px; color: #fff; font-size: 12px;
+  margin-top: 8px; font-family: var(--font-body); outline: none;
+}
+.spotify-client-id-setup input:focus { border-color: #1DB954; }
 </style>
 
   <!-- Service Worker registration via Blob URL (works for local HTML files) -->
@@ -2546,7 +2608,7 @@ self.addEventListener('message', e => {
     </div>
   </div>
   <!-- IMC Card below profile view -->
-  <div class="imc-card" id="imcCard" style="display:none;">
+  <div class="imc-card" id="imcCard">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div style="font-family:var(--font-display);font-size:15px;font-weight:800;">📊 IMC & Composição</div>
       <button onclick="openWeightEntry()" style="background:var(--primary);border:none;color:white;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font-body);">+ Registrar</button>
@@ -2558,6 +2620,7 @@ self.addEventListener('message', e => {
     </div>
     <div class="imc-progress"><div class="imc-progress-bar" id="imcProgressBar"></div></div>
     <div class="imc-legend"><span>Abaixo<br>(&lt;18.5)</span><span>Normal<br>(18.5–24.9)</span><span>Sobre.<br>(25–29.9)</span><span>Obeso<br>(&gt;30)</span></div>
+    <div id="imcDataPrompt" style="font-size:11px;color:var(--warning);font-weight:600;text-align:center;padding:8px;background:rgba(245,166,35,0.1);border-radius:8px;margin:8px 0;display:none;"></div>
     <div style="font-size:12px;font-weight:700;color:var(--muted);margin-top:10px;margin-bottom:6px;">📅 Histórico de Peso</div>
     <!-- Photo timeline -->
     <div class="weight-timeline" id="weightTimeline"></div>
@@ -2752,30 +2815,74 @@ self.addEventListener('message', e => {
       <div class="spotify-logo">🎵</div>
       <div>
         <div class="spotify-title">Spotify</div>
-        <div class="spotify-sub">Músicas para treinar</div>
+        <div class="spotify-sub" id="spotifyStatusSub">Conecte sua conta</div>
       </div>
-      <button onclick="toggleSpotifyExpand()" id="spotifyExpandBtn"
-        style="margin-left:auto;background:rgba(255,255,255,0.08);border:none;color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;">
-        ▲ Minimizar
+      <div id="spotifyLoggedInBtns" style="display:none;margin-left:auto;">
+        <button class="spotify-logout-btn" onclick="spotifyLogout()">↩ Sair</button>
+      </div>
+    </div>
+
+    <!-- CLIENT ID SETUP (shown when no client ID saved) -->
+    <div class="spotify-client-id-setup" id="spotifySetupBox">
+      ⚠️ Configure seu <strong>Spotify Client ID</strong> para ativar o player completo:
+      <div style="font-size:11px;color:#8A9BBF;margin-top:4px;">App configurado: <span style="color:#1DB954;">Will Gym PRO</span></div>
+      <input type="text" id="spotifyClientIdInput" placeholder="Cole aqui o Client ID (32 caracteres)">
+      <button class="spotify-open-btn" style="margin-top:8px;" onclick="saveSpotifyClientId()">💾 Salvar e Conectar</button>
+    </div>
+
+    <!-- LOGIN BUTTON (shown when client ID set but not logged in) -->
+    <div id="spotifyLoginSection" style="display:none;">
+      <button class="spotify-login-btn" onclick="spotifyLogin()">
+        <span class="slb-icon">🎵</span> Entrar com Spotify
       </button>
+      <div style="font-size:10px;color:#8A9BBF;text-align:center;margin-top:-6px;margin-bottom:10px;">Requer conta Spotify Premium para controle total</div>
     </div>
-    <!-- Current player embed -->
-    <div class="spotify-embed-wrap" id="spotifyEmbedWrap">
-      <div id="spotifyEmbedContainer" style="min-height:80px;display:flex;align-items:center;justify-content:center;color:#8A9BBF;font-size:12px;">
-        Selecione uma playlist abaixo
+
+    <!-- LOGGED IN: User info + Player -->
+    <div id="spotifyPlayerSection" style="display:none;">
+      <!-- User row -->
+      <div class="spotify-user-row" id="spotifyUserRow">
+        <img class="spotify-user-avatar" id="spotifyUserAvatar" src="" alt="">
+        <div>
+          <div class="spotify-user-name" id="spotifyUserName">—</div>
+          <div class="spotify-user-plan" id="spotifyUserPlan">Premium</div>
+        </div>
+        <button class="spotify-logout-btn" onclick="spotifyLogout()">↩ Sair</button>
       </div>
-    </div>
-    <!-- Preset playlists -->
-    <div id="spotifyPlaylistsSection">
+      <!-- Now playing -->
+      <div class="spotify-player-card" id="spotifyPlayerCard">
+        <div class="spotify-now-playing">
+          <img class="spotify-track-art" id="spTrackArt" src="" alt="">
+          <div class="spotify-track-info">
+            <div class="spotify-track-name" id="spTrackName">Nada tocando</div>
+            <div class="spotify-track-artist" id="spTrackArtist">—</div>
+          </div>
+        </div>
+        <div class="spotify-progress" onclick="seekTrack(event)" id="spProgress">
+          <div class="spotify-progress-fill" id="spProgressFill" style="width:0%"></div>
+        </div>
+        <div class="spotify-time-row">
+          <span id="spTimeElapsed">0:00</span>
+          <span id="spTimeDuration">0:00</span>
+        </div>
+        <div class="spotify-controls">
+          <button class="sp-ctrl-btn small" onclick="spotifyPrevious()" title="Anterior">⏮</button>
+          <button class="sp-ctrl-btn play-pause" id="spPlayBtn" onclick="spotifyPlayPause()">▶</button>
+          <button class="sp-ctrl-btn small" onclick="spotifyNext()" title="Próximo">⏭</button>
+        </div>
+        <div class="spotify-volume-row">
+          <span style="font-size:14px;color:#8A9BBF;">🔈</span>
+          <input type="range" class="spotify-vol-slider" id="spVolume" min="0" max="100" value="80" oninput="setSpotifyVolume(this.value)">
+          <span style="font-size:14px;color:#8A9BBF;">🔊</span>
+        </div>
+      </div>
+      <!-- Playlists -->
       <div class="spotify-section-label">🏋️ Playlists para treino</div>
       <div class="spotify-playlists" id="spotifyPlaylistGrid"></div>
-      <!-- Custom URL -->
-      <div class="spotify-custom">
+      <div class="spotify-custom" style="margin-top:8px;">
         <div class="spotify-section-label" style="margin-bottom:6px;">🔗 Sua playlist</div>
-        <input type="text" id="spotifyCustomUrl"
-          placeholder="Cole link do Spotify (álbum, playlist, artista...)"
-          oninput="onSpotifyUrlInput(this.value)">
-        <button class="spotify-open-btn" onclick="loadCustomSpotify()">▶ Carregar</button>
+        <input type="text" id="spotifyCustomUrl" placeholder="Cole link do Spotify..." oninput="onSpotifyUrlInput(this.value)">
+        <button class="spotify-open-btn" onclick="loadCustomSpotify()">▶ Tocar</button>
       </div>
     </div>
   </div>
@@ -4268,7 +4375,7 @@ function goPage(p, tabEl) {
   if (p==='exercicio') updateExForm();
   if (p==='treino') { renderGroupGrid(); renderUserSelectors(); renderTemplateGrid(); }
   if (p==='dashboard') { updateGreeting(); renderDashboard(); }
-  if (p==='config') renderSettings();
+  if (p==='config') { renderSettings(); renderIMCCard(); }
   if (p==='configuracoes') renderSettings();
   if (p==='planos') { renderPlanos(); }
 }
@@ -9323,7 +9430,7 @@ function patchUpdateExForm() {
 // PLANOS PAGE — RENDER ALL (updated)
 // ═══════════════════════════════════════════════════════
 function renderPlanos() {
-  renderSpotifyPlaylists();
+  renderSpotifyUI();
   restoreSpotifySession();
   renderPlanSuggestion();
   renderPlanList();
@@ -9823,78 +9930,63 @@ function renderIMCCard() {
   if (!currentAccount) return;
   const card = document.getElementById('imcCard');
   if (!card) return;
-  const weight = currentAccount.weight || 0;
-  const height = currentAccount.height || 0;
-  if (!weight && !height) { card.style.display = 'none'; return; }
+
+  // Always show — display prompts when data is missing
   card.style.display = 'block';
 
+  const weight = currentAccount.weight || 0;
+  const height = currentAccount.height || 0;
   const imc = calcIMC(weight, height);
+
+  // Height / Weight / IMC values
   const viewH = document.getElementById('viewHeight');
   const viewW = document.getElementById('viewWeight');
   const viewI = document.getElementById('viewIMC');
-  if (viewH) viewH.textContent = height > 0 ? height + 'cm' : '—';
-  if (viewW) viewW.textContent = weight > 0 ? weight + 'kg' : '—';
+  if (viewH) { viewH.textContent = height > 0 ? height + 'cm' : '—'; viewH.style.color = height > 0 ? 'var(--text)' : 'var(--muted)'; }
+  if (viewW) { viewW.textContent = weight > 0 ? weight + 'kg' : '—'; viewW.style.color = weight > 0 ? 'var(--text)' : 'var(--muted)'; }
   if (imc && viewI) {
     const cat = getIMCCategory(imc);
-    viewI.textContent = imc;
-    viewI.style.color = cat.color;
+    viewI.textContent = imc; viewI.style.color = cat.color;
     const bar = document.getElementById('imcProgressBar');
-    if (bar) {
-      const pct = Math.min(100, Math.max(0, ((imc - 15) / 25) * 100));
-      bar.style.width = pct + '%';
-      bar.style.background = cat.color;
-    }
-  } else if (viewI) { viewI.textContent = '—'; }
+    if (bar) { const pct = Math.min(100, Math.max(0,((imc-15)/25)*100)); bar.style.width=pct+'%'; bar.style.background=cat.color; }
+  } else if (viewI) { viewI.textContent = '—'; viewI.style.color = 'var(--muted)'; }
 
+  // Prompt to fill data
+  const promptEl = document.getElementById('imcDataPrompt');
+  if (promptEl) {
+    if (!weight && !height) { promptEl.style.display='block'; promptEl.textContent='👆 Toque em Editar para adicionar altura e peso'; }
+    else if (!weight) { promptEl.style.display='block'; promptEl.textContent='👆 Adicione seu peso para calcular o IMC'; }
+    else if (!height) { promptEl.style.display='block'; promptEl.textContent='👆 Adicione sua altura para calcular o IMC'; }
+    else promptEl.style.display='none';
+  }
+
+  // Photo timeline
   const hist = currentAccount.weightHistory || [];
-
-  // Photo timeline (only entries with photos)
+  const photosOnly = hist.filter(w => w.photo);
   const timeline = document.getElementById('weightTimeline');
   if (timeline) {
-    const photosOnly = hist.filter(w => w.photo);
     if (photosOnly.length > 0) {
       timeline.style.display = 'flex';
-      timeline.innerHTML = photosOnly.slice(0, 12).map((w, i) => {
-        const date = new Date(w.date).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
-        const infoStr = w.weight + 'kg · ' + date;
-        return `<div class="weight-timeline-item" onclick="openPhotoViewer('${w.photo}','${infoStr}')">
-          <img class="weight-timeline-photo" src="${w.photo}" alt="${w.weight}kg">
-          <div class="weight-timeline-val">${w.weight}kg</div>
-          <div class="weight-timeline-date">${date}</div>
-        </div>`;
+      timeline.innerHTML = photosOnly.slice(0,12).map(w => {
+        const date = new Date(w.date).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+        const info = w.weight+'kg - '+date;
+        return `<div class="weight-timeline-item" onclick="openPhotoViewer('${w.photo}','${info}')"><img class="weight-timeline-photo" src="${w.photo}" alt=""><div class="weight-timeline-val">${w.weight}kg</div><div class="weight-timeline-date">${date}</div></div>`;
       }).join('');
-    } else {
-      timeline.style.display = 'none';
-      timeline.innerHTML = '';
-    }
+    } else { timeline.style.display='none'; timeline.innerHTML=''; }
   }
 
   // History list
   const list = document.getElementById('weightHistList');
   if (!list) return;
   if (hist.length) {
-    list.innerHTML = hist.slice(0, 10).map((w, i) => {
-      const next = hist[i + 1];
-      const diff = next ? +(w.weight - next.weight).toFixed(1) : null;
-      const diffHtml = diff !== null
-        ? `<span class="whi-diff" style="color:${diff > 0 ? 'var(--success)' : diff < 0 ? 'var(--primary)' : 'var(--muted)'}">${diff > 0 ? '▼' : diff < 0 ? '▲' : '='} ${Math.abs(diff)}kg</span>`
-        : '';
-      const date = new Date(w.date).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', year:'2-digit'});
-      const hasPhoto = !!w.photo;
+    list.innerHTML = hist.slice(0,10).map((w,i) => {
+      const next = hist[i+1];
+      const diff = next ? +(w.weight-next.weight).toFixed(1) : null;
+      const diffHtml = diff!==null ? `<span class="whi-diff" style="color:${diff>0?'var(--success)':diff<0?'var(--primary)':'var(--muted)'}">${diff>0?'▼':diff<0?'▲':'='} ${Math.abs(diff)}kg</span>` : '';
+      const date = new Date(w.date).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
       const noteHtml = w.note ? `<div style="font-size:10px;color:var(--muted);padding:0 12px 8px;font-style:italic;">📝 ${w.note}</div>` : '';
-      const photoHtml = hasPhoto ? `<img class="weight-hist-photo show" src="${w.photo}" alt="" onclick="openPhotoViewer('${w.photo}','${w.weight}kg · ${date}')">` : '';
-      return `<div class="weight-hist-item">
-        <div class="weight-hist-top">
-          <span class="whi-date" style="display:flex;flex-direction:column;gap:1px;">
-            <span>${date}</span>
-            ${hasPhoto ? `<span class="weight-photo-expand-btn" onclick="openPhotoViewer('${w.photo}','${w.weight}kg · ${date}')">📷 ver foto</span>` : ''}
-          </span>
-          <span class="whi-val">${w.weight}kg</span>
-          ${diffHtml}
-          <span class="whi-del" onclick="deleteWeightEntry(${i})">✕</span>
-        </div>
-        ${noteHtml}
-      </div>`;
+      const photoBtn = w.photo ? `<span class="weight-photo-expand-btn" onclick="openPhotoViewer('${w.photo}','${w.weight}kg - ${date}')">📷 ver foto</span>` : '';
+      return `<div class="weight-hist-item"><div class="weight-hist-top"><span class="whi-date" style="display:flex;flex-direction:column;gap:1px;"><span>${date}</span>${photoBtn}</span><span class="whi-val">${w.weight}kg</span>${diffHtml}<span class="whi-del" onclick="deleteWeightEntry(${i})">✕</span></div>${noteHtml}</div>`;
     }).join('');
   } else {
     list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:11px;padding:12px;">Nenhum registro ainda.<br>Toque em "+ Registrar" para começar.</div>';
@@ -10059,6 +10151,379 @@ function renderDashboardQuickCards() {
   }
 }
 
+
+// ═══════════════════════════════════════════════════════
+// SPOTIFY OAUTH PKCE — Full playback control
+// ═══════════════════════════════════════════════════════
+const SPOTIFY_SCOPES = [
+  'streaming', 'user-read-email', 'user-read-private',
+  'user-read-playback-state', 'user-modify-playback-state',
+  'user-read-currently-playing', 'playlist-read-private',
+  'playlist-read-collaborative', 'user-library-read'
+].join(' ');
+
+let _spotifyToken = null;
+let _spotifyPlayer = null;
+let _spotifyDeviceId = null;
+let _spotifyPlayerInterval = null;
+let _spotifySDKReady = false;
+
+// ── Storage helpers ──
+function getSpotifyClientId() {
+  return localStorage.getItem('wgym_spotify_client_id') || '';
+}
+function saveSpotifyClientId() {
+  const val = (document.getElementById('spotifyClientIdInput')?.value || '').trim();
+  if (!val || val.length < 10) { showToast('⚠️ Client ID inválido'); return; }
+  localStorage.setItem('wgym_spotify_client_id', val);
+  showToast('✅ Client ID salvo!');
+  renderSpotifyUI();
+  spotifyLogin();
+}
+function getSpotifyToken() {
+  try {
+    const raw = localStorage.getItem('wgym_spotify_token');
+    if (!raw) return null;
+    const t = JSON.parse(raw);
+    if (Date.now() > t.expires_at) { localStorage.removeItem('wgym_spotify_token'); return null; }
+    return t.access_token;
+  } catch(e) { return null; }
+}
+function saveSpotifyToken(token, expiresIn) {
+  localStorage.setItem('wgym_spotify_token', JSON.stringify({
+    access_token: token,
+    expires_at: Date.now() + (expiresIn * 1000)
+  }));
+  _spotifyToken = token;
+}
+
+// ── PKCE helpers ──
+async function generateCodeVerifier() {
+  const arr = new Uint8Array(64);
+  crypto.getRandomValues(arr);
+  return btoa(String.fromCharCode(...arr)).replace(/[+/=]/g, c => ({'+':'-','/':'_','=':''}[c]));
+}
+async function generateCodeChallenge(verifier) {
+  const data = new TextEncoder().encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/[+/=]/g, c => ({'+':'-','/':'_','=':''}[c]));
+}
+
+// ── Login / Logout ──
+async function spotifyLogin() {
+  const clientId = getSpotifyClientId();
+  if (!clientId) { showToast('⚠️ Configure o Client ID primeiro'); return; }
+  
+  const verifier = await generateCodeVerifier();
+  const challenge = await generateCodeChallenge(verifier);
+  localStorage.setItem('spotify_code_verifier', verifier);
+  
+  // Use the registered redirect URI — must match Spotify Dashboard exactly
+  const registeredUri = 'https://martinswillians.github.io/WGym/';
+  // If running from the registered domain, use it; otherwise use current URL
+  const redirectUri = window.location.href.includes('martinswillians.github.io') 
+    ? registeredUri 
+    : window.location.href.split('?')[0].split('#')[0];
+  localStorage.setItem('spotify_redirect_uri', redirectUri);
+  
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: clientId,
+    scope: SPOTIFY_SCOPES,
+    redirect_uri: redirectUri,
+    code_challenge_method: 'S256',
+    code_challenge: challenge,
+    state: 'wgym_auth'
+  });
+  window.location.href = 'https://accounts.spotify.com/authorize?' + params.toString();
+}
+
+async function handleSpotifyCallback() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
+  const state = urlParams.get('state');
+  const error = urlParams.get('error');
+  
+  if (error) {
+    showToast('❌ Login Spotify cancelado');
+    window.history.replaceState({}, '', window.location.pathname);
+    return;
+  }
+  if (!code || state !== 'wgym_auth') return;
+  
+  // Clean URL
+  window.history.replaceState({}, '', window.location.pathname);
+  
+  const clientId = getSpotifyClientId();
+  const verifier = localStorage.getItem('spotify_code_verifier');
+  const redirectUri = localStorage.getItem('spotify_redirect_uri');
+  
+  try {
+    showToast('🔄 Conectando ao Spotify...');
+    const resp = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redirectUri,
+        client_id: clientId,
+        code_verifier: verifier
+      })
+    });
+    const data = await resp.json();
+    if (data.access_token) {
+      saveSpotifyToken(data.access_token, data.expires_in);
+      if (data.refresh_token) localStorage.setItem('spotify_refresh_token', data.refresh_token);
+      localStorage.removeItem('spotify_code_verifier');
+      showToast('✅ Spotify conectado!');
+      renderSpotifyUI();
+      initSpotifySDK();
+      loadSpotifyUserProfile();
+    } else {
+      showToast('❌ Erro: ' + (data.error_description || 'Falha no login'));
+    }
+  } catch(e) {
+    showToast('❌ Erro ao conectar: ' + e.message);
+  }
+}
+
+async function spotifyRefreshToken() {
+  const refreshToken = localStorage.getItem('spotify_refresh_token');
+  const clientId = getSpotifyClientId();
+  if (!refreshToken || !clientId) return false;
+  try {
+    const resp = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refreshToken, client_id: clientId })
+    });
+    const data = await resp.json();
+    if (data.access_token) {
+      saveSpotifyToken(data.access_token, data.expires_in);
+      if (data.refresh_token) localStorage.setItem('spotify_refresh_token', data.refresh_token);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+function spotifyLogout() {
+  if (!confirm('Desconectar do Spotify?')) return;
+  localStorage.removeItem('wgym_spotify_token');
+  localStorage.removeItem('spotify_refresh_token');
+  localStorage.removeItem('spotify_code_verifier');
+  _spotifyToken = null;
+  if (_spotifyPlayer) { _spotifyPlayer.disconnect(); _spotifyPlayer = null; }
+  if (_spotifyPlayerInterval) { clearInterval(_spotifyPlayerInterval); _spotifyPlayerInterval = null; }
+  renderSpotifyUI();
+  showToast('👋 Desconectado do Spotify');
+}
+
+// ── Spotify API calls ──
+async function spotifyAPI(endpoint, method, body) {
+  let token = getSpotifyToken();
+  if (!token) {
+    const refreshed = await spotifyRefreshToken();
+    if (!refreshed) { showToast('⚠️ Sessão Spotify expirada. Faça login novamente.'); renderSpotifyUI(); return null; }
+    token = getSpotifyToken();
+  }
+  const opts = { method: method || 'GET', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch('https://api.spotify.com/v1' + endpoint, opts);
+  if (resp.status === 204) return {};
+  if (resp.status === 401) { await spotifyRefreshToken(); return null; }
+  if (!resp.ok) return null;
+  try { return await resp.json(); } catch(e) { return {}; }
+}
+
+async function loadSpotifyUserProfile() {
+  const data = await spotifyAPI('/me');
+  if (!data) return;
+  const nameEl = document.getElementById('spotifyUserName');
+  const planEl = document.getElementById('spotifyUserPlan');
+  const avatarEl = document.getElementById('spotifyUserAvatar');
+  const subEl = document.getElementById('spotifyStatusSub');
+  if (nameEl) nameEl.textContent = data.display_name || 'Usuário';
+  if (planEl) planEl.textContent = data.product === 'premium' ? '✅ Premium' : '⚠️ Free (Premium necessário)';
+  if (avatarEl && data.images && data.images.length) avatarEl.src = data.images[0].url;
+  if (subEl) subEl.textContent = 'Conectado como ' + (data.display_name || 'Usuário');
+  startPlaybackPolling();
+}
+
+// ── Web Playback SDK ──
+function initSpotifySDK() {
+  if (_spotifySDKReady) { createSpotifyPlayer(); return; }
+  const script = document.createElement('script');
+  script.src = 'https://sdk.scdn.co/spotify-player.js';
+  document.head.appendChild(script);
+  window.onSpotifyWebPlaybackSDKReady = () => { _spotifySDKReady = true; createSpotifyPlayer(); };
+}
+
+function createSpotifyPlayer() {
+  const token = getSpotifyToken();
+  if (!token || !window.Spotify) return;
+  _spotifyPlayer = new Spotify.Player({
+    name: 'Will Gym PRO',
+    getOAuthToken: cb => {
+      const t = getSpotifyToken();
+      if (t) cb(t);
+      else spotifyRefreshToken().then(() => cb(getSpotifyToken()));
+    },
+    volume: 0.8
+  });
+  _spotifyPlayer.addListener('ready', ({ device_id }) => {
+    _spotifyDeviceId = device_id;
+    localStorage.setItem('spotify_device_id', device_id);
+    showToast('🎵 Spotify Player pronto!');
+    renderSpotifyUI();
+  });
+  _spotifyPlayer.addListener('player_state_changed', state => {
+    if (state) updateNowPlaying(state);
+  });
+  _spotifyPlayer.addListener('not_ready', () => { _spotifyDeviceId = null; });
+  _spotifyPlayer.connect();
+}
+
+function updateNowPlaying(state) {
+  if (!state || !state.track_window) return;
+  const track = state.track_window.current_track;
+  if (!track) return;
+  const nameEl = document.getElementById('spTrackName');
+  const artistEl = document.getElementById('spTrackArtist');
+  const artEl = document.getElementById('spTrackArt');
+  const playBtn = document.getElementById('spPlayBtn');
+  const fillEl = document.getElementById('spProgressFill');
+  const elapsedEl = document.getElementById('spTimeElapsed');
+  const durEl = document.getElementById('spTimeDuration');
+  if (nameEl) nameEl.textContent = track.name;
+  if (artistEl) artistEl.textContent = track.artists.map(a => a.name).join(', ');
+  if (artEl && track.album.images.length) artEl.src = track.album.images[0].url;
+  if (playBtn) playBtn.textContent = state.paused ? '▶' : '⏸';
+  const pct = state.duration > 0 ? (state.position / state.duration * 100) : 0;
+  if (fillEl) fillEl.style.width = pct + '%';
+  if (elapsedEl) elapsedEl.textContent = msToTime(state.position);
+  if (durEl) durEl.textContent = msToTime(state.duration);
+}
+
+function msToTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+}
+
+function startPlaybackPolling() {
+  if (_spotifyPlayerInterval) clearInterval(_spotifyPlayerInterval);
+  _spotifyPlayerInterval = setInterval(async () => {
+    if (!getSpotifyToken()) { clearInterval(_spotifyPlayerInterval); return; }
+    if (_spotifyPlayer) {
+      const state = await _spotifyPlayer.getCurrentState();
+      if (state) updateNowPlaying(state);
+    }
+  }, 1000);
+}
+
+// ── Player controls ──
+async function spotifyPlayPause() {
+  if (_spotifyPlayer) { await _spotifyPlayer.togglePlay(); return; }
+  const state = await spotifyAPI('/me/player');
+  if (!state) return;
+  if (state.is_playing) await spotifyAPI('/me/player/pause', 'PUT');
+  else await spotifyAPI('/me/player/play', 'PUT');
+}
+async function spotifyNext() {
+  if (_spotifyPlayer) { await _spotifyPlayer.nextTrack(); return; }
+  await spotifyAPI('/me/player/next', 'POST');
+}
+async function spotifyPrevious() {
+  if (_spotifyPlayer) { await _spotifyPlayer.previousTrack(); return; }
+  await spotifyAPI('/me/player/previous', 'POST');
+}
+async function setSpotifyVolume(val) {
+  if (_spotifyPlayer) { await _spotifyPlayer.setVolume(val / 100); return; }
+  await spotifyAPI('/me/player/volume?volume_percent=' + val, 'PUT');
+}
+async function seekTrack(e) {
+  const bar = document.getElementById('spProgress');
+  if (!bar) return;
+  const pct = e.offsetX / bar.offsetWidth;
+  if (_spotifyPlayer) {
+    const state = await _spotifyPlayer.getCurrentState();
+    if (state) await _spotifyPlayer.seek(Math.floor(pct * state.duration));
+  }
+}
+
+// ── Play a playlist ──
+async function playSpotifyContext(uri, name) {
+  const deviceId = _spotifyDeviceId || localStorage.getItem('spotify_device_id');
+  if (!deviceId) {
+    showToast('⚠️ Abrindo no Spotify app...');
+    window.open('spotify:' + uri.replace(':', '/').replace('spotify/', ''), '_blank');
+    return;
+  }
+  await spotifyAPI('/me/player/play', 'PUT', { context_uri: uri, device_id: deviceId });
+  showToast('▶ Tocando: ' + name);
+  setTimeout(startPlaybackPolling, 1000);
+}
+
+// ── UI renderer ──
+function renderSpotifyUI() {
+  const clientId = getSpotifyClientId();
+  const token = getSpotifyToken();
+  const setupBox = document.getElementById('spotifySetupBox');
+  const loginSection = document.getElementById('spotifyLoginSection');
+  const playerSection = document.getElementById('spotifyPlayerSection');
+  const redirectEl = document.getElementById('spotifyRedirectShow');
+
+  if (redirectEl) {
+    const url = window.location.href.split('?')[0].split('#')[0];
+    redirectEl.textContent = url;
+  }
+
+  if (!clientId) {
+    // Auto-set the pre-configured client ID
+    localStorage.setItem('wgym_spotify_client_id', 'ce863273caf144e99a6293758f40449c');
+  }
+  if (setupBox) setupBox.style.display = 'none';
+
+  if (!token) {
+    if (loginSection) loginSection.style.display = 'block';
+    if (playerSection) playerSection.style.display = 'none';
+    return;
+  }
+  if (loginSection) loginSection.style.display = 'none';
+  if (playerSection) playerSection.style.display = 'block';
+  renderSpotifyPlaylists();
+  if (_spotifySDKReady && !_spotifyPlayer) createSpotifyPlayer();
+  else if (!_spotifySDKReady) initSpotifySDK();
+}
+
+// Override loadSpotifyPreset to use real API
+function loadSpotifyPreset(idx) {
+  const pl = SPOTIFY_PRESETS[idx];
+  if (!pl) return;
+  if (getSpotifyToken()) {
+    playSpotifyContext('spotify:playlist:' + pl.id, pl.name);
+  } else {
+    loadSpotifyEmbed(pl.id, pl.type, pl.name);
+  }
+  _spotifyCurrentId = pl.id;
+  renderSpotifyPlaylists();
+  try { localStorage.setItem('wgym_spotify', JSON.stringify({id: pl.id, type: pl.type})); } catch(e) {}
+}
+
+function loadCustomSpotify() {
+  const input = document.getElementById('spotifyCustomUrl');
+  const val = (input?.value || '').trim();
+  if (!val) { showToast('⚠️ Cole um link do Spotify'); return; }
+  const parsed = parseSpotifyUrl(val);
+  if (!parsed) { showToast('❌ Link inválido'); return; }
+  if (getSpotifyToken()) {
+    playSpotifyContext('spotify:' + parsed.type + ':' + parsed.id, 'Sua playlist');
+  } else {
+    loadSpotifyEmbed(parsed.id, parsed.type, 'Sua playlist');
+  }
+}
+
 // INIT
 // ═══════════════════════════════════════════════════════
 loadCustomEx();
@@ -10070,6 +10535,16 @@ renderTemplateGrid();
 patchUpdateExForm();
 
 // If already logged in, skip auth screen
+// Pre-configure Spotify Client ID
+if (!localStorage.getItem('wgym_spotify_client_id')) {
+  localStorage.setItem('wgym_spotify_client_id', 'ce863273caf144e99a6293758f40449c');
+}
+
+// Handle Spotify OAuth callback
+if (new URLSearchParams(window.location.search).get('state') === 'wgym_auth') {
+  handleSpotifyCallback();
+}
+
 if (currentAccount) {
   document.getElementById('authScreen').classList.add('hidden');
   linkAccountToAthlete();
